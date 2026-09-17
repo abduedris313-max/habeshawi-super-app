@@ -9,6 +9,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { HARMONY_APPS } from '../config/apps';
 import { MiniAppConfig, HarmonyNote, HarmonyWritingDraft, HarmonyCalendarEvent, Track, SystemSettings, LauncherIconStyle, LauncherGridDensity } from '../types';
+import { HabeshawiAppIcon } from './HabeshawiIcons';
 import { 
   Search, 
   Settings, 
@@ -239,42 +240,25 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
     return categories;
   }, [allInstalledApps]);
 
-  const getIconComponent = (iconName: string) => {
-    switch (iconName) {
-      case 'notebook': return <Notebook className="w-5 h-5 text-white drop-shadow-md" />;
-      case 'file-text': return <FileText className="w-5 h-5 text-white drop-shadow-md" />;
-      case 'pen-tool': return <PenTool className="w-5 h-5 text-white drop-shadow-md" />;
-      case 'disc': return <Disc className="w-5 h-5 text-white drop-shadow-md animate-spin-slow" />;
-      case 'sparkles': return <Sparkles className="w-5 h-5 text-white drop-shadow-md" />;
-      case 'calendar': return <CalendarIcon className="w-5 h-5 text-white drop-shadow-md" />;
-      case 'wallet': return <Wallet className="w-5 h-5 text-white drop-shadow-md" />;
-      case 'shopping-bag':
-      case 'store':
-        return <ShoppingBag className="w-5 h-5 text-white drop-shadow-md" />;
-      case 'cloud-sun': return <CloudSun className="w-5 h-5 text-white drop-shadow-md" />;
-      case 'calculator': return <Calculator className="w-5 h-5 text-white drop-shadow-md" />;
-      case 'clock': return <Clock className="w-5 h-5 text-white drop-shadow-md" />;
-      case 'terminal': return <Terminal className="w-5 h-5 text-white drop-shadow-md" />;
-      case 'activity': return <Activity className="w-5 h-5 text-white drop-shadow-md" />;
-      default: return <Sparkles className="w-5 h-5 text-white" />;
-    }
+  const getIconComponent = (iconName: string, appId?: string) => {
+    return <HabeshawiAppIcon appId={appId} iconName={iconName} className="w-6 h-6 sm:w-7 sm:h-7 drop-shadow-md" />;
   };
 
-  // Icon container style resolution based on user preferences
+  // Icon container style resolution based on user preferences with Habeshawi aesthetics
   const getAppIconContainerStyle = (app: MiniAppConfig, index: number) => {
     if (iconStyle === 'tinted') {
-      return 'bg-white/10 backdrop-blur-xl border border-indigo-400/40 text-indigo-300 shadow-lg';
+      return 'bg-amber-950/20 backdrop-blur-xl border border-amber-400/40 text-amber-300 shadow-lg';
     }
     if (iconStyle === 'dark-glass') {
-      return 'bg-neutral-900/90 border border-purple-500/40 text-purple-400 shadow-lg shadow-purple-900/20';
+      return 'bg-neutral-950/90 border border-amber-500/40 text-amber-400 shadow-lg shadow-amber-950/30';
     }
     if (iconStyle === 'monochrome') {
       return isDarkMode 
-        ? 'bg-neutral-800 border border-neutral-700 text-white' 
-        : 'bg-neutral-200 border border-neutral-300 text-neutral-900';
+        ? 'bg-neutral-900 border border-neutral-700 text-white' 
+        : 'bg-neutral-100 border border-neutral-300 text-neutral-900';
     }
-    // Default: Vibrant gradients
-    return `bg-gradient-to-br ${app.colorGradient} border border-white/20 text-white shadow-md shadow-black/30`;
+    // Default: Vibrant Habeshawi gradients with gold/emerald/crimson border trims
+    return `bg-gradient-to-br ${app.colorGradient} border border-amber-400/30 text-white shadow-lg shadow-black/40`;
   };
 
   // Grid column density
@@ -523,7 +507,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
                       }`}
                     >
                       <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${app.colorGradient} flex items-center justify-center shrink-0`}>
-                        {getIconComponent(app.iconName)}
+                        {getIconComponent(app.iconName, app.id)}
                       </div>
                       <div className="min-w-0">
                         <p className="text-[11px] font-bold truncate">{app.name}</p>
@@ -579,11 +563,11 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
                       {/* App Squircle Icon */}
                       <div 
                         id={`app-icon-${app.id}`}
-                        className={`w-13 h-13 sm:w-15 sm:h-15 rounded-[16px] sm:rounded-[18px] p-0.5 flex flex-col items-center justify-center relative overflow-hidden transition-all group-hover:shadow-lg ${getAppIconContainerStyle(app, index)}`}
+                        className={`w-13 h-13 sm:w-15 sm:h-15 rounded-[16px] sm:rounded-[18px] p-1 flex flex-col items-center justify-center relative overflow-hidden transition-all group-hover:shadow-lg ${getAppIconContainerStyle(app, index)}`}
                       >
                         <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-black/25 pointer-events-none rounded-[16px]" />
-                        <div className="z-10 flex flex-col items-center justify-center">
-                          {getIconComponent(app.iconName)}
+                        <div className="z-10 flex flex-col items-center justify-center w-full h-full">
+                          {getIconComponent(app.iconName, app.id)}
                         </div>
                         {app.badge && !isEditMode && (
                           <span className="absolute top-0.5 right-0.5 px-1.5 py-0.2 rounded-full bg-red-500 text-[8px] font-bold text-white shadow-xs">
@@ -720,8 +704,8 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
                             onClick={() => onOpenApp(app.id)}
                             className="flex items-center gap-1.5 p-1 rounded-xl hover:bg-white/10 cursor-pointer transition-colors"
                           >
-                            <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${app.colorGradient} flex items-center justify-center shrink-0`}>
-                              {getIconComponent(app.iconName)}
+                            <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${app.colorGradient} flex items-center justify-center shrink-0 p-0.5`}>
+                              {getIconComponent(app.iconName, app.id)}
                             </div>
                             <span className="text-[10px] font-semibold truncate">{app.name}</span>
                           </div>

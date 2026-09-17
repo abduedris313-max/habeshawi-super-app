@@ -48,6 +48,7 @@ import {
 import { MiniAppConfig, SystemUser, AppRepositorySource } from '../../types';
 import { useTheme } from '../../hooks/useTheme';
 import { triggerHaptic } from '../../utils/haptics';
+import { HabeshawiAppIcon, HabeshawiBrandEmblem } from '../../components/HabeshawiIcons';
 
 interface HarmonyAppStoreProps {
   user?: SystemUser | null;
@@ -273,20 +274,18 @@ export const HarmonyAppStoreModule: React.FC<HarmonyAppStoreProps> = ({
           {/* Brand Row + Repositories Status Indicator */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 via-sky-500 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
-                <ShoppingBag className="w-6 h-6" />
-              </div>
+              <HabeshawiBrandEmblem size={48} />
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                    Harmony App Store
+                    Habeshawi App Store
                   </h1>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
                     Central Repo v2.4
                   </span>
                 </div>
                 <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-[#8b949e]' : 'text-neutral-500'}`}>
-                  Fetch, stream download, and install mini-apps from the Central Repository.
+                  Fetch, stream download, and install mini-apps from the Habeshawi Central Repository.
                 </p>
               </div>
             </div>
@@ -494,10 +493,10 @@ export const HarmonyAppStoreModule: React.FC<HarmonyAppStoreProps> = ({
                       <div className="flex items-start gap-3.5">
                         <div
                           onClick={() => setSelectedApp(app)}
-                          className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${app.colorGradient} p-0.5 shadow-md flex items-center justify-center relative overflow-hidden shrink-0 cursor-pointer`}
+                          className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${app.colorGradient} p-1 shadow-md flex items-center justify-center relative overflow-hidden shrink-0 cursor-pointer border border-amber-400/30`}
                         >
                           <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none rounded-2xl" />
-                          <span className="text-2xl z-10">{getAppEmoji(app.id)}</span>
+                          <HabeshawiAppIcon appId={app.id} iconName={app.iconName} className="w-full h-full p-1" />
                         </div>
 
                         <div className="min-w-0 flex-1">
@@ -773,8 +772,8 @@ export const HarmonyAppStoreModule: React.FC<HarmonyAppStoreProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${app.colorGradient} flex items-center justify-center text-2xl shrink-0 shadow-sm`}>
-                      {getAppEmoji(app.id)}
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${app.colorGradient} flex items-center justify-center shrink-0 shadow-sm p-1 border border-amber-400/30`}>
+                      <HabeshawiAppIcon appId={app.id} iconName={app.iconName} className="w-full h-full p-0.5" />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
@@ -840,8 +839,8 @@ export const HarmonyAppStoreModule: React.FC<HarmonyAppStoreProps> = ({
               {/* Header */}
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${selectedApp.colorGradient} p-0.5 shadow-lg flex items-center justify-center text-3xl shrink-0`}>
-                    {getAppEmoji(selectedApp.id)}
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${selectedApp.colorGradient} p-1 shadow-lg flex items-center justify-center shrink-0 border border-amber-400/40`}>
+                    <HabeshawiAppIcon appId={selectedApp.id} iconName={selectedApp.iconName} className="w-full h-full p-1" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold leading-tight">{selectedApp.name}</h2>

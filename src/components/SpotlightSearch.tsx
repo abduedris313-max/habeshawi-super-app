@@ -8,6 +8,7 @@ import { motion } from 'motion/react';
 import { Search, X, Sparkles, Notebook, FileText, PenTool, Disc, ArrowRight } from 'lucide-react';
 import { HARMONY_APPS } from '../config/apps';
 import { HarmonyNote, HarmonyDoc, HarmonyWritingDraft } from '../types';
+import { HabeshawiAppIcon } from './HabeshawiIcons';
 
 interface SpotlightSearchProps {
   isOpen: boolean;
@@ -109,12 +110,12 @@ export const SpotlightSearch: React.FC<SpotlightSearchProps> = ({
 
         {/* Search Results List */}
         <div className="p-4 overflow-y-auto space-y-6 flex-1 scrollbar-none">
-          {/* Section 1: Integrated Harmony Mini Apps */}
+          {/* Section 1: Integrated Habeshawi Mini Apps */}
           <div>
             <h4 className={`text-[11px] font-bold uppercase tracking-wider mb-2 ${
               isDarkMode ? 'text-white/40' : 'text-neutral-500'
             }`}>
-              Harmony Mini Apps
+              Habeshawi Mini Apps
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {filteredApps.map((app) => (
@@ -130,8 +131,8 @@ export const SpotlightSearch: React.FC<SpotlightSearchProps> = ({
                       : 'bg-neutral-50 hover:bg-neutral-100 border-neutral-200/80 shadow-sm'
                   }`}
                 >
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${app.colorGradient} flex items-center justify-center text-white shrink-0 shadow-sm`}>
-                    <Sparkles className="w-5 h-5" />
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${app.colorGradient} flex items-center justify-center text-white shrink-0 shadow-sm p-1.5 border border-amber-400/30`}>
+                    <HabeshawiAppIcon appId={app.id} iconName={app.iconName} className="w-full h-full" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h5 className={`text-xs font-semibold truncate ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{app.name}</h5>
@@ -145,11 +146,11 @@ export const SpotlightSearch: React.FC<SpotlightSearchProps> = ({
             </div>
           </div>
 
-          {/* Section 2: Synced Harmony Notes */}
+          {/* Section 2: Synced Habeshawi Notes */}
           {filteredNotes.length > 0 && (
             <div>
               <h4 className="text-[11px] font-bold uppercase tracking-wider text-amber-500 mb-2">
-                Harmony Notes ({filteredNotes.length})
+                Habeshawi Notes ({filteredNotes.length})
               </h4>
               <div className="space-y-1.5">
                 {filteredNotes.map((note) => (
@@ -179,11 +180,11 @@ export const SpotlightSearch: React.FC<SpotlightSearchProps> = ({
             </div>
           )}
 
-          {/* Section 3: Synced Harmony Docs */}
+          {/* Section 3: Synced Habeshawi Docs */}
           {filteredDocs.length > 0 && (
             <div>
               <h4 className="text-[11px] font-bold uppercase tracking-wider text-blue-500 mb-2">
-                Harmony Docs ({filteredDocs.length})
+                Habeshawi Docs ({filteredDocs.length})
               </h4>
               <div className="space-y-1.5">
                 {filteredDocs.map((docItem) => (

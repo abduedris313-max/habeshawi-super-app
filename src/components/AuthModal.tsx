@@ -9,10 +9,12 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, Flame, User, Mail, Lock, LogIn, UserPlus, LogOut, 
-  CheckCircle2, KeyRound, ArrowLeft, AlertCircle, Edit2, Check, Sparkles 
+  CheckCircle2, KeyRound, ArrowLeft, AlertCircle, Edit2, Check, Sparkles,
+  ExternalLink, Copy, ShieldAlert, Globe
 } from 'lucide-react';
 import { 
   loginWithGoogle,
+  loginWithGoogleRedirect,
   loginAnonymously, 
   loginWithEmail, 
   registerWithEmail, 
@@ -51,6 +53,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [newDisplayName, setNewDisplayName] = useState('');
 
   const [errorMsg, setErrorMsg] = useState('');
+  const [authErrorCode, setAuthErrorCode] = useState<string | null>(null);
+  const [copiedDomain, setCopiedDomain] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -58,6 +62,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setErrorMsg('');
+      setAuthErrorCode(null);
+      setCopiedDomain(false);
       setSuccessMsg('');
       if (initialMode) {
         setMode(initialMode);
@@ -78,6 +84,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const getFriendlyErrorMessage = (error: any): string => {
     const code = error?.code || '';
     const message = error?.message || '';
+    if (code === 'auth/unauthorized-domain' || message.includes('unauthorized-domain')) {
+      return `This domain (${typeof window !== 'undefined' ? window.location.hostname : 'current site'}) is not authorized in Firebase. Add it in Firebase Console under Authentication -> Settings -> Authorized domains.`;
+    }
+    if (code === 'auth/popup-blocked') {
+      return 'The sign-in popup was blocked by the browser. You can use the direct redirect sign-in option below.';
+    }
+    if (code === 'auth/operation-not-allowed') {
+      return 'Google Sign-In is not enabled for this Firebase project. Please enable the Google provider in Firebase Console -> Authentication -> Sign-in method.';
+    }
+    if (code === 'auth/cancelled-popup-request') {
+      return 'Sign-in was cancelled due to a newer sign-in attempt. Please try again.';
+    }
     if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
       return 'Incorrect email or password. Please try again.';
     }
@@ -164,6 +182,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleGoogleSignIn = async () => {
     setErrorMsg('');
+    setAuthErrorCode(null);
     setIsLoading(true);
     try {
       const user = await loginWithGoogle();
@@ -173,6 +192,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       onClose();
     } catch (err: any) {
       if (err?.code !== 'auth/popup-closed-by-user') {
+        const code = err?.code || (err?.message?.includes('unauthorized-domain') ? 'auth/unauthorized-domain' : '');
+        setAuthErrorCode(code);
         setErrorMsg(getFriendlyErrorMessage(err));
       }
     } finally {
@@ -250,12 +271,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               }`}>
                 <span>
                   {mode === 'profile' 
-                    ? 'Harmony Account' 
+                    ? 'Habeshawi Account' 
                     : mode === 'signup' 
-                    ? 'Create Harmony Account' 
+                    ? 'Create Habeshawi Account' 
                     : mode === 'forgot' 
                     ? 'Reset Password' 
-                    : 'Sign In to Harmony'}
+                    : 'Sign In to Habeshawi'}
                 </span>
                 <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
                   isGuest 
@@ -296,6 +317,125 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             >
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{errorMsg}</span>
+            </motion.div>
+          )}
+
+          {/* Actionable Solution Card for Unauthorized Domain */}
+          {authErrorCode === 'auth/unauthorized-domain' && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className={`mb-4 p-4 rounded-2xl border text-xs space-y-3 ${
+                isDarkMode 
+                  ? 'bg-amber-950/30 border-amber-500/40 text-amber-200' 
+                  : 'bg-amber-50 border-amber-300 text-amber-900'
+              }`}
+            >
+              <div className="flex items-center gap-2 font-semibold text-amber-400">
+                <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>How to Authorize this Deployed Domain</span>
+              </div>
+              <p className="leading-relaxed text-[11px] opacity-90">
+                Firebase Authentication restricts OAuth popups to authorized domains. Add this deployed domain to your Firebase Console:
+              </p>
+              
+              <div className={`p-2.5 rounded-xl font-mono text-[11px] flex items-center justify-between gap-2 border ${
+                isDarkMode ? 'bg-black/40 border-amber-500/20 text-white' : 'bg-white border-amber-200 text-neutral-900'
+              }`}>
+                <span className="truncate">{typeof window !== 'undefined' ? window.location.hostname : ''}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.hostname);
+                    setCopiedDomain(true);
+                    setTimeout(() => setCopiedDomain(false), 2500);
+                  }}
+                  className={`px-2.5 py-1 rounded-lg font-sans font-medium text-[10px] flex items-center gap-1 transition-all ${
+                    copiedDomain 
+                      ? 'bg-emerald-500 text-white' 
+                      : isDarkMode ? 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/30' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                  }`}
+                >
+                  {copiedDomain ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  {copiedDomain ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+
+              <div className="pt-1 flex flex-col gap-2">
+                <a
+                  href="https://console.firebase.google.com/project/concrete-lead-kc9s2/authentication/settings"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-center flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <span>Open Firebase Console Settings</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+                <p className="text-[10px] opacity-75 leading-tight text-center">
+                  Scroll to <b>Authorized domains</b> &rarr; Click <b>Add domain</b> &rarr; Paste and Save.
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Actionable Solution Card for Popup Blocked */}
+          {authErrorCode === 'auth/popup-blocked' && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="mb-4 p-3.5 rounded-2xl border border-blue-500/30 bg-blue-500/10 text-xs space-y-2.5 text-blue-300"
+            >
+              <div className="flex items-center gap-2 font-semibold text-blue-400">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>Popup Blocked by Browser or iFrame</span>
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                Your browser or iframe environment blocked the authentication popup. You can sign in using full redirect mode:
+              </p>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    setIsLoading(true);
+                    await loginWithGoogleRedirect();
+                  } catch (err: any) {
+                    setErrorMsg(getFriendlyErrorMessage(err));
+                    setIsLoading(false);
+                  }
+                }}
+                className="w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <span>Sign In via Full-Page Redirect</span>
+              </button>
+            </motion.div>
+          )}
+
+          {/* Actionable Solution Card for Operation Not Allowed */}
+          {authErrorCode === 'auth/operation-not-allowed' && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="mb-4 p-3.5 rounded-2xl border border-rose-500/30 bg-rose-500/10 text-xs space-y-2.5 text-rose-300"
+            >
+              <div className="flex items-center gap-2 font-semibold text-rose-400">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>Google Sign-In Provider Disabled</span>
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                Google provider must be enabled in Firebase Console &rarr; Authentication &rarr; Sign-in method.
+              </p>
+              <a
+                href="https://console.firebase.google.com/project/concrete-lead-kc9s2/authentication/providers"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <span>Enable Google in Firebase Console</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
             </motion.div>
           )}
 
@@ -357,7 +497,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               ) : (
                 <div className="flex items-center justify-center gap-1.5 mb-1">
                   <h4 className={`font-bold text-base ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                    {currentUser.displayName || currentUser.email?.split('@')[0] || 'Harmony User'}
+                    {currentUser.displayName || currentUser.email?.split('@')[0] || 'Habeshawi User'}
                   </h4>
                   <button
                     onClick={() => setIsEditingName(true)}
@@ -416,7 +556,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             }`}>
               <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <span>
-                <strong>Optional Account</strong>: Harmony works 100% offline out-of-the-box. Signing in links your notes, docs, and preferences to Firebase across all your browsers and phones.
+                <strong>Optional Account</strong>: Habeshawi works 100% offline out-of-the-box. Signing in links your notes, docs, and preferences to Firebase across all your browsers and phones.
               </span>
             </div>
 
@@ -700,7 +840,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 mt-2"
               >
                 <UserPlus className="w-4 h-4" />
-                <span>{isLoading ? 'Creating Account...' : 'Create Harmony Account'}</span>
+                <span>{isLoading ? 'Creating Account...' : 'Create Habeshawi Account'}</span>
               </button>
             </form>
 
@@ -726,7 +866,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div className={`mb-4 p-3 rounded-xl border text-xs ${
               isDarkMode ? 'bg-neutral-800/40 border-neutral-700/50 text-[#8b949e]' : 'bg-neutral-50 border-neutral-200 text-neutral-600'
             }`}>
-              Enter the email address associated with your Harmony account. We'll send a secure password reset link to your email.
+              Enter the email address associated with your Habeshawi account. We'll send a secure password reset link to your email.
             </div>
 
             <form onSubmit={handleForgotPassword} className="space-y-3">

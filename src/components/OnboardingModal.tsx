@@ -63,8 +63,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const steps = [
     {
       id: 'welcome',
-      title: 'Welcome to Harmony',
-      subtitle: 'Your Unified Personal Ecosystem',
+      title: 'Welcome to Habeshawi',
+      subtitle: 'Your Unified Cultural & Productivity Ecosystem',
     },
     {
       id: 'appearance',
@@ -84,7 +84,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
     {
       id: 'gestures',
       title: 'Quick Gestures & Shortcuts',
-      subtitle: 'Navigate Harmony like a pro',
+      subtitle: 'Navigate Habeshawi like a pro',
     }
   ];
 
@@ -182,10 +182,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
                 <div className="space-y-1">
                   <h2 className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-                    Welcome to Harmony
+                    Welcome to Habeshawi
                   </h2>
                   <p className={`text-sm ${isDark ? 'text-[#8b949e]' : 'text-neutral-600'}`}>
-                    Your iOS-style Super App ecosystem. Everything you create, plan, and play in one beautifully unified environment.
+                    Your cultural & productivity Super App ecosystem. Everything you create, study, plan, and play in one beautifully unified environment.
                   </p>
                 </div>
 
@@ -235,7 +235,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     Choose Your Appearance
                   </h3>
                   <p className={`text-xs ${isDark ? 'text-[#8b949e]' : 'text-neutral-500'}`}>
-                    Select how Harmony looks across your desktop and mobile displays.
+                    Select how Habeshawi looks across your desktop and mobile displays.
                   </p>
                 </div>
 
@@ -392,7 +392,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     Optional Cloud Sync
                   </h3>
                   <p className={`text-xs ${isDark ? 'text-[#8b949e]' : 'text-neutral-500'}`}>
-                    Harmony is completely functional without an account. Choose how you'd like to use Harmony.
+                    Habeshawi is completely functional without an account. Choose how you'd like to use Habeshawi.
                   </p>
                 </div>
 
@@ -487,7 +487,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     Quick Gestures & Shortcuts
                   </h3>
                   <p className={`text-xs ${isDark ? 'text-[#8b949e]' : 'text-neutral-500'}`}>
-                    Master your Harmony workspace with fast iOS 18 interactions.
+                    Master your Habeshawi workspace with fast iOS 18 interactions.
                   </p>
                 </div>
 
@@ -568,7 +568,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             onClick={handleNext}
             className="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold shadow-md transition-all flex items-center gap-1.5"
           >
-            <span>{currentStep === steps.length - 1 ? 'Enter Harmony' : 'Continue'}</span>
+            <span>{currentStep === steps.length - 1 ? 'Enter Habeshawi' : 'Continue'}</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>

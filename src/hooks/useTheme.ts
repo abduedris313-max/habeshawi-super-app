@@ -35,17 +35,17 @@ export function useTheme(): ThemeConfig {
 
   const [themePreset, setThemePreset] = useState<string>(() => {
     if (typeof document !== 'undefined') {
-      return document.documentElement.getAttribute('data-theme') || 'slate';
+      return document.documentElement.getAttribute('data-theme') || 'habeshawi-gold';
     }
-    return 'slate';
+    return 'habeshawi-gold';
   });
 
   const [accentColor, setAccentColor] = useState<string>(() => {
     if (typeof document !== 'undefined') {
       const computed = getComputedStyle(document.documentElement).getPropertyValue('--accent-color');
-      return computed ? computed.trim() : '#6366f1';
+      return computed ? computed.trim() : '#f59e0b';
     }
-    return '#6366f1';
+    return '#f59e0b';
   });
 
   const getCssVar = useCallback((varName: string, fallback: string = ''): string => {

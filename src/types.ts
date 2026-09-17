@@ -122,12 +122,22 @@ export interface HarmonyCalendarEvent {
 }
 
 export type ThemeMode = 'dark' | 'light' | 'system';
-export type ThemePreset = 'slate' | 'oled' | 'sunset' | 'emerald' | 'lavender';
+export type ThemePreset = 
+  | 'habeshawi-gold'
+  | 'axum-emerald'
+  | 'sheba-crimson'
+  | 'lalibela-stone'
+  | 'birana-parchment'
+  | 'slate' 
+  | 'oled' 
+  | 'sunset' 
+  | 'emerald' 
+  | 'lavender';
 export type LauncherIconStyle = 'vibrant' | 'tinted' | 'dark-glass' | 'monochrome';
 export type LauncherGridDensity = 'spacious' | 'standard' | 'compact';
 export type WidgetSize = 'small' | 'medium' | 'large';
 
-export type SystemFontFamily = 'system' | 'sans' | 'geometric' | 'serif' | 'mono' | 'rounded';
+export type SystemFontFamily = 'system' | 'ethiopic' | 'sans' | 'geometric' | 'serif' | 'mono' | 'rounded';
 export type FontSizeScale = 'compact' | 'standard' | 'large' | 'xlarge';
 export type DisplayScale = 'compact' | 'standard' | 'expanded';
 export type ColorTemperature = 'standard' | 'warm' | 'cool';

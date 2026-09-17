@@ -11,6 +11,8 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut, 
   onAuthStateChanged,
@@ -182,8 +184,42 @@ if (typeof window !== 'undefined') {
 
 export async function loginWithGoogle() {
   const provider = new GoogleAuthProvider();
-  const userCredential = await signInWithPopup(auth, provider);
-  return userCredential.user;
+  provider.setCustomParameters({
+    prompt: 'select_account'
+  });
+  try {
+    const userCredential = await signInWithPopup(auth, provider);
+    return userCredential.user;
+  } catch (error: any) {
+    console.error('[Firebase Auth Error] Google Sign-In with popup failed:', error);
+    if (error?.code === 'auth/unauthorized-domain') {
+      const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
+      console.warn(`[Firebase Auth] Domain "${currentHost}" must be whitelisted in Firebase Console under Authentication -> Settings -> Authorized Domains.`);
+    }
+    throw error;
+  }
+}
+
+export async function loginWithGoogleRedirect() {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({
+    prompt: 'select_account'
+  });
+  await signInWithRedirect(auth, provider);
+}
+
+export async function checkAuthRedirectResult() {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result?.user) {
+      console.log('[Firebase Auth] Signed in via redirect result:', result.user.email);
+      return result.user;
+    }
+  } catch (error: any) {
+    console.warn('[Firebase Auth] Redirect result processing:', error?.message || error);
+    throw error;
+  }
+  return null;
 }
 // -----------------------------------------------------------------------------
 

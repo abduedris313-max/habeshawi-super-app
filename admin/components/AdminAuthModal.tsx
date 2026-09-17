@@ -22,7 +22,11 @@ import {
   Eye, 
   Crown,
   LogIn,
-  UserPlus
+  UserPlus,
+  ExternalLink,
+  Copy,
+  Check,
+  ShieldAlert
 } from 'lucide-react';
 import { AdminUserProfile, AdminUserRole } from '../types';
 import { 
@@ -64,6 +68,8 @@ export const AdminAuthModal: React.FC<AdminAuthModalProps> = ({
   // UI status state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [copiedDomain, setCopiedDomain] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -136,6 +142,7 @@ export const AdminAuthModal: React.FC<AdminAuthModalProps> = ({
 
   const handleGoogleLogin = async () => {
     setError(null);
+    setErrorCode(null);
     setLoading(true);
     try {
       const profile = await loginAdminWithGoogleAccount();
@@ -146,7 +153,19 @@ export const AdminAuthModal: React.FC<AdminAuthModalProps> = ({
       }, 600);
     } catch (err: any) {
       console.error(err);
-      setError('Google Sign In failed or popup was closed.');
+      const code = err?.code || (err?.message?.includes('unauthorized-domain') ? 'auth/unauthorized-domain' : '');
+      setErrorCode(code);
+      if (code === 'auth/unauthorized-domain') {
+        setError(`Deployment Domain Not Authorized: ${window.location.hostname} is not whitelisted in Firebase Console.`);
+      } else if (code === 'auth/popup-closed-by-user') {
+        setError('Sign in popup was closed before completion.');
+      } else if (code === 'auth/popup-blocked') {
+        setError('Google sign-in popup was blocked by browser. Please allow popups or use Demo Developer access.');
+      } else if (code === 'auth/operation-not-allowed') {
+        setError('Google Sign-In is not enabled in Firebase Console (Authentication -> Sign-in method).');
+      } else {
+        setError(err.message || 'Google Sign In failed. Please try email login or demo access.');
+      }
     } finally {
       setLoading(false);
     }
@@ -217,6 +236,46 @@ export const AdminAuthModal: React.FC<AdminAuthModalProps> = ({
             <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
+            </div>
+          )}
+
+          {/* Actionable Solution Card for Unauthorized Domain */}
+          {errorCode === 'auth/unauthorized-domain' && (
+            <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs space-y-3 text-amber-200">
+              <div className="flex items-center gap-2 font-semibold text-amber-400">
+                <ShieldAlert className="w-4 h-4 shrink-0" />
+                <span>Fix Google Sign-In for this Deployed Domain</span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-amber-200/90">
+                Firebase restricts Google OAuth to whitelisted domains. To enable Google Sign-In on this Cloud Run URL:
+              </p>
+              <div className="p-2 rounded-lg bg-black/40 border border-amber-500/20 font-mono text-[11px] text-white flex items-center justify-between gap-2">
+                <span className="truncate">{typeof window !== 'undefined' ? window.location.hostname : ''}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.hostname);
+                    setCopiedDomain(true);
+                    setTimeout(() => setCopiedDomain(false), 2500);
+                  }}
+                  className="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-[10px] font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  {copiedDomain ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                  {copiedDomain ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+              <a
+                href="https://console.firebase.google.com/project/concrete-lead-kc9s2/authentication/settings"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-2 px-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-center flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <span>Open Firebase Authorized Domains</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+              <p className="text-[10px] text-slate-400 text-center">
+                In Firebase Settings &rarr; Authorized domains &rarr; Add domain &rarr; Paste & Save.
+              </p>
             </div>
           )}
 

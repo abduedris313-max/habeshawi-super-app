@@ -1,6 +1,6 @@
 /**
  * @file apps.ts
- * @description Catalog & Metadata for all Harmony Projects mini apps.
+ * @description Catalog & Metadata for all Habeshawi Projects mini apps.
  * Includes both core pre-installed apps and central repository downloadable packages.
  */
 
@@ -10,7 +10,7 @@ import { getLucideCdnIconUrl } from '../lib/cdn';
 export const HARMONY_APPS: MiniAppConfig[] = [
   {
     id: 'harmony-notes',
-    name: 'Harmony Notes',
+    name: 'Habeshawi Notes',
     tagline: 'Smart Notes & Category Organizers',
     iconName: 'notebook',
     iconCdnUrl: getLucideCdnIconUrl('notebook'),
@@ -18,18 +18,18 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     bgHex: '#f59e0b',
     deployedUrl: 'https://abduedris313-max.github.io/harmony-notes/',
     repoUrl: 'https://github.com/abduedris313-max/harmony-notes',
-    description: 'Capture quick thoughts, bullet points, voice memos, and tagged categories.',
+    description: 'Capture quick thoughts, bullet points, voice memos, and tagged categories with Habeshawi cloud sync.',
     badge: 'Notes',
     version: '2.1.0',
     size: '1.2 MB',
-    author: 'Harmony Core',
+    author: 'Habeshawi Core',
     category: 'productivity',
     isSystemApp: true,
     rating: 4.9
   },
   {
     id: 'harmony-docs',
-    name: 'Harmony Docs',
+    name: 'Habeshawi Docs',
     tagline: 'Rich Text Workspace & Documents',
     iconName: 'file-text',
     iconCdnUrl: getLucideCdnIconUrl('file-text'),
@@ -41,14 +41,14 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     badge: 'Docs',
     version: '2.3.4',
     size: '2.4 MB',
-    author: 'Harmony Core',
+    author: 'Habeshawi Core',
     category: 'productivity',
     isSystemApp: true,
     rating: 4.9
   },
   {
     id: 'harmony-writing',
-    name: 'Harmony Writing',
+    name: 'Habeshawi Writing',
     tagline: 'Focus Studio & Daily Word Target',
     iconName: 'pen-tool',
     iconCdnUrl: getLucideCdnIconUrl('pen-tool'),
@@ -60,15 +60,15 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     badge: 'Studio',
     version: '1.8.0',
     size: '1.8 MB',
-    author: 'Harmony Core',
+    author: 'Habeshawi Core',
     category: 'productivity',
     isSystemApp: true,
     rating: 4.8
   },
   {
     id: 'harmony-music-player',
-    name: 'Harmony Music',
-    tagline: 'Hi-Fi Playlists & Audio Synth',
+    name: 'Habeshawi Music',
+    tagline: 'Hi-Fi Playlists & Ethio-Audio Synth',
     iconName: 'disc',
     iconCdnUrl: getLucideCdnIconUrl('disc'),
     colorGradient: 'from-fuchsia-500 via-purple-600 to-pink-500',
@@ -79,14 +79,14 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     badge: 'Audio',
     version: '3.0.1',
     size: '3.1 MB',
-    author: 'Harmony Sound Team',
+    author: 'Habeshawi Sound Team',
     category: 'audio',
     isSystemApp: true,
     rating: 5.0
   },
   {
     id: 'harmony-docs-ai',
-    name: 'Harmony Docs AI',
+    name: 'Habeshawi AI Copilot',
     tagline: 'Gemini Document Intelligence & Copilot',
     iconName: 'sparkles',
     iconCdnUrl: getLucideCdnIconUrl('sparkles'),
@@ -98,14 +98,14 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     badge: 'AI',
     version: '2.0.0',
     size: '1.9 MB',
-    author: 'Harmony AI Lab',
+    author: 'Habeshawi AI Lab',
     category: 'ai',
     isSystemApp: true,
     rating: 4.9
   },
   {
     id: 'harmony-calendar',
-    name: 'Harmony Calendar',
+    name: 'Habeshawi Calendar',
     tagline: 'Gregorian • Hijri • Ethiopian with Google Sync',
     iconName: 'calendar',
     iconCdnUrl: getLucideCdnIconUrl('calendar'),
@@ -117,14 +117,14 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     badge: 'Calendar',
     version: '2.2.0',
     size: '1.6 MB',
-    author: 'Harmony Core',
+    author: 'Habeshawi Core',
     category: 'productivity',
     isSystemApp: true,
     rating: 4.9
   },
   {
     id: 'harmony-finance',
-    name: 'Harmony Finance',
+    name: 'Habeshawi Finance',
     tagline: 'Expense Ledger, Budgets & Loan EMI Amortization',
     iconName: 'wallet',
     iconCdnUrl: getLucideCdnIconUrl('wallet'),
@@ -136,14 +136,14 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     badge: 'Finance',
     version: '2.5.0',
     size: '2.8 MB',
-    author: 'Harmony Finance Group',
+    author: 'Habeshawi Finance Group',
     category: 'finance',
     isSystemApp: true,
     rating: 4.9
   },
   {
     id: 'harmony-ajam-script',
-    name: 'Ajam Script',
+    name: 'Habeshawi Ajam Script',
     tagline: 'Preservation, AI OCR & Historical Manuscripts',
     iconName: 'book-open',
     iconCdnUrl: getLucideCdnIconUrl('book-open'),
@@ -155,14 +155,14 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     badge: 'Ajam',
     version: '1.0.0',
     size: '2.1 MB',
-    author: 'Harmony Preservation',
+    author: 'Habeshawi Preservation',
     category: 'productivity',
     isSystemApp: true,
     rating: 5.0
   },
   {
     id: 'harmony-app-store',
-    name: 'App Store',
+    name: 'Habeshawi App Store',
     tagline: 'Central Repository & Ecosystem App Hub',
     iconName: 'shopping-bag',
     iconCdnUrl: getLucideCdnIconUrl('shopping-bag'),
@@ -170,11 +170,11 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     bgHex: '#0284c7',
     deployedUrl: '#',
     repoUrl: 'https://github.com/abduedris313-max/harmony-super-app',
-    description: 'Harmony ecosystem central repository: fetch packages, stream download, and install mini-apps with offline persistence.',
+    description: 'Habeshawi ecosystem central repository: fetch packages, stream download, and install mini-apps with offline persistence.',
     badge: 'Store',
     version: '2.4.0',
     size: '1.4 MB',
-    author: 'Harmony Core Systems',
+    author: 'Habeshawi Core Systems',
     category: 'utilities',
     isSystemApp: true,
     rating: 5.0
@@ -182,7 +182,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
   // Downloadable Packages from Central Repository
   {
     id: 'harmony-weather',
-    name: 'Weather & Sky',
+    name: 'Habeshawi Weather',
     tagline: 'Atmospheric Forecast & Multi-City Metrics',
     iconName: 'cloud-sun',
     iconCdnUrl: getLucideCdnIconUrl('cloud-sun'),
@@ -194,14 +194,14 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     badge: 'Weather',
     version: '1.2.0',
     size: '1.7 MB',
-    author: 'Atmosphere Labs',
+    author: 'Habeshawi Atmosphere Labs',
     category: 'utilities',
     isSystemApp: false,
     rating: 4.9
   },
   {
     id: 'harmony-calculator',
-    name: 'Calculator & Units',
+    name: 'Habeshawi Calculator',
     tagline: 'Scientific Engine & Multi-Unit Converter',
     iconName: 'calculator',
     iconCdnUrl: getLucideCdnIconUrl('calculator'),
@@ -213,14 +213,14 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     badge: 'Tool',
     version: '1.5.0',
     size: '1.1 MB',
-    author: 'Numerics Studio',
+    author: 'Habeshawi Numerics Studio',
     category: 'utilities',
     isSystemApp: false,
     rating: 4.8
   },
   {
     id: 'harmony-focus',
-    name: 'Focus Studio',
+    name: 'Habeshawi Focus',
     tagline: 'Pomodoro Timer & 432Hz Sound Synthesizer',
     iconName: 'clock',
     iconCdnUrl: getLucideCdnIconUrl('clock'),
@@ -232,14 +232,14 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     badge: 'Focus',
     version: '2.0.1',
     size: '2.2 MB',
-    author: 'Zenith Labs',
+    author: 'Habeshawi Zenith Labs',
     category: 'productivity',
     isSystemApp: false,
     rating: 4.9
   },
   {
     id: 'harmony-terminal',
-    name: 'Dev Terminal',
+    name: 'Habeshawi Terminal',
     tagline: 'System Diagnostics & Package Manager CLI',
     iconName: 'terminal',
     iconCdnUrl: getLucideCdnIconUrl('terminal'),
@@ -251,14 +251,14 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     badge: 'Dev',
     version: '1.1.0',
     size: '1.3 MB',
-    author: 'Harmony DevTools',
+    author: 'Habeshawi DevTools',
     category: 'developer',
     isSystemApp: false,
     rating: 4.7
   },
   {
     id: 'harmony-habits',
-    name: 'Habit Momentum',
+    name: 'Habeshawi Habits',
     tagline: 'Concentric Activity Rings & Daily Goals',
     iconName: 'activity',
     iconCdnUrl: getLucideCdnIconUrl('activity'),
@@ -266,11 +266,11 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     bgHex: '#06b6d4',
     deployedUrl: '#',
     repoUrl: 'https://github.com/abduedris313-max/harmony-habits',
-    description: 'Apple Health-inspired habit tracking with concentric SVG activity rings, daily streak counter, and haptic feedback.',
+    description: 'Health-inspired habit tracking with concentric SVG activity rings, daily streak counter, and haptic feedback.',
     badge: 'Habits',
     version: '1.0.4',
     size: '1.8 MB',
-    author: 'Momentum Health',
+    author: 'Habeshawi Wellness',
     category: 'health',
     isSystemApp: false,
     rating: 4.9

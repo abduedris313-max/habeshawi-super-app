@@ -36,6 +36,7 @@ import { HARMONY_APPS } from '../config/apps';
 import { MiniAppConfig } from '../types';
 import { soundManager } from '../lib/soundManager';
 import { triggerHaptic } from '../utils/haptics';
+import { HabeshawiAppIcon } from './HabeshawiIcons';
 
 interface InstalledAppsModalProps {
   isOpen: boolean;
@@ -91,25 +92,8 @@ export const InstalledAppsModal: React.FC<InstalledAppsModalProps> = ({
     });
   }, [installedApps, searchQuery, selectedCategory]);
 
-  const getIcon = (iconName: string) => {
-    switch (iconName) {
-      case 'notebook': return <Notebook className="w-6 h-6 text-white drop-shadow-md" />;
-      case 'file-text': return <FileText className="w-6 h-6 text-white drop-shadow-md" />;
-      case 'pen-tool': return <PenTool className="w-6 h-6 text-white drop-shadow-md" />;
-      case 'disc': return <Disc className="w-6 h-6 text-white drop-shadow-md" />;
-      case 'sparkles': return <Sparkles className="w-6 h-6 text-white drop-shadow-md" />;
-      case 'calendar': return <Calendar className="w-6 h-6 text-white drop-shadow-md" />;
-      case 'wallet': return <Wallet className="w-6 h-6 text-white drop-shadow-md" />;
-      case 'shopping-bag':
-      case 'store':
-        return <ShoppingBag className="w-6 h-6 text-white drop-shadow-md" />;
-      case 'cloud-sun': return <CloudSun className="w-6 h-6 text-white drop-shadow-md" />;
-      case 'calculator': return <Calculator className="w-6 h-6 text-white drop-shadow-md" />;
-      case 'clock': return <Clock className="w-6 h-6 text-white drop-shadow-md" />;
-      case 'terminal': return <Terminal className="w-6 h-6 text-white drop-shadow-md" />;
-      case 'activity': return <Activity className="w-6 h-6 text-white drop-shadow-md" />;
-      default: return <Layers className="w-6 h-6 text-white" />;
-    }
+  const getIcon = (iconName: string, appId?: string) => {
+    return <HabeshawiAppIcon appId={appId} iconName={iconName} className="w-full h-full p-1 drop-shadow-md" />;
   };
 
   const handleLaunch = (appId: string) => {
@@ -289,7 +273,7 @@ export const InstalledAppsModal: React.FC<InstalledAppsModalProps> = ({
                   className="mt-4 px-4 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 transition-colors flex items-center gap-1.5"
                 >
                   <ShoppingBag className="w-3.5 h-3.5" />
-                  <span>Open Harmony App Store</span>
+                  <span>Open Habeshawi App Store</span>
                 </button>
               </div>
             ) : viewMode === 'grid' ? (
@@ -311,9 +295,9 @@ export const InstalledAppsModal: React.FC<InstalledAppsModalProps> = ({
                     >
                       {/* Top Row: Icon + Pin Button */}
                       <div className="flex items-start justify-between gap-2">
-                        <div className={`w-12 h-12 rounded-[14px] bg-gradient-to-br ${app.colorGradient} flex items-center justify-center shadow-md p-1 relative overflow-hidden shrink-0`}>
+                        <div className={`w-12 h-12 rounded-[14px] bg-gradient-to-br ${app.colorGradient} flex items-center justify-center shadow-md p-1 relative overflow-hidden shrink-0 border border-amber-400/30`}>
                           <div className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent pointer-events-none rounded-[14px]" />
-                          {getIcon(app.iconName)}
+                          {getIcon(app.iconName, app.id)}
                         </div>
 
                         {onTogglePinApp && (
@@ -370,8 +354,8 @@ export const InstalledAppsModal: React.FC<InstalledAppsModalProps> = ({
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className={`w-10 h-10 rounded-[12px] bg-gradient-to-br ${app.colorGradient} flex items-center justify-center text-white shadow-md shrink-0`}>
-                          {getIcon(app.iconName)}
+                        <div className={`w-10 h-10 rounded-[12px] bg-gradient-to-br ${app.colorGradient} flex items-center justify-center text-white shadow-md shrink-0 p-0.5 border border-amber-400/30`}>
+                          {getIcon(app.iconName, app.id)}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">

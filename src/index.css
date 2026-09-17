@@ -29,6 +29,52 @@
   --text-muted: #6e7681;
 }
 
+/* Habeshawi Cultural Theme Presets */
+[data-theme="habeshawi-gold"] {
+  --accent-color: #f59e0b;
+  --accent-color-rgb: 245, 158, 11;
+  --accent-color-hover: #d97706;
+  --accent-color-light: #fef3c7;
+  --accent-color-dark: #78350f;
+  --accent-glow: rgba(245, 158, 11, 0.4);
+}
+
+[data-theme="axum-emerald"] {
+  --accent-color: #10b981;
+  --accent-color-rgb: 16, 185, 129;
+  --accent-color-hover: #059669;
+  --accent-color-light: #d1fae5;
+  --accent-color-dark: #064e3b;
+  --accent-glow: rgba(16, 185, 129, 0.4);
+}
+
+[data-theme="sheba-crimson"] {
+  --accent-color: #e11d48;
+  --accent-color-rgb: 225, 29, 72;
+  --accent-color-hover: #be123c;
+  --accent-color-light: #ffe4e6;
+  --accent-color-dark: #881337;
+  --accent-glow: rgba(225, 29, 72, 0.4);
+}
+
+[data-theme="lalibela-stone"] {
+  --accent-color: #ea580c;
+  --accent-color-rgb: 234, 88, 12;
+  --accent-color-hover: #c2410c;
+  --accent-color-light: #ffedd5;
+  --accent-color-dark: #7c2d12;
+  --accent-glow: rgba(234, 88, 12, 0.4);
+}
+
+[data-theme="birana-parchment"] {
+  --accent-color: #d97706;
+  --accent-color-rgb: 217, 119, 6;
+  --accent-color-hover: #b45309;
+  --accent-color-light: #fef3c7;
+  --accent-color-dark: #78350f;
+  --accent-glow: rgba(217, 119, 6, 0.4);
+}
+
 [data-theme="slate"] {
   --accent-color: #6366f1;
   --accent-color-rgb: 99, 102, 241;

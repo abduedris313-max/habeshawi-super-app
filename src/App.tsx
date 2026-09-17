@@ -24,6 +24,7 @@ import {
   auth,
   subscribeToAuth, 
   loginAnonymously, 
+  checkAuthRedirectResult,
   subscribeHarmonyNotes, 
   saveHarmonyNote, 
   deleteHarmonyNote, 
@@ -57,7 +58,6 @@ import {
 import { getInstalledAppIds, saveInstalledAppIds, syncInstalledAppsFromCloud } from './lib/appStoreService';
 import { soundManager } from './lib/soundManager';
 import { triggerHaptic } from './utils/haptics';
-import { StatusBar } from './components/StatusBar';
 import { HomeScreen } from './components/HomeScreen';
 import { Dock } from './components/Dock';
 import { ControlCenter } from './components/ControlCenter';
@@ -73,6 +73,9 @@ import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { NotificationBanner } from './components/NotificationBanner';
 import { InstalledAppsModal } from './components/InstalledAppsModal';
 import { NotificationCenter } from './components/NotificationCenter';
+import { HabeshawiSplashScreen } from './components/HabeshawiSplashScreen';
+import { HabeshawiLoadingScreen } from './components/HabeshawiLoadingScreen';
+import { HabeshawiPopupProvider } from './components/HabeshawiPopup';
 
 export default function App() {
   // Navigation & View States
@@ -83,6 +86,8 @@ export default function App() {
   const [isAppSwitcherOpen, setIsAppSwitcherOpen] = useState(false);
   
   // Modals & User Journey States
+  const [showSplashScreen, setShowSplashScreen] = useState(true);
+  const [globalLoading, setGlobalLoading] = useState<{ isOpen: boolean; title?: string; subtitle?: string; amharicText?: string } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup' | 'forgot' | 'profile'>('signin');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -106,12 +111,12 @@ export default function App() {
   // Audio & Music State
   const [currentTrack, setCurrentTrack] = useState<Track | undefined>({
     id: 't-1',
-    title: 'Harmony Ambient Flow',
-    artist: 'Harmony Soundscapes',
-    album: 'Serenade OS Vol. 1',
+    title: 'Habeshawi Tizita Acoustic',
+    artist: 'Habeshawi Soundscapes',
+    album: 'Abyssinian Waves Vol. 1',
     duration: 180,
     coverUrl: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400&q=80',
-    genre: 'Ambient Chill'
+    genre: 'Ethio-Jazz & Acoustic'
   });
   const [isPlayingMusic, setIsPlayingMusic] = useState(false);
 
@@ -225,9 +230,9 @@ export default function App() {
     return [
       {
         id: 'system-initial-welcome',
-        title: 'Welcome to Harmony OS',
+        title: 'Welcome to Habeshawi',
         message: 'Swipe left/right to change pages, swipe up for all apps, and swipe down for notifications.',
-        appName: 'Harmony OS',
+        appName: 'Habeshawi',
         timestamp: new Date().toISOString(),
         suppressedByFocus: false
       }
@@ -240,7 +245,7 @@ export default function App() {
   }, [settings]);
 
   // Unified Notification Trigger respecting Focus Mode
-  const triggerNotification = (title: string, message: string, appName: string = 'Harmony OS') => {
+  const triggerNotification = (title: string, message: string, appName: string = 'Habeshawi') => {
     const notif: SystemNotification = {
       id: 'notif-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
       title,
@@ -276,13 +281,13 @@ export default function App() {
       triggerNotification(
         'Calendar Event: Sprint Review',
         'Silently suppressed by Focus Mode to prevent interruption.',
-        'Harmony Focus'
+        'Habeshawi Focus'
       );
     } else {
       triggerNotification(
         'Cloud Sync Successful',
         'Your theme preferences and volume settings are synced to Firebase.',
-        'Harmony Cloud'
+        'Habeshawi Cloud'
       );
     }
   };
@@ -436,13 +441,17 @@ export default function App() {
     return () => mediaQuery.removeEventListener('change', handleSchemeChange);
   }, [settings.themeMode]);
 
-  // Service Worker Registration for PWA
+  // Service Worker Registration for PWA & Auth Redirect Check
   useEffect(() => {
     if ('serviceWorker' in navigator && typeof window !== 'undefined' && window.location.protocol.startsWith('http')) {
       navigator.serviceWorker.register('./sw.js')
         .then((reg) => console.log('[PWA] Service Worker registered:', reg.scope))
         .catch((err) => console.warn('[PWA] Service Worker registration failed:', err));
     }
+    // Process any returning Google Auth redirect in mobile/iframe environments
+    checkAuthRedirectResult().catch((err) => {
+      console.debug('[Firebase Auth] No pending redirect credentials:', err?.message || err);
+    });
   }, []);
 
   // Firebase Auth Subscription
@@ -568,7 +577,7 @@ export default function App() {
   const handleUpdateWallpaperTheme = (themeId: string) => {
     setWallpaperTheme(themeId);
     setLocalItem(STORAGE_KEYS.WALLPAPER, themeId);
-    triggerNotification('Wallpaper Updated', 'New home screen ambience applied', 'Harmony');
+    triggerNotification('Wallpaper Updated', 'New home screen ambience applied', 'Habeshawi');
   };
 
   // Smart Stack Widgets Handlers
@@ -581,7 +590,7 @@ export default function App() {
   const handleFinishOnboarding = () => {
     setLocalItem(STORAGE_KEYS.ONBOARDED, true);
     setIsOnboardingOpen(false);
-    triggerNotification('Welcome to Harmony', 'Your unified workspace is ready to use.', 'Harmony OS');
+    triggerNotification('Welcome to Habeshawi', 'Your unified workspace is ready to use.', 'Habeshawi');
   };
 
   const getWallpaperBackground = () => {
@@ -592,6 +601,26 @@ export default function App() {
       return `bg-gradient-to-br ${gradient}`;
     }
     switch (settings.themePreset) {
+      case 'habeshawi-gold':
+        return isDark
+          ? 'bg-gradient-to-br from-[#14100c] via-[#1a140e] to-[#0a0806]'
+          : 'bg-gradient-to-br from-[#fcfaf5] via-[#f7f2e7] to-[#ede4d1]';
+      case 'axum-emerald':
+        return isDark
+          ? 'bg-gradient-to-br from-[#061c14] via-[#0b1f17] to-[#040e0a]'
+          : 'bg-gradient-to-br from-[#f0fdf4] via-[#dcfce7] to-[#e6f4ea]';
+      case 'sheba-crimson':
+        return isDark
+          ? 'bg-gradient-to-br from-[#21090f] via-[#17060a] to-[#0d0306]'
+          : 'bg-gradient-to-br from-[#fff1f2] via-[#ffe4e6] to-[#fee2e2]';
+      case 'lalibela-stone':
+        return isDark
+          ? 'bg-gradient-to-br from-[#1c0e08] via-[#140a06] to-[#0d0704]'
+          : 'bg-gradient-to-br from-[#fff7ed] via-[#ffedd5] to-[#fef3c7]';
+      case 'birana-parchment':
+        return isDark
+          ? 'bg-gradient-to-br from-[#16120c] via-[#1a150e] to-[#0f0c08]'
+          : 'bg-gradient-to-br from-[#fdfbf7] via-[#f7f3e8] to-[#eee6d3]';
       case 'oled':
         return isDark ? 'bg-black' : 'bg-white';
       case 'sunset':
@@ -615,29 +644,16 @@ export default function App() {
   };
 
   return (
-    <div 
-      id="harmony-os-root" 
-      className={`w-screen h-screen flex flex-col font-sans overflow-hidden select-none relative transition-colors duration-300 ${
-        settings.isDarkMode ? 'bg-[#0d1117] text-[#c9d1d9] dark' : 'bg-[#f8fafc] text-neutral-900'
-      }`}
-    >
+    <HabeshawiPopupProvider isDarkMode={settings.isDarkMode}>
+      <div 
+        id="habeshawi-os-root" 
+        className={`w-screen h-screen flex flex-col font-sans overflow-hidden select-none relative transition-colors duration-300 ${
+          settings.isDarkMode ? 'bg-[#0d1117] text-[#c9d1d9] dark' : 'bg-[#f8fafc] text-neutral-900'
+        }`}
+      >
       {/* Dynamic Background Wallpaper Glow */}
       <div 
         className={`absolute inset-0 pointer-events-none transition-all duration-500 opacity-100 ${getWallpaperBackground()}`} 
-      />
-
-      {/* iOS Top Status Bar */}
-      <StatusBar
-        onOpenControlCenter={() => setIsControlCenterOpen(true)}
-        onOpenNotificationCenter={() => setIsNotificationCenterOpen(true)}
-        activeMusicTrack={isPlayingMusic && currentTrack ? `${currentTrack.title} • ${currentTrack.artist}` : undefined}
-        isFirebaseConnected={!!user}
-        focusMode={settings.focusMode}
-        isDarkMode={settings.isDarkMode}
-        onToggleTheme={() => handleUpdateSettings({ 
-          isDarkMode: !settings.isDarkMode, 
-          themeMode: !settings.isDarkMode ? 'dark' : 'light' 
-        })}
       />
 
       {/* iOS Notification Banner (Shown ONLY when Focus Mode is OFF) */}
@@ -660,21 +676,21 @@ export default function App() {
               notes={notes}
               onSaveNote={async (note) => {
                 const res = await saveHarmonyNote(user?.uid || 'guest', note);
-                triggerNotification('Note Saved', `"${note.title}" synced to cloud`, 'Harmony Notes');
+                triggerNotification('Note Saved', `"${note.title}" synced to cloud`, 'Habeshawi Notes');
                 return res;
               }}
               onDeleteNote={(id) => deleteHarmonyNote(id)}
               docs={docs}
               onSaveDoc={async (docItem) => {
                 const res = await saveHarmonyDoc(user?.uid || 'guest', docItem);
-                triggerNotification('Document Saved', `"${docItem.title}" synced to cloud`, 'Harmony Docs');
+                triggerNotification('Document Saved', `"${docItem.title}" synced to cloud`, 'Habeshawi Docs');
                 return res;
               }}
               onDeleteDoc={(id) => deleteHarmonyDoc(id)}
               drafts={drafts}
               onSaveDraft={async (draft) => {
                 const res = await saveHarmonyDraft(user?.uid || 'guest', draft);
-                triggerNotification('Draft Auto-saved', `"${draft.title}" updated`, 'Harmony Writing');
+                triggerNotification('Draft Auto-saved', `"${draft.title}" updated`, 'Habeshawi Writing');
                 return res;
               }}
               onDeleteDraft={(id) => deleteHarmonyDraft(id)}
@@ -685,7 +701,7 @@ export default function App() {
               calendarEvents={calendarEvents}
               onSaveCalendarEvent={async (calEv) => {
                 const res = await saveHarmonyCalendarEvent(user?.uid || 'guest', calEv);
-                triggerNotification('Calendar Updated', `"${calEv.title}" synced to cloud`, 'Harmony Calendar');
+                triggerNotification('Calendar Updated', `"${calEv.title}" synced to cloud`, 'Habeshawi Calendar');
                 return res;
               }}
               onDeleteCalendarEvent={(id) => deleteHarmonyCalendarEvent(id)}
@@ -808,7 +824,7 @@ export default function App() {
         currentUser={user}
         isDarkMode={settings.isDarkMode}
         initialMode={authModalMode}
-        onAuthSuccess={(msg) => triggerNotification('Account Synced', msg, 'Harmony Auth')}
+        onAuthSuccess={(msg) => triggerNotification('Account Synced', msg, 'Habeshawi Auth')}
       />
 
       <SettingsModal
@@ -863,7 +879,7 @@ export default function App() {
         onUpdateWidgets={handleUpdateWidgets}
         wallpaperTheme={wallpaperTheme}
         onUpdateWallpaperTheme={handleUpdateWallpaperTheme}
-        onSaveToast={(msg) => triggerNotification('Home Screen', msg, 'Harmony')}
+        onSaveToast={(msg) => triggerNotification('Home Screen', msg, 'Habeshawi')}
       />
 
       {/* Installed Applications Modal & Separate App List */}
@@ -891,6 +907,33 @@ export default function App() {
 
       {/* Mobile PWA Installation Banner */}
       <PwaInstallPrompt />
+
+      {/* Global Habeshawi Fullscreen Splash Screen */}
+      <AnimatePresence>
+        {showSplashScreen && (
+          <HabeshawiSplashScreen
+            onComplete={() => setShowSplashScreen(false)}
+            isDarkMode={settings.isDarkMode}
+            onToggleTheme={() =>
+              handleUpdateSettings({
+                isDarkMode: !settings.isDarkMode,
+                themeMode: !settings.isDarkMode ? 'dark' : 'light',
+              })
+            }
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Global Habeshawi Loading Overlay */}
+      <HabeshawiLoadingScreen
+        isOpen={!!globalLoading?.isOpen}
+        title={globalLoading?.title}
+        subtitle={globalLoading?.subtitle}
+        amharicText={globalLoading?.amharicText}
+        isDarkMode={settings.isDarkMode}
+        onCancel={() => setGlobalLoading(null)}
+      />
     </div>
+  </HabeshawiPopupProvider>
   );
 }

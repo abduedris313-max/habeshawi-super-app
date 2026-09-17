@@ -23,9 +23,9 @@ import {
   Trash2,
   Send
 } from 'lucide-react';
-import { SystemSettings, SystemNotification } from '../types';
+import { SystemSettings, SystemNotification, ThemePreset } from '../types';
 import { soundManager } from '../lib/soundManager';
-import { HarmonyLogo } from './HarmonyLogo';
+import { HabeshawiBrandEmblem, HabeshawiTibebBorder } from './HabeshawiIcons';
 
 interface ControlCenterProps {
   isOpen: boolean;
@@ -86,21 +86,23 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
     });
   };
 
-  const PRESETS: { id: 'slate' | 'oled' | 'sunset' | 'emerald' | 'lavender'; name: string; accent: string; dot: string }[] = [
+  const PRESETS: { id: ThemePreset; name: string; accent: string; dot: string }[] = [
+    { id: 'habeshawi-gold', name: 'Gold', accent: '#f59e0b', dot: 'bg-amber-500' },
+    { id: 'axum-emerald', name: 'Emerald', accent: '#10b981', dot: 'bg-emerald-500' },
+    { id: 'sheba-crimson', name: 'Crimson', accent: '#e11d48', dot: 'bg-rose-500' },
+    { id: 'lalibela-stone', name: 'Stone', accent: '#ea580c', dot: 'bg-orange-500' },
+    { id: 'birana-parchment', name: 'Parchment', accent: '#d97706', dot: 'bg-amber-600' },
     { id: 'slate', name: 'Slate', accent: '#6366f1', dot: 'bg-indigo-500' },
     { id: 'oled', name: 'OLED', accent: '#a855f7', dot: 'bg-purple-500' },
-    { id: 'sunset', name: 'Sunset', accent: '#f59e0b', dot: 'bg-amber-500' },
-    { id: 'emerald', name: 'Emerald', accent: '#10b981', dot: 'bg-emerald-500' },
-    { id: 'lavender', name: 'Lavender', accent: '#d946ef', dot: 'bg-fuchsia-500' }
   ];
 
-  const handleSelectThemePreset = (preset: 'slate' | 'oled' | 'sunset' | 'emerald' | 'lavender', e: React.MouseEvent) => {
+  const handleSelectThemePreset = (preset: ThemePreset, e: React.MouseEvent) => {
     e.stopPropagation();
     soundManager.playHapticClick();
     const matched = PRESETS.find(p => p.id === preset);
     onUpdateSettings({
       themePreset: preset,
-      accentColor: matched?.accent || '#6366f1'
+      accentColor: matched?.accent || '#f59e0b'
     });
   };
 
@@ -111,22 +113,27 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: -50, opacity: 0, scale: 0.95 }}
         transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-        className={`w-full max-w-lg rounded-2xl p-5 sm:p-6 shadow-2xl relative my-auto mb-12 border transition-colors ${
+        className={`w-full max-w-lg rounded-2xl p-5 sm:p-6 shadow-2xl relative my-auto mb-12 border transition-colors overflow-hidden ${
           isDark
-            ? 'bg-[#161b22] border-[#30363d] text-[#c9d1d9]'
-            : 'bg-white border-neutral-200 text-neutral-800 shadow-neutral-500/20'
+            ? 'bg-[#14100c] border-amber-500/30 text-[#e7e5e4]'
+            : 'bg-white border-amber-500/30 text-neutral-800 shadow-neutral-500/20'
         }`}
       >
+        {/* Top Tibeb Accent Ribbon */}
+        <div className="absolute top-0 left-0 right-0">
+          <HabeshawiTibebBorder height={6} className="w-full opacity-80" />
+        </div>
+
         {/* Header */}
-        <div className={`flex items-center justify-between pb-4 border-b mb-5 ${isDark ? 'border-[#30363d]' : 'border-neutral-200'}`}>
+        <div className={`flex items-center justify-between pb-4 border-b mb-5 pt-1 ${isDark ? 'border-stone-800' : 'border-neutral-200'}`}>
           <div className="flex items-center gap-2.5">
-            <HarmonyLogo size="sm" isDarkMode={isDark} />
+            <HabeshawiBrandEmblem size={28} />
             <div>
               <h3 className={`text-base font-bold flex items-center gap-1.5 ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-                <span>Harmony Control</span>
+                <span>Habeshawi Control</span>
               </h3>
-              <p className={`text-xs ${isDark ? 'text-[#8b949e]' : 'text-neutral-500'}`}>
-                System Controls, Focus & Audio
+              <p className={`text-xs ${isDark ? 'text-stone-400' : 'text-neutral-500'}`}>
+                System Controls, Focus, Themes & Audio
               </p>
             </div>
           </div>
@@ -583,10 +590,10 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
 
         {/* Footer */}
         <div className={`text-center text-xs pt-2 border-t flex items-center justify-between ${
-          isDark ? 'text-[#8b949e] border-[#30363d]' : 'text-neutral-500 border-neutral-200'
-        }`}>
-          <span>Harmony OS Super App</span>
-          <span className="font-mono text-[10px]">v1.2 • Firestore Sync Active</span>
+          isDark ? 'text-[#8b949e]' : 'text-neutral-500'
+        } ${isDark ? 'border-[#30363d]' : 'border-neutral-200'}`}>
+          <span>Habeshawi Super App</span>
+          <span className="font-mono text-[10px]">v2.5 • Firestore Sync Active</span>
         </div>
       </motion.div>
     </div>

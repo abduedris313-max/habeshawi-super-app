@@ -1,6 +1,6 @@
 /**
  * @file appRepository.ts
- * @description Central Repository configuration and application registry for Harmony App Store.
+ * @description Central Repository configuration and application registry for Habeshawi App Store.
  * Provides central repository endpoints, app metadata schemas, versioning, bundle specs,
  * and remote catalog fetching with offline resiliency.
  */
@@ -14,9 +14,9 @@ import { getLucideCdnIconUrl } from '../lib/cdn';
 export const DEFAULT_REPOSITORIES: AppRepositorySource[] = [
   {
     id: 'harmony-official',
-    name: 'Harmony Official Registry',
-    url: 'https://repo.harmony-os.dev/v2/core-apps.json',
-    description: 'Verified first-party productivity, creativity, and financial engines by Harmony OS Core Team.',
+    name: 'Habeshawi Official Registry',
+    url: 'https://repo.habeshawi-os.dev/v2/core-apps.json',
+    description: 'Verified first-party productivity, creativity, cultural, and financial engines by Habeshawi Core Team.',
     isOfficial: true,
     appsCount: 8,
     lastFetchedAt: new Date().toISOString(),
@@ -24,8 +24,8 @@ export const DEFAULT_REPOSITORIES: AppRepositorySource[] = [
   },
   {
     id: 'harmony-community',
-    name: 'Harmony Community Hub',
-    url: 'https://repo.harmony-os.dev/v2/community-apps.json',
+    name: 'Habeshawi Community Hub',
+    url: 'https://repo.habeshawi-os.dev/v2/community-apps.json',
     description: 'Open-source utilities, developer tools, calculators, weather stations, and lifestyle apps.',
     isOfficial: false,
     appsCount: 5,
@@ -43,7 +43,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
   // -------------------------------------------------------------
   {
     id: 'harmony-notes',
-    name: 'Harmony Notes',
+    name: 'Habeshawi Notes',
     tagline: 'Smart Notes & Category Organizers',
     iconName: 'notebook',
     iconCdnUrl: getLucideCdnIconUrl('notebook'),
@@ -54,7 +54,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     description: 'Capture quick thoughts, markdown checklists, voice memos, and categorized notebooks with Firestore offline sync.',
     badge: 'Notes',
     version: '1.4.2',
-    author: 'Harmony Core',
+    author: 'Habeshawi Core',
     size: '1.4 MB',
     category: 'productivity',
     rating: 4.9,
@@ -65,7 +65,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
   },
   {
     id: 'harmony-docs',
-    name: 'Harmony Docs',
+    name: 'Habeshawi Docs',
     tagline: 'Rich Text Workspace & Collaborative Documents',
     iconName: 'file-text',
     iconCdnUrl: getLucideCdnIconUrl('file-text'),
@@ -76,7 +76,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     description: 'Collaborative document workspace, word count statistics, typography styling, and PDF exports.',
     badge: 'Docs',
     version: '1.3.8',
-    author: 'Harmony Core',
+    author: 'Habeshawi Core',
     size: '2.1 MB',
     category: 'productivity',
     rating: 4.8,
@@ -87,7 +87,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
   },
   {
     id: 'harmony-writing',
-    name: 'Harmony Writing',
+    name: 'Habeshawi Writing',
     tagline: 'Focus Studio, Soundscapes & Daily Word Target',
     iconName: 'pen-tool',
     iconCdnUrl: getLucideCdnIconUrl('pen-tool'),
@@ -98,7 +98,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     description: 'Distraction-free typewriter environment, acoustic mechanical keyboard sounds, word goal meters, and dark paper themes.',
     badge: 'Studio',
     version: '1.2.5',
-    author: 'Harmony Flow',
+    author: 'Habeshawi Flow',
     size: '1.6 MB',
     category: 'productivity',
     rating: 4.9,
@@ -109,7 +109,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
   },
   {
     id: 'harmony-calendar',
-    name: 'Harmony Calendar',
+    name: 'Habeshawi Calendar',
     tagline: 'Gregorian • Hijri • Ethiopian with Google Sync',
     iconName: 'calendar',
     iconCdnUrl: getLucideCdnIconUrl('calendar'),
@@ -120,7 +120,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     description: 'Tri-calendar engine synchronizing Gregorian, Islamic Hijri, and Ethiopian Ge’ez dates with agenda view and Google Calendar export.',
     badge: 'Calendar',
     version: '1.5.0',
-    author: 'Harmony Core',
+    author: 'Habeshawi Core',
     size: '2.2 MB',
     category: 'productivity',
     rating: 4.9,
@@ -131,7 +131,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
   },
   {
     id: 'harmony-finance',
-    name: 'Harmony Finance',
+    name: 'Habeshawi Finance',
     tagline: 'Expense Ledger, Budgets & Loan EMI Amortization',
     iconName: 'wallet',
     iconCdnUrl: getLucideCdnIconUrl('wallet'),
@@ -142,7 +142,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     description: 'Personal finance and cash flow ledger, category budgets, bank account reconciliation, debt amortization calculator, and AI financial advisor.',
     badge: 'Finance',
     version: '1.4.1',
-    author: 'Harmony Finance Group',
+    author: 'Habeshawi Finance Group',
     size: '2.8 MB',
     category: 'finance',
     rating: 4.8,
@@ -153,8 +153,8 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
   },
   {
     id: 'harmony-music-player',
-    name: 'Harmony Music',
-    tagline: 'Hi-Fi Playlists & Audio Synth Engine',
+    name: 'Habeshawi Music',
+    tagline: 'Hi-Fi Playlists & Ethio-Audio Synth Engine',
     iconName: 'disc',
     iconCdnUrl: getLucideCdnIconUrl('disc'),
     colorGradient: 'from-fuchsia-500 via-purple-600 to-pink-500',
@@ -164,7 +164,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     description: 'iOS-styled Music Player with ambient streams, custom playlists, equalizer controls, audio visualizer, and background playback.',
     badge: 'Audio',
     version: '1.3.4',
-    author: 'Harmony Soundworks',
+    author: 'Habeshawi Soundworks',
     size: '3.6 MB',
     category: 'audio',
     rating: 4.7,
@@ -175,7 +175,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
   },
   {
     id: 'harmony-docs-ai',
-    name: 'Harmony Docs AI',
+    name: 'Habeshawi AI Copilot',
     tagline: 'Gemini Document Intelligence & Copilot',
     iconName: 'sparkles',
     iconCdnUrl: getLucideCdnIconUrl('sparkles'),
@@ -186,7 +186,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     description: 'Gemini-powered workspace copilot: ask questions across documents, draft summaries, generate meeting minutes, and rephrase text.',
     badge: 'AI',
     version: '1.3.0',
-    author: 'Harmony AI Labs',
+    author: 'Habeshawi AI Labs',
     size: '2.5 MB',
     category: 'ai',
     rating: 4.9,
@@ -196,8 +196,30 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     permissions: ['network', 'storage', 'ai-copilot']
   },
   {
+    id: 'harmony-ajam-script',
+    name: 'Habeshawi Ajam Script',
+    tagline: 'Preservation, AI OCR & Historical Manuscripts',
+    iconName: 'book-open',
+    iconCdnUrl: getLucideCdnIconUrl('book-open'),
+    colorGradient: 'from-amber-600 via-orange-600 to-emerald-700',
+    bgHex: '#d97706',
+    deployedUrl: 'https://abduedris313-max.github.io/harmony-ajam-script/',
+    repoUrl: 'https://github.com/abduedris313-max/harmony-ajam-script',
+    description: 'Digital preservation, AI OCR transcription, verse audio, virtual keyboard, and catalog for historical Ethiopian Sufi Ajam manuscripts.',
+    badge: 'Ajam',
+    version: '1.0.0',
+    author: 'Habeshawi Preservation',
+    size: '2.1 MB',
+    category: 'productivity',
+    rating: 5.0,
+    downloadsCount: 65000,
+    isSystemApp: true,
+    repositoryId: 'harmony-official',
+    permissions: ['storage', 'audio', 'offline-cache']
+  },
+  {
     id: 'harmony-app-store',
-    name: 'App Store',
+    name: 'Habeshawi App Store',
     tagline: 'Central Repository & Ecosystem App Hub',
     iconName: 'shopping-bag',
     iconCdnUrl: getLucideCdnIconUrl('shopping-bag'),
@@ -208,7 +230,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     description: 'Central app marketplace: discover, fetch, download, install, and update mini-apps from central repositories with offline caching.',
     badge: 'Store',
     version: '2.4.0',
-    author: 'Harmony Core',
+    author: 'Habeshawi Core',
     size: '1.8 MB',
     category: 'utilities',
     rating: 5.0,
@@ -223,7 +245,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
   // -------------------------------------------------------------
   {
     id: 'harmony-weather',
-    name: 'Harmony Weather & Radar',
+    name: 'Habeshawi Weather & Radar',
     tagline: 'Atmospheric Canvas, Hourly Curve & Multi-City Forecasts',
     iconName: 'cloud-sun',
     iconCdnUrl: getLucideCdnIconUrl('cloud-sun'),
@@ -234,7 +256,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     description: 'Dynamic iOS 18-styled weather station with live atmospheric canvas, 24-hour temperature slider, 7-day outlook, UV index, air quality index, humidity, wind radar, and city manager.',
     badge: 'Weather',
     version: '1.2.0',
-    author: 'Harmony Weather Lab',
+    author: 'Habeshawi Weather Lab',
     size: '2.4 MB',
     category: 'utilities',
     rating: 4.9,
@@ -245,7 +267,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
   },
   {
     id: 'harmony-calculator',
-    name: 'Harmony Calculator & Converter',
+    name: 'Habeshawi Calculator & Converter',
     tagline: 'iOS Scientific Keypad & Multi-Unit Currency Converter',
     iconName: 'calculator',
     iconCdnUrl: getLucideCdnIconUrl('calculator'),
@@ -256,7 +278,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     description: 'Standard and scientific calculator with calculation history tape, memory registers, plus real-time currency, length, weight, and temperature unit converters.',
     badge: 'Utility',
     version: '1.1.4',
-    author: 'Harmony Core Math',
+    author: 'Habeshawi Core Math',
     size: '1.3 MB',
     category: 'utilities',
     rating: 4.8,
@@ -267,7 +289,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
   },
   {
     id: 'harmony-focus',
-    name: 'Harmony Focus Studio',
+    name: 'Habeshawi Focus Studio',
     tagline: 'Aesthetic Pomodoro Timer, Ambient Synth & Productivity Rings',
     iconName: 'timer',
     iconCdnUrl: getLucideCdnIconUrl('timer'),
@@ -278,7 +300,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     description: 'Distraction-free Pomodoro focus timer with radial SVG progress display, interval breaks, task checklist, ambient white noise/rain generator, and streak tracking.',
     badge: 'Focus',
     version: '2.0.1',
-    author: 'Harmony Flow Team',
+    author: 'Habeshawi Flow Team',
     size: '1.8 MB',
     category: 'productivity',
     rating: 4.9,
@@ -289,7 +311,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
   },
   {
     id: 'harmony-terminal',
-    name: 'Harmony Terminal & SysDiag',
+    name: 'Habeshawi Terminal & SysDiag',
     tagline: 'Interactive Unix Shell, Repository CLI & Diagnostics',
     iconName: 'terminal',
     iconCdnUrl: getLucideCdnIconUrl('terminal'),
@@ -300,7 +322,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     description: 'Unix-styled developer console with command line prompt (repo, fetch, install, uninstall, storage, ping, sysinfo), Service Worker inspection, and real-time system stats.',
     badge: 'DevTools',
     version: '1.0.8',
-    author: 'DevTools Engineering',
+    author: 'Habeshawi DevTools',
     size: '1.6 MB',
     category: 'developer',
     rating: 4.7,
@@ -311,8 +333,8 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
   },
   {
     id: 'harmony-habits',
-    name: 'Harmony Habits & Rings',
-    tagline: 'Apple Health-Style Habit Rings & Daily Momentum',
+    name: 'Habeshawi Habits & Rings',
+    tagline: 'Activity Rings & Daily Momentum',
     iconName: 'activity',
     iconCdnUrl: getLucideCdnIconUrl('activity'),
     colorGradient: 'from-teal-400 via-emerald-500 to-cyan-600',
@@ -322,7 +344,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     description: 'Track daily micro-habits, hydration, fitness, and mindfulness with visual concentric activity rings, automatic streak calculation, and motivational achievement badges.',
     badge: 'Habits',
     version: '1.3.0',
-    author: 'Harmony Wellness',
+    author: 'Habeshawi Wellness',
     size: '2.1 MB',
     category: 'health',
     rating: 4.8,
@@ -334,7 +356,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
 ];
 
 /**
- * Default Installed Apps on first launch (The 8 core apps)
+ * Default Installed Apps on first launch (The core apps)
  */
 export const DEFAULT_INSTALLED_APP_IDS: string[] = [
   'harmony-notes',
@@ -344,6 +366,7 @@ export const DEFAULT_INSTALLED_APP_IDS: string[] = [
   'harmony-music-player',
   'harmony-docs-ai',
   'harmony-finance',
+  'harmony-ajam-script',
   'harmony-app-store'
 ];
 
@@ -389,7 +412,7 @@ export async function fetchCentralRepository(repoUrl?: string): Promise<{
 
   // 2. Check if the Admin Developer Console published apps to shared storage
   try {
-    const adminCatalogJson = localStorage.getItem('harmony_admin_central_catalog');
+    const adminCatalogJson = localStorage.getItem('habeshawi_admin_central_catalog') || localStorage.getItem('harmony_admin_central_catalog');
     if (adminCatalogJson) {
       const parsed = JSON.parse(adminCatalogJson);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -399,7 +422,7 @@ export async function fetchCentralRepository(repoUrl?: string): Promise<{
           const latency = Math.round(performance.now() - startTime);
           return {
             success: true,
-            repositoryName: 'Harmony Central Repository (Admin Synced)',
+            repositoryName: 'Habeshawi Central Repository (Admin Synced)',
             apps: publishedApps,
             latencyMs: Math.max(18, latency),
             source: 'remote'
@@ -417,7 +440,7 @@ export async function fetchCentralRepository(repoUrl?: string): Promise<{
 
   return {
     success: true,
-    repositoryName: 'Harmony Official Central Registry v2.4',
+    repositoryName: 'Habeshawi Official Central Registry v2.5',
     apps: CENTRAL_REPOSITORY_APPS,
     latencyMs: Math.max(15, latency),
     source: 'cached-registry'

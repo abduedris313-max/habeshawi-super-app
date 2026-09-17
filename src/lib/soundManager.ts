@@ -237,6 +237,38 @@ class SystemSoundManager {
   }
 
   /**
+   * App Launch / Boot / Modal Chime
+   */
+  public playAppLaunchSound() {
+    if (this.isNonEssentialMuted()) return;
+
+    try {
+      const ctx = this.getContext();
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+      const vol = 0.14 * this.settings.volume;
+
+      // Soft harmonic golden chord: A4 (440Hz), C#5 (554.37Hz), E5 (659.25Hz)
+      [440, 554.37, 659.25].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.setValueAtTime(vol / 3, now + idx * 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + idx * 0.04);
+        osc.stop(now + 0.45);
+      });
+    } catch {
+      // Audio autoplay guard
+    }
+  }
+
+  /**
    * Subtle iOS haptic click/tap audio
    */
   public playClickSound() {

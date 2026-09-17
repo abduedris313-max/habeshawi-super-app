@@ -33,7 +33,7 @@ import { soundManager } from '../lib/soundManager';
 import { DEFAULT_DOCK_APP_IDS, DEFAULT_WIDGET_SIZES, STORAGE_KEYS } from '../lib/offlinePersistence';
 import { AVAILABLE_WIDGETS, HomeWidgetId, WidgetSize } from './widgets/types';
 import { WALLPAPER_PRESETS } from './HomeScreenSetupModal';
-import { HarmonyLogo } from './HarmonyLogo';
+import { HabeshawiBrandEmblem, HabeshawiTibebBorder } from './HabeshawiIcons';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -75,6 +75,46 @@ interface ThemePresetOption {
 }
 
 const THEME_PRESETS: ThemePresetOption[] = [
+  {
+    id: 'habeshawi-gold',
+    name: 'Habeshawi Imperial Gold',
+    tagline: 'Lalibela Sunburst Gold & Warm Obsidian/Parchment',
+    gradient: 'from-amber-500 via-amber-600 to-yellow-600',
+    dotColor: 'bg-amber-500',
+    accentHex: '#f59e0b'
+  },
+  {
+    id: 'axum-emerald',
+    name: 'Axumite Emerald',
+    tagline: 'Highland Forest Emerald & Mountain Jade',
+    gradient: 'from-emerald-500 via-emerald-600 to-teal-800',
+    dotColor: 'bg-emerald-500',
+    accentHex: '#10b981'
+  },
+  {
+    id: 'sheba-crimson',
+    name: 'Queen Sheba Crimson',
+    tagline: 'Imperial Ruby & Royal Crimson Coral',
+    gradient: 'from-rose-500 via-rose-600 to-red-800',
+    dotColor: 'bg-rose-500',
+    accentHex: '#e11d48'
+  },
+  {
+    id: 'lalibela-stone',
+    name: 'Lalibela Terracotta Stone',
+    tagline: 'Rock-Hewn Monolith Warm Terracotta & Clay',
+    gradient: 'from-amber-600 via-orange-600 to-stone-800',
+    dotColor: 'bg-orange-500',
+    accentHex: '#ea580c'
+  },
+  {
+    id: 'birana-parchment',
+    name: 'Birana Manuscript Parchment',
+    tagline: 'Aged Manuscript Parchment & Qelem Amber Ink',
+    gradient: 'from-yellow-600 via-amber-700 to-stone-900',
+    dotColor: 'bg-amber-600',
+    accentHex: '#d97706'
+  },
   {
     id: 'slate',
     name: 'Apple Slate',
@@ -138,6 +178,15 @@ export const SYSTEM_FONTS: SystemFontOption[] = [
     sample: 'The quick brown fox jumps over the lazy dog. 1234567890'
   },
   {
+    id: 'ethiopic',
+    name: 'Noto Ethiopic & Ge’ez',
+    category: 'Cultural Heritage',
+    tagline: 'Authentic Fidel script & high-readability Latin pairing',
+    previewFontFamily: '"Noto Sans Ethiopic", "Noto Serif Ethiopic", sans-serif',
+    badge: 'Habeshawi',
+    sample: 'ሰላም ዓለም • እንኳን ወደ ሐበሻዊ ሱፐር አፕ በደህና መጡ።'
+  },
+  {
     id: 'sans',
     name: 'Inter Modern Sans',
     category: 'Grotesque UI',
@@ -171,7 +220,7 @@ export const SYSTEM_FONTS: SystemFontOption[] = [
     tagline: 'Fixed-width developer typography with code symbols & ligatures',
     previewFontFamily: '"JetBrains Mono", "Fira Code", monospace',
     badge: 'Developer',
-    sample: 'const harmonyOS = { engine: "Vite + TypeScript", speed: "120fps" };'
+    sample: 'const habeshawiOS = { engine: "Vite + TypeScript", speed: "120fps" };'
   },
   {
     id: 'rounded',
@@ -258,7 +307,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       { id: 'cloud', title: 'Firebase Cloud & Storage', subtitle: 'Firestore real-time database, auth state', icon: Flame, bg: 'bg-amber-500' },
       { id: 'pwa', title: 'PWA & Offline Capability', subtitle: 'Workbox Service Worker cache, install app', icon: Smartphone, bg: 'bg-teal-500' },
       { id: 'ai_studio', title: 'AI Studio Directives', subtitle: 'Senior Full-Stack standards, Gemini AI settings', icon: Sparkles, bg: 'bg-cyan-600' },
-      { id: 'about', title: 'About Harmony OS', subtitle: 'Version 2.4.0 Titanium Pro, system specs', icon: Info, bg: 'bg-neutral-500' },
+      { id: 'about', title: 'About Habeshawi', subtitle: 'Version 2.5.0 Titanium Pro, system specs', icon: Info, bg: 'bg-neutral-500' },
     ];
     return items.filter(i => i.title.toLowerCase().includes(q) || i.subtitle.toLowerCase().includes(q));
   }, [searchQuery]);
@@ -377,25 +426,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
         className={`w-full max-w-xl h-[90vh] max-h-[760px] rounded-[28px] sm:rounded-[32px] border shadow-2xl flex flex-col overflow-hidden relative ${
           isDark 
-            ? 'bg-[#000000] border-[#2c2c2e] text-white' 
-            : 'bg-[#f2f2f7] border-[#d1d1d6] text-neutral-900'
+            ? 'bg-[#120f0c] border-amber-500/30 text-amber-50 shadow-amber-950/40' 
+            : 'bg-[#fcfaf4] border-amber-400/50 text-stone-900 shadow-stone-400/30'
         }`}
       >
+        {/* Top Tibeb Decorative Ribbon */}
+        <div className="absolute top-0 left-0 right-0 z-30">
+          <HabeshawiTibebBorder height={5} className="w-full opacity-80" />
+        </div>
+
         {/* ================= TOP MOBILE NAVIGATION BAR ================= */}
-        <div className={`px-4 pt-3.5 pb-2.5 flex items-center justify-between border-b shrink-0 ${
-          isDark ? 'bg-[#1c1c1e]/90 border-[#2c2c2e]' : 'bg-[#ffffff]/90 border-[#e5e5ea]'
+        <div className={`px-4 pt-4 pb-2.5 flex items-center justify-between border-b shrink-0 ${
+          isDark ? 'bg-[#181410]/95 border-stone-800' : 'bg-[#f8f5ee]/95 border-stone-200'
         } backdrop-blur-xl z-20`}>
           {activePage === 'main' ? (
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-neutral-600 to-neutral-800 flex items-center justify-center shadow-xs">
-                <Settings className="w-4 h-4 text-white" />
-              </div>
-              <h1 className="text-base font-bold tracking-tight">Settings</h1>
+            <div className="flex items-center gap-2.5">
+              <HabeshawiBrandEmblem size={26} />
+              <h1 className="text-base font-bold tracking-tight">Habeshawi Settings</h1>
             </div>
           ) : (
             <button
               onClick={handleBack}
-              className="flex items-center gap-1 text-sm font-semibold text-indigo-500 hover:text-indigo-400 transition-colors -ml-1 py-0.5 px-1 rounded-md"
+              className="flex items-center gap-1 text-sm font-semibold text-amber-500 hover:text-amber-400 transition-colors -ml-1 py-0.5 px-1 rounded-md"
             >
               <ChevronLeft className="w-5 h-5 -mr-1" />
               <span>Settings</span>
@@ -413,7 +465,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {activePage === 'cloud' && 'Cloud & Firebase'}
               {activePage === 'pwa' && 'PWA & Offline'}
               {activePage === 'ai_studio' && 'AI Studio Directives'}
-              {activePage === 'about' && 'About Harmony OS'}
+              {activePage === 'about' && 'About Habeshawi OS'}
             </span>
           )}
 
@@ -1798,7 +1850,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-colors flex items-center justify-center gap-2"
                   >
                     <User className="w-4 h-4" />
-                    <span>{currentUser ? 'Manage Cloud Profile' : 'Sign in to Harmony Cloud'}</span>
+                    <span>{currentUser ? 'Manage Cloud Profile' : 'Sign in to Habeshawi Cloud'}</span>
                   </button>
                 </div>
               </motion.div>
@@ -1826,7 +1878,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
 
                   <p className="text-xs text-neutral-300 mb-3">
-                    Harmony OS is compiled with strict Service Worker caching, enabling zero-latency launches, offline mini-apps, and full home screen installation.
+                    Habeshawi is compiled with strict Service Worker caching, enabling zero-latency launches, offline mini-apps, and full home screen installation.
                   </p>
 
                   <div className="space-y-2 text-xs">
@@ -1897,7 +1949,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </button>
               </motion.div>
             ) : (
-              /* ================= SUBPAGE: ABOUT HARMONY OS ================= */
+              /* ================= SUBPAGE: ABOUT HABESHAWI ================= */
               <motion.div
                 key="subpage-about"
                 initial={{ opacity: 0, x: 16 }}
@@ -1909,13 +1961,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div className={`p-5 rounded-2xl border text-center ${
                   isDark ? 'bg-[#1c1c1e] border-[#2c2c2e]' : 'bg-white border-[#e5e5ea]'
                 }`}>
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-600 to-pink-500 mx-auto mb-3 shadow-lg flex items-center justify-center">
-                    <HarmonyLogo className="w-10 h-10 text-white" />
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-amber-600 to-yellow-600 mx-auto mb-3 shadow-lg flex items-center justify-center p-2 border border-amber-400/50">
+                    <HabeshawiBrandEmblem className="w-full h-full" />
                   </div>
-                  <h2 className="text-base font-bold">Harmony OS Super App</h2>
-                  <p className="text-xs text-indigo-400 font-semibold mb-1">Version 2.4.0 Titanium Pro</p>
+                  <h2 className="text-base font-bold">Habeshawi Super App</h2>
+                  <p className="text-xs text-amber-400 font-semibold mb-1">Version 2.5.0 Titanium Pro</p>
                   <p className="text-[11px] text-neutral-400 max-w-sm mx-auto">
-                    A comprehensive web operating system engineered with React 18, TypeScript, Tailwind CSS, Motion, and Firebase Firestore.
+                    A comprehensive cultural & productivity web operating system engineered with React 18, TypeScript, Tailwind CSS, Motion, and Firebase Firestore.
                   </p>
                 </div>
 
@@ -1924,7 +1976,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 }`}>
                   <div className="p-3 flex justify-between text-xs">
                     <span className="text-neutral-400">Design System</span>
-                    <span className="font-semibold">Apple iOS HIG</span>
+                    <span className="font-semibold">Apple iOS HIG & Habeshawi Motif</span>
                   </div>
                   <div className="p-3 flex justify-between text-xs">
                     <span className="text-neutral-400">Cloud Backend</span>
@@ -1960,7 +2012,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         }`}>
           <div className="flex items-center gap-2 text-[11px] text-neutral-400">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Harmony OS Titanium</span>
+            <span>Habeshawi Titanium</span>
           </div>
 
           <button

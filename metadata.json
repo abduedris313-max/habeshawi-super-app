@@ -1,6 +1,6 @@
 {
-  "name": "Harmony",
-  "description": "An iOS-style Super App ecosystem integrating Harmony Mini Apps (Notes, Docs, Writing, Music Player, Docs AI, Tri-Calendar, Financial Suite, and App Store) with Home Screen live widgets framework and Firebase cloud sync.",
+  "name": "Habeshawi",
+  "description": "An iOS-style Super App ecosystem integrating Habeshawi Mini Apps (Notes, Docs, Writing, Music Player, Docs AI, Tri-Calendar, Financial Suite, Ajam Script, and App Store) with Home Screen live widgets framework and Firebase cloud sync.",
   "requestFramePermissions": ["microphone", "geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

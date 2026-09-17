@@ -1,6 +1,6 @@
 /**
  * @file HomeScreenSetupModal.tsx
- * @description Dedicated Home Screen Setup & Customizer modal for Harmony Super App.
+ * @description Dedicated Home Screen Setup & Customizer modal for Habeshawi Super App.
  * Allows users to configure Springboard layout, toggle and reorder smart widgets,
  * manage bottom dock limits and apps, and customize visual theme and wallpaper ambience.
  */
@@ -36,7 +36,7 @@ import { SystemSettings, ThemeMode } from '../types';
 import { AVAILABLE_WIDGETS, HomeWidgetId, WidgetSize } from './widgets/types';
 import { soundManager } from '../lib/soundManager';
 import { DEFAULT_DOCK_APP_IDS, DEFAULT_WIDGET_SIZES } from '../lib/offlinePersistence';
-import { HarmonyLogo } from './HarmonyLogo';
+import { HabeshawiBrandEmblem, HabeshawiTibebBorder } from './HabeshawiIcons';
 
 interface HomeScreenSetupModalProps {
   isOpen: boolean;
@@ -64,8 +64,35 @@ export interface WallpaperPreset {
 
 export const WALLPAPER_PRESETS: WallpaperPreset[] = [
   { 
+    id: 'habeshawi-golden-highlands', 
+    name: 'Abyssinian Gold', 
+    bgClass: 'from-[#1a1405] via-[#2d1b06] to-[#0f0d06]',
+    darkBgClass: 'from-[#1a1405] via-[#2d1b06] to-[#0f0d06]', 
+    lightBgClass: 'from-[#fffbeb] via-[#fef3c7] to-[#fde68a]', 
+    previewHexDark: '#d97706',
+    previewHexLight: '#fef3c7'
+  },
+  { 
+    id: 'habeshawi-emerald-rift', 
+    name: 'Ethiopian Emerald', 
+    bgClass: 'from-[#03201a] via-[#043b2e] to-[#021813]',
+    darkBgClass: 'from-[#03201a] via-[#043b2e] to-[#021813]', 
+    lightBgClass: 'from-[#ecfdf5] via-[#d1fae5] to-[#a7f3d0]', 
+    previewHexDark: '#059669',
+    previewHexLight: '#d1fae5'
+  },
+  { 
+    id: 'habeshawi-crimson-sun', 
+    name: 'Entoto Sunset', 
+    bgClass: 'from-[#1f0a0a] via-[#3b0d11] to-[#120507]',
+    darkBgClass: 'from-[#1f0a0a] via-[#3b0d11] to-[#120507]', 
+    lightBgClass: 'from-[#fff1f2] via-[#ffe4e6] to-[#fecdd3]', 
+    previewHexDark: '#dc2626',
+    previewHexLight: '#ffe4e6'
+  },
+  { 
     id: 'obsidian', 
-    name: 'Apple Slate', 
+    name: 'Axumite Obsidian', 
     bgClass: 'from-[#0d1117] via-[#161b22] to-[#0a0d12]',
     darkBgClass: 'from-[#0d1117] via-[#161b22] to-[#0a0d12]', 
     lightBgClass: 'from-[#f1f5f9] via-[#e2e8f0] to-[#f8fafc]', 
@@ -83,7 +110,7 @@ export const WALLPAPER_PRESETS: WallpaperPreset[] = [
   },
   { 
     id: 'nebula-purple', 
-    name: 'Nebula Violet', 
+    name: 'Lalibela Violet', 
     bgClass: 'from-[#180d2b] via-[#2e1065] to-[#0f172a]',
     darkBgClass: 'from-[#180d2b] via-[#2e1065] to-[#0f172a]', 
     lightBgClass: 'from-[#faf5ff] via-[#f3e8ff] to-[#ede9fe]', 
@@ -98,24 +125,6 @@ export const WALLPAPER_PRESETS: WallpaperPreset[] = [
     lightBgClass: 'from-[#ffffff] via-[#f4f4f5] to-[#e4e4e7]', 
     previewHexDark: '#27272a',
     previewHexLight: '#f4f4f5'
-  },
-  { 
-    id: 'sunset-ember', 
-    name: 'Solar Sunset', 
-    bgClass: 'from-[#1c1917] via-[#451a03] to-[#1c1917]',
-    darkBgClass: 'from-[#1c1917] via-[#451a03] to-[#1c1917]', 
-    lightBgClass: 'from-[#fff7ed] via-[#ffedd5] to-[#fef2f2]', 
-    previewHexDark: '#451a03',
-    previewHexLight: '#ffedd5'
-  },
-  { 
-    id: 'emerald-aurora', 
-    name: 'Alpine Emerald', 
-    bgClass: 'from-[#06201a] via-[#064e3b] to-[#022c22]',
-    darkBgClass: 'from-[#06201a] via-[#064e3b] to-[#022c22]', 
-    lightBgClass: 'from-[#ecfdf5] via-[#d1fae5] to-[#f0fdf4]', 
-    previewHexDark: '#064e3b',
-    previewHexLight: '#d1fae5'
   },
   { 
     id: 'pearl-light', 
@@ -227,26 +236,31 @@ export const HomeScreenSetupModal: React.FC<HomeScreenSetupModalProps> = ({
         exit={{ scale: 0.94, opacity: 0, y: 15 }}
         className={`w-full max-w-2xl rounded-3xl p-5 sm:p-7 shadow-2xl relative border overflow-hidden transition-colors flex flex-col max-h-[90vh] ${
           isDark
-            ? 'bg-[#161b22] border-[#30363d] text-[#c9d1d9]'
-            : 'bg-white border-neutral-200 text-neutral-800 shadow-2xl'
+            ? 'bg-[#14100c] border-amber-500/35 text-amber-50 shadow-amber-950/50'
+            : 'bg-[#fcfaf4] border-amber-400/60 text-stone-900 shadow-stone-400/30'
         }`}
       >
+        {/* Top Tibeb Ribbon Accent */}
+        <div className="absolute top-0 left-0 right-0">
+          <HabeshawiTibebBorder height={6} className="w-full opacity-80" />
+        </div>
+
         {/* Header */}
-        <div className={`flex items-center justify-between pb-4 border-b mb-4 ${
-          isDark ? 'border-[#30363d]' : 'border-neutral-200'
+        <div className={`flex items-center justify-between pb-4 border-b mb-4 pt-1 ${
+          isDark ? 'border-stone-800' : 'border-stone-200'
         }`}>
           <div className="flex items-center gap-3">
-            <HarmonyLogo size="sm" isDarkMode={isDark} />
+            <HabeshawiBrandEmblem size={32} />
             <div>
               <h3 className={`text-base font-bold flex items-center gap-2 ${
                 isDark ? 'text-white' : 'text-neutral-900'
               }`}>
                 <span>Home Screen Setup</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400 font-semibold">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-semibold">
                   Personalize
                 </span>
               </h3>
-              <p className={`text-xs ${isDark ? 'text-[#8b949e]' : 'text-neutral-500'}`}>
+              <p className={`text-xs ${isDark ? 'text-stone-400' : 'text-stone-600'}`}>
                 Configure Springboard grid, Smart Stack widgets, dock, and visual theme
               </p>
             </div>

@@ -47,8 +47,8 @@ export const PwaInstallPrompt: React.FC = () => {
         <div className="flex items-center gap-3">
           <HarmonyLogo size="md" />
           <div>
-            <h4 className="text-xs font-bold text-white">Install Harmony</h4>
-            <p className="text-[11px] text-white/60">Add Harmony to your home screen</p>
+            <h4 className="text-xs font-bold text-white">Install Habeshawi</h4>
+            <p className="text-[11px] text-white/60">Add Habeshawi to your home screen</p>
           </div>
         </div>
 

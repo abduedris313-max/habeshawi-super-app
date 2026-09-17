@@ -11,6 +11,7 @@ import { DEFAULT_DOCK_APP_IDS } from '../lib/offlinePersistence';
 import { SystemSettings } from '../types';
 import { soundManager } from '../lib/soundManager';
 import { triggerHaptic } from '../utils/haptics';
+import { HabeshawiAppIcon } from './HabeshawiIcons';
 import { 
   Notebook, 
   FileText, 
@@ -20,15 +21,15 @@ import {
   Layers, 
   Calendar, 
   Wallet, 
-  ShoppingBag,
-  Sliders,
-  Check,
-  X,
-  Plus,
-  ArrowLeft,
-  ArrowRight,
-  LayoutGrid,
-  Settings as SettingsIcon
+  ShoppingBag, 
+  Sliders, 
+  Check, 
+  X, 
+  Plus, 
+  ArrowLeft, 
+  ArrowRight, 
+  LayoutGrid, 
+  Settings as SettingsIcon 
 } from 'lucide-react';
 
 interface DockProps {
@@ -77,20 +78,8 @@ export const DockComponent: React.FC<DockProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const getDockIcon = (iconName: string) => {
-    switch (iconName) {
-      case 'notebook': return <Notebook className="w-5 h-5 text-white" />;
-      case 'file-text': return <FileText className="w-5 h-5 text-white" />;
-      case 'pen-tool': return <PenTool className="w-5 h-5 text-white" />;
-      case 'disc': return <Disc className="w-5 h-5 text-white" />;
-      case 'sparkles': return <Sparkles className="w-5 h-5 text-white" />;
-      case 'calendar': return <Calendar className="w-5 h-5 text-white" />;
-      case 'wallet': return <Wallet className="w-5 h-5 text-white" />;
-      case 'shopping-bag':
-      case 'store':
-        return <ShoppingBag className="w-5 h-5 text-white" />;
-      default: return <Layers className="w-5 h-5 text-white" />;
-    }
+  const getDockIcon = (iconName: string, appId?: string) => {
+    return <HabeshawiAppIcon appId={appId} iconName={iconName} className="w-5 h-5 text-white drop-shadow-sm" />;
   };
 
   // Resolve active configured apps from catalog using useMemo
@@ -251,11 +240,11 @@ export const DockComponent: React.FC<DockProps> = ({
                 className="relative group flex flex-col items-center"
                 title={app.name}
               >
-                <div className={`w-10 h-10 rounded-[12px] bg-gradient-to-br ${app.colorGradient} flex items-center justify-center shadow-md p-1 relative overflow-hidden transition-all group-hover:shadow-fuchsia-500/30 ${
-                  isActive ? (isDarkMode ? 'ring-2 ring-white scale-105' : 'ring-2 ring-neutral-800 scale-105') : ''
+                <div className={`w-10 h-10 rounded-[12px] bg-gradient-to-br ${app.colorGradient} flex items-center justify-center shadow-md p-1 relative overflow-hidden transition-all group-hover:shadow-amber-500/30 border border-amber-400/30 ${
+                  isActive ? (isDarkMode ? 'ring-2 ring-amber-400 scale-105' : 'ring-2 ring-amber-600 scale-105') : ''
                 }`}>
                   <div className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent pointer-events-none rounded-[12px]" />
-                  {getDockIcon(app.iconName)}
+                  {getDockIcon(app.iconName, app.id)}
                 </div>
                 
                 {/* iOS Active App Indicator Dot */}
@@ -355,8 +344,8 @@ export const DockComponent: React.FC<DockProps> = ({
                           isDarkMode ? 'hover:bg-[#21262d] text-white' : 'hover:bg-neutral-100 text-neutral-900'
                         }`}
                       >
-                        <div className={`w-6 h-6 rounded-md bg-gradient-to-br ${app.colorGradient} flex items-center justify-center text-white shrink-0`}>
-                          {getDockIcon(app.iconName)}
+                        <div className={`w-6 h-6 rounded-md bg-gradient-to-br ${app.colorGradient} flex items-center justify-center text-white shrink-0 p-0.5`}>
+                          {getDockIcon(app.iconName, app.id)}
                         </div>
                         <span className="text-xs font-semibold truncate flex-1">{app.name}</span>
                         <Plus className="w-3 h-3 text-indigo-400" />

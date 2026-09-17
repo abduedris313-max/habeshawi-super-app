@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, LogIn, UserCheck, ShieldCheck, Sparkles } from 'lucide-react';
+import { X, LogIn, UserCheck, ShieldCheck, Sparkles, ExternalLink, Copy, Check, ShieldAlert } from 'lucide-react';
 import { signInWithGoogle, signInAsGuest } from '../lib/firebase';
 
 interface AuthModalProps {
@@ -10,16 +10,27 @@ interface AuthModalProps {
 export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [copiedDomain, setCopiedDomain] = useState(false);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setErrorMsg(null);
+    setErrorCode(null);
     try {
       await signInWithGoogle();
       onSuccess();
     } catch (err: any) {
       console.error(err);
-      setErrorMsg(err.message || 'Google Sign-In failed.');
+      const code = err?.code || (err?.message?.includes('unauthorized-domain') ? 'auth/unauthorized-domain' : '');
+      setErrorCode(code);
+      if (code === 'auth/unauthorized-domain') {
+        setErrorMsg(`Deployment Domain Not Authorized: ${typeof window !== 'undefined' ? window.location.hostname : ''} is not registered in Firebase Authorized Domains.`);
+      } else if (code === 'auth/popup-blocked') {
+        setErrorMsg('Sign-in popup was blocked by browser. Please allow popups or use Guest Scholar mode.');
+      } else {
+        setErrorMsg(err.message || 'Google Sign-In failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -28,6 +39,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
   const handleGuestSignIn = async () => {
     setIsLoading(true);
     setErrorMsg(null);
+    setErrorCode(null);
     try {
       await signInAsGuest();
       onSuccess();
@@ -63,6 +75,42 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
         {errorMsg && (
           <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs">
             {errorMsg}
+          </div>
+        )}
+
+        {errorCode === 'auth/unauthorized-domain' && (
+          <div className="p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-xs space-y-3 text-amber-200">
+            <div className="flex items-center gap-2 font-semibold text-amber-400">
+              <ShieldAlert className="w-4 h-4 shrink-0" />
+              <span>Domain Not Whitelisted in Firebase</span>
+            </div>
+            <p className="text-[11px] leading-relaxed opacity-90">
+              Google Sign-In requires adding this deployed domain to your Firebase Authorized Domains whitelist.
+            </p>
+            <div className="p-2 rounded-xl bg-black/40 border border-amber-500/20 font-mono text-[11px] text-white flex items-center justify-between gap-2">
+              <span className="truncate">{typeof window !== 'undefined' ? window.location.hostname : ''}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.hostname);
+                  setCopiedDomain(true);
+                  setTimeout(() => setCopiedDomain(false), 2500);
+                }}
+                className="px-2 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-[10px] font-medium flex items-center gap-1 transition-colors"
+              >
+                {copiedDomain ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                {copiedDomain ? 'Copied' : 'Copy'}
+              </button>
+            </div>
+            <a
+              href="https://console.firebase.google.com/project/concrete-lead-kc9s2/authentication/settings"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-center flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <span>Open Firebase Authorized Domains</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
           </div>
         )}
 

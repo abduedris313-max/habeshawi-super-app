@@ -10,35 +10,35 @@ import { FinanceTransaction, FinanceAccount, FinanceBudget, FinanceLoan, Finance
 
 // Storage keys used across AppRunner and individual mini-apps
 export const STORAGE_KEYS = {
-  NOTES: 'harmony_notes_data',
-  DOCS: 'harmony_docs_data',
-  DRAFTS: 'harmony_writing_data',
-  PLAYLISTS: 'harmony_music_data',
-  AI_CHATS: 'harmony_docs_ai_data',
-  CALENDAR: 'harmony_calendar_data',
-  FINANCE_TRANSACTIONS: 'harmony_finance_transactions_data',
-  FINANCE_ACCOUNTS: 'harmony_finance_accounts_data',
-  FINANCE_BUDGETS: 'harmony_finance_budgets_data',
-  FINANCE_LOANS: 'harmony_finance_loans_data',
-  FINANCE_SUBSCRIPTIONS: 'harmony_finance_subscriptions_data',
-  PINNED_APPS: 'harmony_pinned_apps_v1',
-  HOME_WIDGETS: 'harmony_home_widgets_v1',
-  WIDGET_SIZES: 'harmony_widget_sizes_v1',
-  SETTINGS: 'harmony_system_settings_v1',
-  NOTIFICATIONS: 'harmony_system_notifications_v1',
-  SYSTEM_NOTES: 'harmony_offline_notes',
-  SYSTEM_DOCS: 'harmony_offline_docs',
-  SYSTEM_DRAFTS: 'harmony_offline_drafts',
-  SYSTEM_PLAYLISTS: 'harmony_offline_playlists',
-  SYSTEM_CHATS: 'harmony_offline_aichats',
-  SYSTEM_CALENDAR: 'harmony_offline_calendar',
-  SYNC_QUEUE: 'harmony_offline_sync_queue',
-  LAST_SYNC: 'harmony_last_sync_timestamp',
-  ONBOARDED: 'harmony_has_onboarded_v1',
-  WALLPAPER: 'harmony_wallpaper_v1',
-  INSTALLED_APPS: 'harmony_installed_apps_v2',
-  APP_REPOSITORIES: 'harmony_app_repositories_v1',
-  DOWNLOADED_APP_BUNDLES: 'harmony_downloaded_app_bundles_v1',
+  NOTES: 'habeshawi_notes_data',
+  DOCS: 'habeshawi_docs_data',
+  DRAFTS: 'habeshawi_writing_data',
+  PLAYLISTS: 'habeshawi_music_data',
+  AI_CHATS: 'habeshawi_docs_ai_data',
+  CALENDAR: 'habeshawi_calendar_data',
+  FINANCE_TRANSACTIONS: 'habeshawi_finance_transactions_data',
+  FINANCE_ACCOUNTS: 'habeshawi_finance_accounts_data',
+  FINANCE_BUDGETS: 'habeshawi_finance_budgets_data',
+  FINANCE_LOANS: 'habeshawi_finance_loans_data',
+  FINANCE_SUBSCRIPTIONS: 'habeshawi_finance_subscriptions_data',
+  PINNED_APPS: 'habeshawi_pinned_apps_v1',
+  HOME_WIDGETS: 'habeshawi_home_widgets_v1',
+  WIDGET_SIZES: 'habeshawi_widget_sizes_v1',
+  SETTINGS: 'habeshawi_system_settings_v1',
+  NOTIFICATIONS: 'habeshawi_system_notifications_v1',
+  SYSTEM_NOTES: 'habeshawi_offline_notes',
+  SYSTEM_DOCS: 'habeshawi_offline_docs',
+  SYSTEM_DRAFTS: 'habeshawi_offline_drafts',
+  SYSTEM_PLAYLISTS: 'habeshawi_offline_playlists',
+  SYSTEM_CHATS: 'habeshawi_offline_aichats',
+  SYSTEM_CALENDAR: 'habeshawi_offline_calendar',
+  SYNC_QUEUE: 'habeshawi_offline_sync_queue',
+  LAST_SYNC: 'habeshawi_last_sync_timestamp',
+  ONBOARDED: 'habeshawi_has_onboarded_v1',
+  WALLPAPER: 'habeshawi_wallpaper_v1',
+  INSTALLED_APPS: 'habeshawi_installed_apps_v2',
+  APP_REPOSITORIES: 'habeshawi_app_repositories_v1',
+  DOWNLOADED_APP_BUNDLES: 'habeshawi_downloaded_app_bundles_v1',
 } as const;
 
 export const DEFAULT_DOCK_APP_IDS: string[] = [
@@ -64,13 +64,13 @@ export const DEFAULT_WIDGET_SIZES: Record<string, 'small' | 'medium' | 'large'> 
 export const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
   isDarkMode: true,
   themeMode: 'dark',
-  themePreset: 'slate',
+  themePreset: 'habeshawi-gold',
   volume: 0.8,
   brightness: 1,
   typewriterSounds: true,
   hapticFeedback: true,
   defaultViewMode: 'native',
-  accentColor: '#8b5cf6',
+  accentColor: '#f59e0b',
   focusMode: false,
   dockAppIds: DEFAULT_DOCK_APP_IDS,
   dockMaxSmallScreen: 5,
@@ -204,11 +204,28 @@ function safeGetStorage(): Storage | null {
   }
 })();
 
-// Helper to safely read from localStorage (with tracking-prevention resilient memory fallback)
+// Helper to safely read from localStorage (with tracking-prevention resilient memory fallback and legacy key migration)
 export function getLocalItem<T>(key: string, fallback: T): T {
   try {
     const storage = safeGetStorage();
-    const raw = storage ? storage.getItem(key) : memoryStorage.get(key);
+    let raw = storage ? storage.getItem(key) : memoryStorage.get(key);
+    
+    // Check and migrate legacy harmony_ key if present
+    if (!raw && key.startsWith('habeshawi_')) {
+      const legacyKey = key.replace('habeshawi_', 'harmony_');
+      const legacyRaw = storage ? storage.getItem(legacyKey) : memoryStorage.get(legacyKey);
+      if (legacyRaw) {
+        raw = legacyRaw;
+        // Save to new key so subsequent accesses are instant
+        try {
+          if (storage) storage.setItem(key, legacyRaw);
+          memoryStorage.set(key, legacyRaw);
+        } catch {
+          // ignore
+        }
+      }
+    }
+
     if (!raw) return fallback;
     return JSON.parse(raw) as T;
   } catch {
@@ -412,8 +429,8 @@ export function useOfflinePersistence(cloudState?: {
     refreshQueueCount,
     setLastSyncTime,
     snapshotMiniAppData: (appId: string, data: any) => {
-      setLocalItem(`harmony_snapshot_${appId}`, data);
-      notifyServiceWorkerSnapshot(`harmony_snapshot_${appId}`, data);
+      setLocalItem(`habeshawi_snapshot_${appId}`, data);
+      notifyServiceWorkerSnapshot(`habeshawi_snapshot_${appId}`, data);
       updateCachedCount();
     },
     // Direct accessors to cached data with fallback

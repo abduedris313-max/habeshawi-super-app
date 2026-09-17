@@ -1,6 +1,6 @@
 {
-  "short_name": "Harmony",
-  "name": "Harmony",
+  "short_name": "Habeshawi",
+  "name": "Habeshawi",
   "icons": [
     {
       "src": "./harmony-logo.jpg",
@@ -17,10 +17,10 @@
   ],
   "start_url": "./",
   "scope": "./",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#090a0f",
+  "theme_color": "#090a0f",
   "display": "standalone",
   "orientation": "portrait",
-  "description": "iOS style Super App integrating all Harmony WebApps (Notes, Docs, Writing, Music, Docs AI) with Firebase sync.",
-  "categories": ["productivity", "utilities", "entertainment"]
+  "description": "iOS-style Super App integrating all Habeshawi WebApps (Notes, Docs, Writing, Music, Docs AI, Calendar, Finance, Ajam Script) with Firebase cloud sync.",
+  "categories": ["productivity", "utilities", "entertainment", "lifestyle"]
 }

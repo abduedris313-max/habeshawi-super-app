@@ -38,14 +38,22 @@ if (!getApps().length) {
 export const auth = getAuth(app);
 export const db: Firestore = getFirestore(app, firebaseConfig.firestoreDatabaseId || undefined);
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
 
 /**
  * Sign in with Google Popup
  */
 export async function signInWithGoogle(): Promise<User> {
-  const result = await signInWithPopup(auth, googleProvider);
-  await ensureUserProfile(result.user);
-  return result.user;
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    await ensureUserProfile(result.user);
+    return result.user;
+  } catch (error: any) {
+    console.error('[Ajam Script Firebase Auth] Google sign in failed:', error);
+    throw error;
+  }
 }
 
 /**

@@ -233,7 +233,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">
-                            {notif.appName || 'Harmony OS'}
+                            {notif.appName || 'Habeshawi'}
                           </span>
                           {notif.suppressedByFocus && (
                             <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">
