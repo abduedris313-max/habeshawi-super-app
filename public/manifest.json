@@ -1,9 +1,9 @@
 {
-  "short_name": "Habeshawi",
-  "name": "Habeshawi",
+  "short_name": "HarmonyOS",
+  "name": "HarmonyOS Super App Ecosystem",
   "icons": [
     {
-      "src": "./harmony-logo.jpg",
+      "src": "./pwa-icon.jpg",
       "type": "image/jpeg",
       "sizes": "512x512",
       "purpose": "any maskable"
@@ -13,6 +13,12 @@
       "type": "image/jpeg",
       "sizes": "192x192 512x512",
       "purpose": "any"
+    },
+    {
+      "src": "./icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
     }
   ],
   "start_url": "./",
@@ -21,6 +27,6 @@
   "theme_color": "#090a0f",
   "display": "standalone",
   "orientation": "portrait",
-  "description": "iOS-style Super App integrating all Habeshawi WebApps (Notes, Docs, Writing, Music, Docs AI, Calendar, Finance, Ajam Script) with Firebase cloud sync.",
+  "description": "iOS-style Super App integrating all HarmonyOS Mini Apps with Firebase cloud sync.",
   "categories": ["productivity", "utilities", "entertainment", "lifestyle"]
 }
