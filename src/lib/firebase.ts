@@ -71,7 +71,7 @@ if (!getApps().length) {
 export const auth = getAuth(app);
 
 // Initialize Firestore with auto-detect transport settings and robust local cache persistence
-const databaseId = (firebaseConfig as any).firestoreDatabaseId;
+const databaseId = env.VITE_FIREBASE_DATABASE_ID || (firebaseConfig as any).firestoreDatabaseId;
 
 let firestoreInstance: Firestore;
 if (typeof window !== 'undefined') {

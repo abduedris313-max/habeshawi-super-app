@@ -4,10 +4,18 @@
  * Handles API endpoints, Gemini AI integration, app metadata, and SPA asset serving.
  */
 
-import 'dotenv/config';
-import express, { Request, Response } from 'express';
+import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
+import express, { Request, Response } from 'express';
 import { GoogleGenAI } from '@google/genai';
+
+// Prioritize production environment variables if present
+const prodEnvPath = path.resolve(process.cwd(), '.env.production');
+if (fs.existsSync(prodEnvPath)) {
+  dotenv.config({ path: prodEnvPath });
+}
+dotenv.config(); // Complement with standard .env
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -37,9 +45,10 @@ function getGeminiClient(): GoogleGenAI {
 app.get('/api/health', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
+    environment: process.env.NODE_ENV || 'production',
     timestamp: new Date().toISOString(),
     service: 'Harmony OS Super App Backend',
-    firebaseProject: 'concrete-lead-kc9s2'
+    firebaseProject: process.env.VITE_FIREBASE_PROJECT_ID || 'concrete-lead-kc9s2'
   });
 });
 
