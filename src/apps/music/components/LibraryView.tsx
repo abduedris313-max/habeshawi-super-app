@@ -162,7 +162,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       </div>
 
       {/* Track List Table / Scroll Area */}
-      <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+      <div className="flex-1 overflow-y-auto space-y-2 pr-1 pb-24 md:pb-6 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {filteredTracks.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-center rounded-3xl bg-white/40 dark:bg-white/5 border border-neutral-200/60 dark:border-white/10 my-4">
             <Sparkles className="w-12 h-12 text-fuchsia-400 mb-3 animate-pulse" />

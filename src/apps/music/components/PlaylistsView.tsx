@@ -78,10 +78,10 @@ export const PlaylistsView: React.FC<PlaylistsViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row w-full h-full max-w-5xl mx-auto p-3 sm:p-6 gap-6 overflow-hidden">
+    <div className="flex-1 flex flex-col md:flex-row w-full h-full max-w-5xl mx-auto p-3 sm:p-6 gap-4 sm:gap-6 overflow-y-auto md:overflow-hidden pb-24 md:pb-6 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       {/* Left Column: Playlists List */}
-      <div className="w-full md:w-80 flex flex-col shrink-0">
-        <div className="flex items-center justify-between mb-4">
+      <div className="w-full md:w-80 flex flex-col shrink-0 max-h-60 md:max-h-none">
+        <div className="flex items-center justify-between mb-3 shrink-0">
           <h2 className="text-xl font-bold text-neutral-900 dark:text-white flex items-center gap-2">
             <ListMusic className="w-6 h-6 text-fuchsia-500" />
             <span>Playlists</span>
@@ -98,7 +98,7 @@ export const PlaylistsView: React.FC<PlaylistsViewProps> = ({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
+        <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {playlists.length === 0 ? (
             <div className="p-6 text-center rounded-2xl bg-white/40 dark:bg-white/5 border border-neutral-200/60 dark:border-white/10 text-xs text-neutral-500 dark:text-neutral-400">
               No playlists created yet. Click "+" to build your custom mix!
@@ -190,7 +190,7 @@ export const PlaylistsView: React.FC<PlaylistsViewProps> = ({
             </div>
 
             {/* Tracks List inside active playlist */}
-            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               {activePlaylistTracks.length === 0 ? (
                 <div className="p-8 text-center text-xs text-neutral-500">
                   This playlist is empty.

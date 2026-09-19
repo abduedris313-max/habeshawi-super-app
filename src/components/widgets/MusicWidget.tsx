@@ -59,7 +59,7 @@ export const MusicWidget: React.FC<MusicWidgetProps> = ({
       <div className="flex items-center justify-between gap-1">
         <div className="flex items-center gap-1.5 text-fuchsia-500 font-semibold text-[10px] sm:text-[11px] tracking-wide">
           <Disc className={`w-3.5 h-3.5 ${isPlayingMusic ? 'animate-spin-slow' : ''}`} />
-          <span className="font-bold">HARMONY AUDIO</span>
+          <span className="font-bold">HABESHAWI AUDIO</span>
         </div>
 
         <div className="flex items-center gap-1.5">

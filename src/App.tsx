@@ -4,7 +4,7 @@
  * Integrates all Harmony WebApps (Notes, Docs, Writing, Music Player, Docs AI) in iOS style UI with Firebase sync.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { HARMONY_APPS } from './config/apps';
 import { 
@@ -244,6 +244,36 @@ export default function App() {
   useEffect(() => {
     soundManager.setSettings(settings);
   }, [settings]);
+
+  // Start in Fullscreen Mode per user requirement
+  useEffect(() => {
+    const enterFullscreen = async () => {
+      try {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+      } catch {
+        // Handled silently if browser requires explicit user gesture
+      }
+    };
+
+    enterFullscreen();
+
+    // Browser security may require a user gesture; trigger on first user interaction
+    const handleFirstTouchOrClick = () => {
+      enterFullscreen();
+      window.removeEventListener('click', handleFirstTouchOrClick);
+      window.removeEventListener('touchend', handleFirstTouchOrClick);
+    };
+
+    window.addEventListener('click', handleFirstTouchOrClick, { once: true });
+    window.addEventListener('touchend', handleFirstTouchOrClick, { once: true });
+
+    return () => {
+      window.removeEventListener('click', handleFirstTouchOrClick);
+      window.removeEventListener('touchend', handleFirstTouchOrClick);
+    };
+  }, []);
 
   // Unified Notification Trigger respecting Focus Mode
   const triggerNotification = (title: string, message: string, appName: string = 'Habeshawi') => {
@@ -595,6 +625,25 @@ export default function App() {
     setIsAppSwitcherOpen(false);
   };
 
+  // Home Navigation trigger to return springboard to Page 1 and dismiss overlays
+  const [homeTrigger, setHomeTrigger] = useState(0);
+
+  const handleGoHome = useCallback(() => {
+    soundManager.playClickSound();
+    triggerHaptic('light');
+    if (activeAppId) {
+      setActiveAppId(null);
+    }
+    setIsAppSwitcherOpen(false);
+    setIsSpotlightOpen(false);
+    setIsInstalledAppsOpen(false);
+    setIsNotificationCenterOpen(false);
+    setIsControlCenterOpen(false);
+    setIsSettingsOpen(false);
+    setIsHomeScreenSetupOpen(false);
+    setHomeTrigger(prev => prev + 1);
+  }, [activeAppId]);
+
   const activeAppConfig = HARMONY_APPS.find(a => a.id === activeAppId);
 
   // Auth Modal trigger with optional initial mode
@@ -742,6 +791,7 @@ export default function App() {
               pinnedAppIds={pinnedAppIds}
               onTogglePinApp={handleTogglePinApp}
               onOpenApp={handleOpenApp}
+              onOpenAppSwitcher={() => setIsAppSwitcherOpen(true)}
               installedAppIds={installedAppIds}
               onInstallApp={handleInstallApp}
               onUninstallApp={handleUninstallApp}
@@ -781,6 +831,7 @@ export default function App() {
                 onUpdateSettings={handleUpdateSettings}
                 wallpaperTheme={wallpaperTheme}
                 onUpdateWallpaperTheme={handleUpdateWallpaperTheme}
+                homeTrigger={homeTrigger}
               />
             </motion.div>
           )}
@@ -802,6 +853,7 @@ export default function App() {
               onOpenApp={handleOpenApp}
               onOpenAppSwitcher={() => setIsAppSwitcherOpen(true)}
               onOpenInstalledApps={() => setIsInstalledAppsOpen(true)}
+              onGoHome={handleGoHome}
               activeAppId={activeAppId}
               isDarkMode={settings.isDarkMode}
               dockAppIds={settings.dockAppIds}

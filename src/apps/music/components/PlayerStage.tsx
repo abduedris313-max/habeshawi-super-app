@@ -73,7 +73,7 @@ export const PlayerStage: React.FC<PlayerStageProps> = ({
   const isFav = favorites.includes(currentTrack.id);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center max-w-xl mx-auto w-full min-h-0 relative py-2 sm:py-6 px-3">
+    <div className="flex-1 flex flex-col items-center w-full max-w-xl mx-auto overflow-y-auto px-3 sm:px-6 py-3 sm:py-6 space-y-3 sm:space-y-4 pb-24 md:pb-8 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       {/* Dynamic Ambient Background Blur */}
       <div className="absolute inset-0 -z-10 overflow-hidden rounded-3xl opacity-25 dark:opacity-40 blur-3xl transition-all duration-1000 pointer-events-none">
         <img
@@ -84,7 +84,7 @@ export const PlayerStage: React.FC<PlayerStageProps> = ({
       </div>
 
       {/* Top Bar Badges & Local File Trigger */}
-      <div className="w-full flex items-center justify-between mb-4 sm:mb-6 px-1">
+      <div className="w-full flex items-center justify-between mb-2 sm:mb-4 px-1 shrink-0">
         <div className="flex items-center gap-2">
           {currentTrack.isLocal ? (
             <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
@@ -93,7 +93,7 @@ export const PlayerStage: React.FC<PlayerStageProps> = ({
             </span>
           ) : (
             <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400 border border-fuchsia-500/30">
-              Harmony Audio
+              Habeshawi Audio
             </span>
           )}
         </div>
@@ -103,7 +103,7 @@ export const PlayerStage: React.FC<PlayerStageProps> = ({
             triggerHaptic('light');
             onOpenUploadModal();
           }}
-          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-white/80 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-white shadow-sm active:scale-95 transition-all"
+          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-white/80 dark:bg-white/10 hover:bg-neutral-200 dark:hover:bg-white/20 border border-neutral-200 dark:border-white/10 text-neutral-800 dark:text-white shadow-xs active:scale-95 transition-all"
         >
           <FolderPlus className="w-4 h-4 text-fuchsia-500" />
           <span>Add Local Audio</span>
@@ -111,8 +111,8 @@ export const PlayerStage: React.FC<PlayerStageProps> = ({
       </div>
 
       {/* Album Artwork & Vinyl Effect */}
-      <div className="relative mb-6 group">
-        <div className="w-56 h-56 sm:w-72 sm:h-72 rounded-[36px] overflow-hidden shadow-2xl ring-1 ring-black/10 dark:ring-white/20 relative bg-neutral-900">
+      <div className="relative mb-3 sm:mb-4 group flex flex-col items-center shrink-0">
+        <div className="w-48 h-48 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-3xl sm:rounded-[36px] overflow-hidden shadow-2xl ring-1 ring-black/10 dark:ring-white/20 relative bg-neutral-900 transition-all">
           <img
             src={currentTrack.coverUrl}
             alt={currentTrack.title}
@@ -134,7 +134,7 @@ export const PlayerStage: React.FC<PlayerStageProps> = ({
         </div>
 
         {/* Visualizer Canvas overlay below/around artwork */}
-        <div className="mt-4 w-full max-w-sm">
+        <div className="mt-3 w-full max-w-xs sm:max-w-sm">
           <VisualizerCanvas isPlaying={isPlaying} mode={visualizerMode} />
         </div>
       </div>

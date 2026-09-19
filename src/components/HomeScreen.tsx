@@ -83,6 +83,7 @@ interface HomeScreenProps {
   onUpdateSettings?: (updated: Partial<SystemSettings>) => void;
   wallpaperTheme?: string;
   onUpdateWallpaperTheme?: (themeId: string) => void;
+  homeTrigger?: number;
 }
 
 export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
@@ -111,11 +112,22 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
   settings,
   onUpdateSettings,
   wallpaperTheme = 'obsidian',
-  onUpdateWallpaperTheme
+  onUpdateWallpaperTheme,
+  homeTrigger
 }) => {
   // Page state: 0 = Today / Widgets, 1 = Main App Springboard Grid, 2 = App Library Folders
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [slideDirection, setSlideDirection] = useState<number>(1);
+
+  // When home gesture / bar is triggered, return to springboard Page 1
+  useEffect(() => {
+    if (homeTrigger && homeTrigger > 0) {
+      if (currentPage !== 1) {
+        setSlideDirection(1 < currentPage ? -1 : 1);
+        setCurrentPage(1);
+      }
+    }
+  }, [homeTrigger]);
 
   // Jiggle / Edit Home Screen Mode
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
@@ -134,6 +146,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
   const gridDensity: LauncherGridDensity = settings?.launcherGridDensity || 'standard';
   const showLabels: boolean = settings?.launcherShowLabels !== false;
   const showPageDots: boolean = settings?.launcherShowPageDots !== false;
+  const isBottomArrangement: boolean = settings?.launcherIconArrangement !== 'top';
 
   const handleStartLongPress = () => {
     if (settings?.launcherJiggleOnLongPress === false) return;
@@ -430,6 +443,24 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
                   <option value="compact">Compact (5×6)</option>
                 </select>
               </div>
+
+              {/* Icon Arrangement Selector */}
+              <div>
+                <label className="text-[10px] text-neutral-400 mb-1 block">Icon Arrangement</label>
+                <select
+                  value={settings?.launcherIconArrangement || 'bottom'}
+                  onChange={(e) => {
+                    soundManager.playClickSound();
+                    onUpdateSettings?.({ launcherIconArrangement: e.target.value as 'bottom' | 'top' });
+                  }}
+                  className={`w-full py-1 px-2 rounded-lg text-xs font-semibold border ${
+                    isDarkMode ? 'bg-[#2c2c2e] border-[#3a3a3c] text-white' : 'bg-neutral-100 border-neutral-200 text-neutral-900'
+                  }`}
+                >
+                  <option value="bottom">Bottom-Anchored (iOS 18)</option>
+                  <option value="top">Top-Anchored</option>
+                </select>
+              </div>
             </div>
 
             <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-between">
@@ -458,7 +489,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
       </AnimatePresence>
 
       {/* ================= MAIN PAGINATED SPRINGBOARD VIEW ================= */}
-      <div className="flex-1 w-full min-h-0 relative overflow-hidden flex flex-col justify-center">
+      <div className={`flex-1 w-full min-h-0 relative overflow-hidden flex flex-col ${isBottomArrangement ? 'justify-end' : 'justify-center'}`}>
         <AnimatePresence mode="wait" custom={slideDirection}>
           {currentPage === 0 ? (
             /* ================= PAGE 0: SMART STACK WIDGETS & ASSISTANT ================= */
@@ -527,9 +558,9 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
               initial="enter"
               animate="center"
               exit="exit"
-              className="w-full h-full flex flex-col justify-center overflow-hidden"
+              className={`w-full h-full flex flex-col ${isBottomArrangement ? 'justify-end pb-1.5 sm:pb-3' : 'justify-center'} overflow-hidden`}
             >
-              <div className={`w-full grid ${gridColumnsClass} justify-items-center items-center`}>
+              <div className={`w-full grid ${gridColumnsClass} justify-items-center ${isBottomArrangement ? 'items-end' : 'items-center'}`}>
                 {allInstalledApps.map((app, index) => {
                   const isPinned = pinnedAppIds ? pinnedAppIds.includes(app.id) : true;
                   return (

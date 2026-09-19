@@ -339,4 +339,36 @@ body, #harmony-os-root {
   animation: launcher-wiggle-alt 0.32s infinite ease-in-out;
 }
 
+/* ================= SCROLLBAR SUPPRESSION & HIDING ================= */
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar,
+.scrollbar-none {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* Complete scrollbar suppression for Music App containers & sub-views */
+#harmony-music-container,
+#harmony-music-container *,
+.music-app-container,
+.music-app-container * {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+#harmony-music-container::-webkit-scrollbar,
+#harmony-music-container *::-webkit-scrollbar,
+.music-app-container::-webkit-scrollbar,
+.music-app-container *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 

@@ -69,7 +69,7 @@ export const EqualizerView: React.FC<EqualizerViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col w-full h-full max-w-4xl mx-auto p-3 sm:p-6 overflow-y-auto">
+    <div className="flex-1 flex flex-col w-full h-full max-w-4xl mx-auto p-3 sm:p-6 overflow-y-auto pb-24 md:pb-8 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>

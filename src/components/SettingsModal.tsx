@@ -2,7 +2,7 @@
  * @file SettingsModal.tsx
  * @description Native Mobile Device Settings App for Harmony OS Super App.
  * Built following Apple iOS Human Interface Guidelines (HIG) with full Home Screen & Launcher customization,
- * Display & Brightness, Sounds & Haptics, Cloud Sync, PWA installation, and AI Studio Directives.
+ * Display & Brightness, Sounds & Haptics, Cloud Sync, and PWA installation.
  */
 
 import React, { useState, useMemo } from 'react';
@@ -12,7 +12,7 @@ import {
   Flame, Info, Moon, Sun, Monitor, Volume2, BellOff, Check, Palette,
   Sliders, ArrowUp, ArrowDown, RotateCcw, Eye, Smartphone as MobileIcon, Laptop,
   Notebook, FileText, PenTool, Disc, Sparkles, Calendar, Wallet, ShoppingBag, Layers, Plus, Trash2,
-  User, LogIn, LayoutGrid, ChevronRight, ChevronLeft, Search, Bell, Wifi, Radio,
+  User, LogIn, UserPlus, LogOut, KeyRound, Copy, LayoutGrid, ChevronRight, ChevronLeft, Search, Bell, Wifi, Radio,
   Lock, Cloud, RefreshCw, SmartphoneNfc, Terminal, Sparkle, ShieldAlert, SlidersHorizontal,
   CheckCircle2, AlertCircle, HardDrive, Cpu, HelpCircle, ArrowRight, Type, Contrast
 } from 'lucide-react';
@@ -30,7 +30,9 @@ import {
   ColorTemperature
 } from '../types';
 import { soundManager } from '../lib/soundManager';
-import { DEFAULT_DOCK_APP_IDS, DEFAULT_WIDGET_SIZES, STORAGE_KEYS } from '../lib/offlinePersistence';
+import { DEFAULT_DOCK_APP_IDS, DEFAULT_WIDGET_SIZES, STORAGE_KEYS, ACTIVE_MANUAL_USER_KEY, setLocalItem } from '../lib/offlinePersistence';
+import { logoutUser, loginWithGoogle } from '../lib/firebase';
+import firebaseConfig from '../../firebase-applet-config.json';
 import { AVAILABLE_WIDGETS, HomeWidgetId, WidgetSize } from './widgets/types';
 import { WALLPAPER_PRESETS } from './HomeScreenSetupModal';
 import { HabeshawiBrandEmblem, HabeshawiTibebBorder } from './HabeshawiIcons';
@@ -55,6 +57,7 @@ interface SettingsModalProps {
 
 type SettingsSubPage = 
   | 'main' 
+  | 'account'
   | 'launcher' 
   | 'display' 
   | 'fonts'
@@ -62,7 +65,6 @@ type SettingsSubPage =
   | 'notifications' 
   | 'cloud' 
   | 'pwa' 
-  | 'ai_studio' 
   | 'about';
 
 interface ThemePresetOption {
@@ -292,13 +294,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const [activePage, setActivePage] = useState<SettingsSubPage>('main');
   const [searchQuery, setSearchQuery] = useState('');
-  const [copiedDirective, setCopiedDirective] = useState(false);
+  const [copiedUid, setCopiedUid] = useState(false);
+  const [accountMessage, setAccountMessage] = useState<string | null>(null);
 
   // Filtered settings for instant search
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return null;
     const q = searchQuery.toLowerCase();
     const items = [
+      { id: 'account', title: 'Habeshawi Account & Sign In', subtitle: 'Sign in, create account, Apple ID, profile & cloud sync', icon: User, bg: 'bg-indigo-600' },
       { id: 'launcher', title: 'Home Screen & Launcher', subtitle: 'Wallpapers, icon styles, grid density, widgets', icon: LayoutGrid, bg: 'bg-indigo-500' },
       { id: 'display', title: 'Display & Brightness', subtitle: 'Light/Dark mode, accent presets, Night Shift, Contrast', icon: Sun, bg: 'bg-blue-500' },
       { id: 'fonts', title: 'Typography & Fonts', subtitle: 'Global font family, text size scaling, bold text', icon: Type, bg: 'bg-violet-500' },
@@ -306,8 +310,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       { id: 'notifications', title: 'Focus & Notifications', subtitle: 'Do Not Disturb, alerts, banner previews', icon: Moon, bg: 'bg-purple-600' },
       { id: 'cloud', title: 'Firebase Cloud & Storage', subtitle: 'Firestore real-time database, auth state', icon: Flame, bg: 'bg-amber-500' },
       { id: 'pwa', title: 'PWA & Offline Capability', subtitle: 'Workbox Service Worker cache, install app', icon: Smartphone, bg: 'bg-teal-500' },
-      { id: 'ai_studio', title: 'AI Studio Directives', subtitle: 'Senior Full-Stack standards, Gemini AI settings', icon: Sparkles, bg: 'bg-cyan-600' },
-      { id: 'about', title: 'About Habeshawi', subtitle: 'Version 2.5.0 Titanium Pro, system specs', icon: Info, bg: 'bg-neutral-500' },
+      { id: 'about', title: 'About Habeshawi', subtitle: 'Release 1.0.00 Titanium Pro, system specs', icon: Info, bg: 'bg-neutral-500' },
     ];
     return items.filter(i => i.title.toLowerCase().includes(q) || i.subtitle.toLowerCase().includes(q));
   }, [searchQuery]);
@@ -457,6 +460,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Subpage Title (when drilled in) */}
           {activePage !== 'main' && (
             <span className="text-sm font-bold truncate max-w-[200px]">
+              {activePage === 'account' && 'Habeshawi Account'}
               {activePage === 'launcher' && 'Home & Launcher'}
               {activePage === 'display' && 'Display & Brightness'}
               {activePage === 'fonts' && 'Typography & Fonts'}
@@ -464,7 +468,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {activePage === 'notifications' && 'Focus & Alerts'}
               {activePage === 'cloud' && 'Cloud & Firebase'}
               {activePage === 'pwa' && 'PWA & Offline'}
-              {activePage === 'ai_studio' && 'AI Studio Directives'}
               {activePage === 'about' && 'About Habeshawi OS'}
             </span>
           )}
@@ -555,43 +558,171 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <>
                     {/* ================= USER PROFILE CARD BANNER ================= */}
                     <div 
-                      onClick={() => {
-                        soundManager.playClickSound();
-                        onOpenAuth?.(currentUser ? 'profile' : 'signin');
-                      }}
-                      className={`p-3.5 rounded-2xl border cursor-pointer flex items-center justify-between transition-all group ${
+                      className={`p-3.5 rounded-2xl border transition-all ${
                         isDark 
-                          ? 'bg-[#1c1c1e] hover:bg-[#2c2c2e] border-[#2c2c2e]' 
-                          : 'bg-white hover:bg-neutral-50 border-[#e5e5ea] shadow-xs'
+                          ? 'bg-[#1c1c1e] border-[#2c2c2e]' 
+                          : 'bg-white border-[#e5e5ea] shadow-xs'
                       }`}
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-md flex items-center justify-center shrink-0">
-                          <div className="w-full h-full rounded-full bg-[#1c1c1e] flex items-center justify-center overflow-hidden">
-                            {currentUser?.photoURL ? (
-                              <img src={currentUser.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                      {currentUser && !currentUser.isAnonymous ? (
+                        <div className="space-y-3">
+                          <div 
+                            onClick={() => {
+                              soundManager.playClickSound();
+                              handleNavigate('account');
+                            }}
+                            className="flex items-center justify-between cursor-pointer group"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 via-yellow-500 to-indigo-500 p-0.5 shadow-md flex items-center justify-center shrink-0">
+                                <div className="w-full h-full rounded-full bg-[#1c1c1e] flex items-center justify-center overflow-hidden">
+                                  {currentUser?.photoURL ? (
+                                    <img src={currentUser.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                                  ) : (
+                                    <span className="text-base font-bold text-white uppercase">
+                                      {currentUser?.displayName ? currentUser.displayName.charAt(0) : 'H'}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="min-w-0">
+                                <h2 className="text-sm font-bold truncate group-hover:text-amber-400 transition-colors">
+                                  {currentUser?.displayName || 'Habeshawi User'}
+                                </h2>
+                                <p className="text-[11px] text-neutral-400 truncate">
+                                  {currentUser?.email || 'Apple ID, Cloud, Media & Purchases'}
+                                </p>
+                                <div className="mt-1 flex items-center gap-1.5">
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                    <CheckCircle2 className="w-2.5 h-2.5" /> Firebase Synced
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-neutral-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-1 border-t border-white/5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                soundManager.playClickSound();
+                                handleNavigate('account');
+                              }}
+                              className="flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold bg-neutral-800/60 hover:bg-neutral-800 text-neutral-200 border border-neutral-700/50 flex items-center justify-center gap-1.5 transition-colors"
+                            >
+                              <User className="w-3.5 h-3.5 text-amber-400" />
+                              <span>Account Details</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                soundManager.playClickSound();
+                                onOpenAuth?.('signin');
+                              }}
+                              className="py-1.5 px-2.5 rounded-lg text-xs font-semibold bg-neutral-800/60 hover:bg-neutral-800 text-neutral-300 border border-neutral-700/50 flex items-center justify-center gap-1.5 transition-colors"
+                            >
+                              <LogIn className="w-3.5 h-3.5 text-indigo-400" />
+                              <span>Switch</span>
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div 
+                            onClick={() => {
+                              soundManager.playClickSound();
+                              handleNavigate('account');
+                            }}
+                            className="flex items-center justify-between cursor-pointer group"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 to-indigo-600 p-0.5 shadow-md flex items-center justify-center shrink-0">
+                                <div className="w-full h-full rounded-full bg-[#1c1c1e] flex items-center justify-center">
+                                  <User className="w-6 h-6 text-amber-400" />
+                                </div>
+                              </div>
+                              <div className="min-w-0">
+                                <h2 className="text-sm font-bold truncate group-hover:text-amber-400 transition-colors">
+                                  Sign in to your Habeshawi Account
+                                </h2>
+                                <p className="text-[11px] text-neutral-400 truncate">
+                                  Set up Cloud Sync, Habeshawi AI, Notes & Wallets
+                                </p>
+                              </div>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-neutral-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                          </div>
+
+                          {/* Dedicated Action Buttons: Sign In & Sign Up */}
+                          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                soundManager.playClickSound();
+                                onOpenAuth?.('signin');
+                              }}
+                              className="py-2 px-3 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all"
+                            >
+                              <LogIn className="w-3.5 h-3.5" />
+                              <span>Sign In</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                soundManager.playClickSound();
+                                onOpenAuth?.('signup');
+                              }}
+                              className="py-2 px-3 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500/20 to-amber-600/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 active:scale-98 flex items-center justify-center gap-1.5 transition-all"
+                            >
+                              <UserPlus className="w-3.5 h-3.5" />
+                              <span>Sign Up</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ================= GROUP: ACCOUNT & CLOUD IDENTITY ================= */}
+                    <div>
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5 px-1">
+                        Account & Cloud Identity
+                      </div>
+                      <div className={`rounded-2xl border overflow-hidden divide-y ${
+                        isDark ? 'bg-[#1c1c1e] border-[#2c2c2e] divide-[#2c2c2e]' : 'bg-white border-[#e5e5ea] divide-[#e5e5ea]'
+                      }`}>
+                        {/* Habeshawi Account Profile Subpage */}
+                        <button
+                          onClick={() => handleNavigate('account')}
+                          className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:opacity-80 transition-opacity"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center shadow-xs">
+                              <User className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-xs sm:text-sm font-semibold">Habeshawi Account & Sync</p>
+                              <p className="text-[11px] text-neutral-400">
+                                {currentUser && !currentUser.isAnonymous 
+                                  ? (currentUser.displayName || currentUser.email || 'Cloud Profile Active')
+                                  : 'Sign In, Sign Up, or create guest cloud backup'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {currentUser && !currentUser.isAnonymous ? (
+                              <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                                Signed In
+                              </span>
                             ) : (
-                              <span className="text-base font-bold text-white uppercase">
-                                {currentUser?.displayName ? currentUser.displayName.charAt(0) : 'H'}
+                              <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                                Sign In / Up
                               </span>
                             )}
+                            <ChevronRight className="w-4 h-4 text-neutral-400" />
                           </div>
-                        </div>
-                        <div className="min-w-0">
-                          <h2 className="text-sm font-bold truncate group-hover:text-indigo-400 transition-colors">
-                            {currentUser?.displayName || 'Habeshawi User'}
-                          </h2>
-                          <p className="text-[11px] text-neutral-400 truncate">
-                            {currentUser?.email || 'Apple ID, Cloud, Media & Purchases'}
-                          </p>
-                          <div className="mt-1 flex items-center gap-1.5">
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                              <CheckCircle2 className="w-2.5 h-2.5" /> Firebase Synced
-                            </span>
-                          </div>
-                        </div>
+                        </button>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-neutral-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
                     </div>
 
                     {/* ================= GROUP 1: HOME SCREEN & PERSONALIZATION ================= */}
@@ -750,10 +881,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       </div>
                     </div>
 
-                    {/* ================= GROUP 3: PWA & AI STUDIO DIRECTIVES ================= */}
+                    {/* ================= GROUP 3: PWA & SYSTEM ================= */}
                     <div>
                       <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5 px-1">
-                        Architecture & Developer
+                        Architecture & System
                       </div>
                       <div className={`rounded-2xl border overflow-hidden divide-y ${
                         isDark ? 'bg-[#1c1c1e] border-[#2c2c2e] divide-[#2c2c2e]' : 'bg-white border-[#e5e5ea] divide-[#e5e5ea]'
@@ -775,23 +906,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           <ChevronRight className="w-4 h-4 text-neutral-400" />
                         </button>
 
-                        {/* AI Studio Directives */}
-                        <button
-                          onClick={() => handleNavigate('ai_studio')}
-                          className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:opacity-80 transition-opacity"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-7 h-7 rounded-lg bg-cyan-600 flex items-center justify-center shadow-xs">
-                              <Sparkles className="w-4 h-4 text-white" />
-                            </div>
-                            <div>
-                              <p className="text-xs sm:text-sm font-semibold">AI Studio System Directives</p>
-                              <p className="text-[11px] text-neutral-400">Senior Full-Stack Standards & Gemini Config</p>
-                            </div>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-neutral-400" />
-                        </button>
-
                         {/* About Habeshawi Super App */}
                         <button
                           onClick={() => handleNavigate('about')}
@@ -803,7 +917,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             </div>
                             <div>
                               <p className="text-xs sm:text-sm font-semibold">About Habeshawi Super App</p>
-                              <p className="text-[11px] text-neutral-400">v2.5.0 Titanium Pro • Apple HIG Compliant</p>
+                              <p className="text-[11px] text-neutral-400">Release 1.0.00 Titanium Pro • Apple HIG Compliant</p>
                             </div>
                           </div>
                           <ChevronRight className="w-4 h-4 text-neutral-400" />
@@ -811,6 +925,350 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       </div>
                     </div>
                   </>
+                )}
+              </motion.div>
+            ) : activePage === 'account' ? (
+              /* ================= SUBPAGE: HABESHAWI ACCOUNT & SIGN IN / SIGN UP ================= */
+              <motion.div
+                key="subpage-account"
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 16 }}
+                transition={{ duration: 0.18 }}
+                className="space-y-4"
+              >
+                {/* Account Status Toast Banner */}
+                {accountMessage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-medium flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>{accountMessage}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAccountMessage(null)}
+                      className="text-neutral-400 hover:text-white p-0.5"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* Profile Header Hero Card */}
+                <div className={`p-4 sm:p-5 rounded-2xl border text-center relative overflow-hidden ${
+                  isDark ? 'bg-[#1c1c1e] border-[#2c2c2e]' : 'bg-white border-[#e5e5ea]'
+                }`}>
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-amber-500 via-yellow-500 to-indigo-500 p-0.5 shadow-xl mx-auto mb-3 flex items-center justify-center">
+                    <div className="w-full h-full rounded-full bg-[#1c1c1e] flex items-center justify-center overflow-hidden">
+                      {currentUser?.photoURL ? (
+                        <img src={currentUser.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-2xl font-bold text-white uppercase">
+                          {currentUser?.displayName ? currentUser.displayName.charAt(0) : 'H'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <h2 className="text-base font-bold">
+                    {currentUser?.displayName || (currentUser && !currentUser.isAnonymous ? 'Habeshawi User' : 'Guest Account')}
+                  </h2>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    {currentUser?.email || (currentUser && !currentUser.isAnonymous ? 'Email Synced' : 'Not signed in to Habeshawi Cloud')}
+                  </p>
+
+                  <div className="mt-2.5 flex items-center justify-center gap-2 flex-wrap">
+                    {currentUser && !currentUser.isAnonymous ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                        <CheckCircle2 className="w-3 h-3" /> Cloud Synced
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                        <AlertCircle className="w-3 h-3" /> Offline / Guest Mode
+                      </span>
+                    )}
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
+                      <Flame className="w-3 h-3" /> Firestore Active
+                    </span>
+                  </div>
+                </div>
+
+                {/* Primary Authentication Action Section */}
+                {!currentUser || currentUser.isAnonymous ? (
+                  <div className="space-y-3">
+                    <div className={`p-4 rounded-2xl border ${
+                      isDark ? 'bg-[#1c1c1e] border-[#2c2c2e]' : 'bg-white border-[#e5e5ea]'
+                    }`}>
+                      <div className="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-3">
+                        Sign In or Create Account
+                      </div>
+                      
+                      <div className="space-y-2.5">
+                        {/* Sign In Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            soundManager.playClickSound();
+                            onOpenAuth?.('signin');
+                          }}
+                          className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-98 text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all"
+                        >
+                          <LogIn className="w-4 h-4" />
+                          <span>Sign In with Email / Password</span>
+                        </button>
+
+                        {/* Sign Up / Create Account Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            soundManager.playClickSound();
+                            onOpenAuth?.('signup');
+                          }}
+                          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500/20 via-amber-600/20 to-yellow-600/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 active:scale-98 font-bold text-xs sm:text-sm shadow-xs flex items-center justify-center gap-2 transition-all"
+                        >
+                          <UserPlus className="w-4 h-4" />
+                          <span>Create Free Habeshawi Account</span>
+                        </button>
+
+                        {/* Sign In with Google Button */}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            soundManager.playClickSound();
+                            try {
+                              const googleUser = await loginWithGoogle();
+                              if (googleUser) {
+                                setAccountMessage(`Signed in successfully as ${googleUser.displayName || googleUser.email}!`);
+                              }
+                            } catch (e: any) {
+                              console.warn('Google sign in error:', e);
+                              // Fallback to opening auth modal
+                              onOpenAuth?.('signin');
+                            }
+                          }}
+                          className="w-full py-2.5 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 active:scale-98 text-neutral-200 border border-neutral-700 font-medium text-xs flex items-center justify-center gap-2 transition-all"
+                        >
+                          <svg className="w-4 h-4" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                          </svg>
+                          <span>Continue with Google</span>
+                        </button>
+                      </div>
+
+                      <div className="mt-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            soundManager.playClickSound();
+                            onOpenAuth?.('forgot');
+                          }}
+                          className="text-[11px] text-neutral-400 hover:text-amber-400 transition-colors"
+                        >
+                          Forgot password or need help signing in?
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Features Synced with Account Card */}
+                    <div className={`p-4 rounded-2xl border ${
+                      isDark ? 'bg-[#1c1c1e] border-[#2c2c2e]' : 'bg-white border-[#e5e5ea]'
+                    }`}>
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-2.5">
+                        What Gets Synced to Cloud
+                      </div>
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-center gap-2.5 text-neutral-300">
+                          <Notebook className="w-4 h-4 text-amber-400 shrink-0" />
+                          <span>Habeshawi Notes & Rich Text Documents</span>
+                        </div>
+                        <div className="flex items-center gap-2.5 text-neutral-300">
+                          <Calendar className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <span>Ethiopian Tri-Calendar & Gregorian Events</span>
+                        </div>
+                        <div className="flex items-center gap-2.5 text-neutral-300">
+                          <Wallet className="w-4 h-4 text-indigo-400 shrink-0" />
+                          <span>Financial Wallets, Budgets & Expense Logs</span>
+                        </div>
+                        <div className="flex items-center gap-2.5 text-neutral-300">
+                          <Disc className="w-4 h-4 text-pink-400 shrink-0" />
+                          <span>Music Playlists & Offline Audio Library</span>
+                        </div>
+                        <div className="flex items-center gap-2.5 text-neutral-300">
+                          <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+                          <span>Habeshawi AI Chats & Writing Assistant Drafts</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* ================= SIGNED IN ACCOUNT MANAGEMENT ================= */
+                  <div className="space-y-3">
+                    {/* Account Details Group */}
+                    <div>
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5 px-1">
+                        Account Profile & Credentials
+                      </div>
+                      <div className={`rounded-2xl border overflow-hidden divide-y ${
+                        isDark ? 'bg-[#1c1c1e] border-[#2c2c2e] divide-[#2c2c2e]' : 'bg-white border-[#e5e5ea] divide-[#e5e5ea]'
+                      }`}>
+                        {/* Display Name */}
+                        <div className="p-3.5 flex items-center justify-between text-xs">
+                          <div>
+                            <p className="text-[11px] text-neutral-400">Display Name</p>
+                            <p className="font-semibold text-sm mt-0.5">{currentUser.displayName || 'Not specified'}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              soundManager.playClickSound();
+                              onOpenAuth?.('profile');
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-xs font-semibold transition-colors"
+                          >
+                            Edit
+                          </button>
+                        </div>
+
+                        {/* Email */}
+                        <div className="p-3.5 flex items-center justify-between text-xs">
+                          <div>
+                            <p className="text-[11px] text-neutral-400">Email Address</p>
+                            <p className="font-semibold text-sm mt-0.5">{currentUser.email || 'None'}</p>
+                          </div>
+                          <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                            Verified
+                          </span>
+                        </div>
+
+                        {/* User UID */}
+                        <div className="p-3.5 flex items-center justify-between text-xs">
+                          <div className="min-w-0 mr-2">
+                            <p className="text-[11px] text-neutral-400">User UID</p>
+                            <p className="font-mono text-[11px] text-neutral-300 truncate mt-0.5">{currentUser.uid}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              soundManager.playClickSound();
+                              navigator.clipboard.writeText(currentUser.uid);
+                              setCopiedUid(true);
+                              setTimeout(() => setCopiedUid(false), 2000);
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-[11px] font-semibold shrink-0 flex items-center gap-1 transition-colors"
+                          >
+                            {copiedUid ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                            <span>{copiedUid ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Account Actions Group */}
+                    <div>
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5 px-1">
+                        Account Actions
+                      </div>
+                      <div className={`rounded-2xl border overflow-hidden divide-y ${
+                        isDark ? 'bg-[#1c1c1e] border-[#2c2c2e] divide-[#2c2c2e]' : 'bg-white border-[#e5e5ea] divide-[#e5e5ea]'
+                      }`}>
+                        {/* Switch / Sign in with another account */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            soundManager.playClickSound();
+                            onOpenAuth?.('signin');
+                          }}
+                          className="w-full px-3.5 py-3 flex items-center justify-between text-left hover:opacity-80 transition-opacity"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-7 h-7 rounded-lg bg-indigo-500 flex items-center justify-center shadow-xs">
+                              <LogIn className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-xs sm:text-sm font-semibold">Sign In with Another Account</p>
+                              <p className="text-[11px] text-neutral-400">Switch user profile or login credentials</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-neutral-400" />
+                        </button>
+
+                        {/* Create Another Account */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            soundManager.playClickSound();
+                            onOpenAuth?.('signup');
+                          }}
+                          className="w-full px-3.5 py-3 flex items-center justify-between text-left hover:opacity-80 transition-opacity"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center shadow-xs">
+                              <UserPlus className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-xs sm:text-sm font-semibold">Create New Habeshawi Account</p>
+                              <p className="text-[11px] text-neutral-400">Register a new profile with email</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-neutral-400" />
+                        </button>
+
+                        {/* Sign Out Button */}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            soundManager.playClickSound();
+                            try {
+                              await logoutUser();
+                              setLocalItem(ACTIVE_MANUAL_USER_KEY, null);
+                              setAccountMessage('Signed out successfully. Operating in guest offline mode.');
+                            } catch (e: any) {
+                              console.warn('Logout error:', e);
+                            }
+                          }}
+                          className="w-full px-3.5 py-3 flex items-center justify-between text-left text-red-400 hover:bg-red-500/10 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-7 h-7 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center shadow-xs border border-red-500/30">
+                              <LogOut className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs sm:text-sm font-semibold text-red-400">Sign Out of Habeshawi</p>
+                              <p className="text-[11px] text-red-400/70">Disconnect cloud sync on this device</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-red-400/70" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Cloud Infrastructure Info */}
+                    <div className={`p-4 rounded-2xl border ${
+                      isDark ? 'bg-[#1c1c1e] border-[#2c2c2e]' : 'bg-white border-[#e5e5ea]'
+                    }`}>
+                      <div className="flex items-center gap-2 mb-2 text-xs font-bold text-neutral-300">
+                        <Flame className="w-4 h-4 text-amber-500" />
+                        <span>Connected Cloud Infrastructure</span>
+                      </div>
+                      <div className="space-y-1.5 text-[11px] text-neutral-400">
+                        <div className="flex justify-between">
+                          <span>Database ID:</span>
+                          <span className="font-mono text-neutral-200">ai-studio-harmonysuperapp</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Realtime Listeners:</span>
+                          <span className="text-emerald-400 font-medium">11 Mini-Apps Active</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </motion.div>
             ) : activePage === 'launcher' ? (
@@ -1866,7 +2324,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div className="space-y-2 text-xs text-neutral-300">
                     <div className="flex justify-between py-1 border-b border-white/5">
                       <span className="text-neutral-400">Database ID:</span>
-                      <span className="font-mono text-[11px] text-amber-400">ai-studio-harmonyossuperap</span>
+                      <span className="font-mono text-[11px] text-amber-400 truncate max-w-[200px]" title={firebaseConfig.firestoreDatabaseId || 'ai-studio-harmonysuperapp-85b51a1f-289a-45da-a03c-43dabe97457e'}>
+                        {firebaseConfig.firestoreDatabaseId || 'ai-studio-harmonysuperapp-85b51a1f-289a-45da-a03c-43dabe97457e'}
+                      </span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-white/5">
                       <span className="text-neutral-400">Connection Status:</span>
@@ -1881,17 +2341,54 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      soundManager.playClickSound();
-                      onOpenAuth?.(currentUser ? 'profile' : 'signin');
-                    }}
-                    className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-colors flex items-center justify-center gap-2"
-                  >
-                    <User className="w-4 h-4" />
-                    <span>{currentUser ? 'Manage Cloud Profile' : 'Sign in to Habeshawi Cloud'}</span>
-                  </button>
+                <div className="space-y-2">
+                  {currentUser && !currentUser.isAnonymous ? (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          soundManager.playClickSound();
+                          onOpenAuth?.('profile');
+                        }}
+                        className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                      >
+                        <User className="w-4 h-4" />
+                        <span>Manage Cloud Profile</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          soundManager.playClickSound();
+                          onOpenAuth?.('signin');
+                        }}
+                        className="py-2.5 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <LogIn className="w-4 h-4 text-indigo-400" />
+                        <span>Switch</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => {
+                          soundManager.playClickSound();
+                          onOpenAuth?.('signin');
+                        }}
+                        className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+                      >
+                        <LogIn className="w-4 h-4" />
+                        <span>Sign In</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          soundManager.playClickSound();
+                          onOpenAuth?.('signup');
+                        }}
+                        className="py-2.5 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <UserPlus className="w-4 h-4" />
+                        <span>Sign Up</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             ) : activePage === 'pwa' ? (
@@ -1933,61 +2430,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
                 </div>
               </motion.div>
-            ) : activePage === 'ai_studio' ? (
-              /* ================= SUBPAGE: AI STUDIO DIRECTIVES ================= */
-              <motion.div
-                key="subpage-ai-studio"
-                initial={{ opacity: 0, x: 16 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 16 }}
-                transition={{ duration: 0.18 }}
-                className="space-y-4"
-              >
-                <div className={`p-4 rounded-2xl border ${
-                  isDark ? 'bg-[#1c1c1e] border-[#2c2c2e]' : 'bg-white border-[#e5e5ea]'
-                }`}>
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center border border-cyan-500/30">
-                      <Sparkles className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold">Senior Full-Stack System Directives</h3>
-                      <p className="text-xs text-neutral-400">Production Standards & Architectural Directives</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 text-xs">
-                    <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 space-y-1">
-                      <p className="font-bold text-indigo-400">1. Architecture & Firebase BaaS</p>
-                      <p className="text-neutral-300 text-[11px]">Strict decoupling between frontend client and Firebase BaaS. Principle-of-least-privilege security rules & Auth.</p>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 space-y-1">
-                      <p className="font-bold text-purple-400">2. Apple iOS HIG & Touch Precision</p>
-                      <p className="text-neutral-300 text-[11px]">Clarity, deference, deep gesture responsiveness, squircle radii, and haptic feedback.</p>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 space-y-1">
-                      <p className="font-bold text-teal-400">3. Progressive Web App (PWA)</p>
-                      <p className="text-neutral-300 text-[11px]">Workbox service worker caching, manifest.json, and native installability.</p>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-black/40 border border-white/5 space-y-1">
-                      <p className="font-bold text-amber-400">4. Strict TypeScript & Modular Code</p>
-                      <p className="text-neutral-300 text-[11px]">Strict types, TSDoc annotations, modular single-responsibility components.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => {
-                    soundManager.playClickSound();
-                    localStorage.clear();
-                    window.location.reload();
-                  }}
-                  className="w-full py-2.5 rounded-xl border border-red-500/40 text-red-400 hover:bg-red-500/10 text-xs font-bold transition-colors flex items-center justify-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Reset Local Storage & Reload</span>
-                </button>
-              </motion.div>
             ) : (
               /* ================= SUBPAGE: ABOUT HABESHAWI ================= */
               <motion.div
@@ -2005,7 +2447,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <HabeshawiBrandEmblem className="w-full h-full" />
                   </div>
                   <h2 className="text-base font-bold">Habeshawi Super App</h2>
-                  <p className="text-xs text-amber-400 font-semibold mb-1">Version 2.5.0 Titanium Pro</p>
+                  <p className="text-xs text-amber-400 font-semibold mb-1">Release 1.0.00 Titanium Pro (v1.0.0)</p>
                   <p className="text-[11px] text-neutral-400 max-w-sm mx-auto">
                     A comprehensive cultural & productivity web operating system engineered with React 18, TypeScript, Tailwind CSS, Motion, and Firebase Firestore.
                   </p>

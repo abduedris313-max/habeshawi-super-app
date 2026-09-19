@@ -18,7 +18,6 @@ import {
   PenTool, 
   Disc, 
   Sparkles, 
-  Layers, 
   Calendar, 
   Wallet, 
   ShoppingBag, 
@@ -28,7 +27,6 @@ import {
   Plus, 
   ArrowLeft, 
   ArrowRight, 
-  LayoutGrid, 
   Settings as SettingsIcon 
 } from 'lucide-react';
 
@@ -36,6 +34,7 @@ interface DockProps {
   onOpenApp: (appId: string) => void;
   onOpenAppSwitcher: () => void;
   onOpenInstalledApps?: () => void;
+  onGoHome?: () => void;
   activeAppId: string | null;
   isDarkMode?: boolean;
   dockAppIds?: string[];
@@ -49,6 +48,7 @@ export const DockComponent: React.FC<DockProps> = ({
   onOpenApp, 
   onOpenAppSwitcher, 
   onOpenInstalledApps,
+  onGoHome,
   activeAppId, 
   isDarkMode = true,
   dockAppIds = DEFAULT_DOCK_APP_IDS,
@@ -68,6 +68,88 @@ export const DockComponent: React.FC<DockProps> = ({
 
   // Long press timer ref for jiggle mode
   const pressTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Home Bar Gestures: Single swipe = Home, Swipe up & hold = Recent Apps (App Switcher)
+  const [homeBarState, setHomeBarState] = useState<'idle' | 'swiping' | 'holding' | 'triggered'>('idle');
+  const [showGestureTooltip, setShowGestureTooltip] = useState(false);
+  const homeBarHoldTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const homeBarStartCoordRef = useRef<{ y: number; time: number } | null>(null);
+  const homeBarTriggeredRef = useRef(false);
+
+  const clearHomeBarHold = () => {
+    if (homeBarHoldTimerRef.current) {
+      clearTimeout(homeBarHoldTimerRef.current);
+      homeBarHoldTimerRef.current = null;
+    }
+  };
+
+  const handleHomeBarPointerDown = (clientY: number) => {
+    homeBarStartCoordRef.current = { y: clientY, time: Date.now() };
+    homeBarTriggeredRef.current = false;
+    setHomeBarState('swiping');
+
+    clearHomeBarHold();
+    // Hold detection: if held for 360ms, triggers Recent Apps
+    homeBarHoldTimerRef.current = setTimeout(() => {
+      if (homeBarStartCoordRef.current && !homeBarTriggeredRef.current) {
+        homeBarTriggeredRef.current = true;
+        setHomeBarState('triggered');
+        triggerHaptic('heavy');
+        soundManager.playClickSound();
+        onOpenAppSwitcher();
+        setTimeout(() => setHomeBarState('idle'), 400);
+      }
+    }, 360);
+  };
+
+  const handleHomeBarPointerMove = (clientY: number) => {
+    if (!homeBarStartCoordRef.current || homeBarTriggeredRef.current) return;
+    const deltaY = homeBarStartCoordRef.current.y - clientY;
+    if (deltaY > 18) {
+      setHomeBarState('holding');
+    }
+  };
+
+  const handleHomeBarPointerUp = (clientY: number) => {
+    const start = homeBarStartCoordRef.current;
+    homeBarStartCoordRef.current = null;
+    clearHomeBarHold();
+
+    if (homeBarTriggeredRef.current) {
+      setHomeBarState('idle');
+      return;
+    }
+
+    if (!start) {
+      setHomeBarState('idle');
+      return;
+    }
+
+    const deltaY = start.y - clientY;
+    const elapsed = Date.now() - start.time;
+
+    // Single swipe up -> Go Home
+    if (deltaY > 15 || (deltaY > 8 && elapsed < 250)) {
+      triggerHaptic('medium');
+      soundManager.playClickSound();
+      if (onGoHome) {
+        onGoHome();
+      } else {
+        onOpenAppSwitcher();
+      }
+    } else if (elapsed < 300 && Math.abs(deltaY) < 15) {
+      // Tap on home bar -> Go Home
+      triggerHaptic('light');
+      soundManager.playClickSound();
+      if (onGoHome) {
+        onGoHome();
+      } else {
+        onOpenAppSwitcher();
+      }
+    }
+
+    setHomeBarState('idle');
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -357,70 +439,78 @@ export const DockComponent: React.FC<DockProps> = ({
             </AnimatePresence>
           </div>
         )}
-
-        {/* Separator line */}
-        <div className={`w-px h-6 mx-0.5 ${isDarkMode ? 'bg-white/20' : 'bg-neutral-300'}`} />
-
-        {/* Edit Dock Toggle Button */}
-        <motion.button
-          id="btn-dock-edit-toggle"
-          whileHover={{ y: -4, scale: 1.12 }}
-          whileTap={{ scale: 0.88 }}
-          onClick={() => {
-            soundManager.playClickSound();
-            setIsEditMode(!isEditMode);
-            if (isEditMode) setShowAddPicker(false);
-          }}
-          className={`w-10 h-10 rounded-[12px] border flex items-center justify-center shadow-md transition-colors ${
-            isEditMode
-              ? 'bg-indigo-600 border-indigo-500 text-white'
-              : isDarkMode
-                ? 'bg-neutral-800/90 border-neutral-700/80 text-neutral-300 hover:bg-neutral-700 hover:text-white'
-                : 'bg-white/90 border-neutral-200 text-neutral-700 hover:bg-neutral-100'
-          }`}
-          title={isEditMode ? 'Done Editing' : 'Configure & Edit Dock'}
-        >
-          {isEditMode ? <Check className="w-4 h-4" /> : <Sliders className="w-4 h-4" />}
-        </motion.button>
-
-        {/* All Installed Applications Launcher */}
-        {onOpenInstalledApps && (
-          <motion.button
-            id="btn-dock-installed-apps"
-            whileHover={{ y: -4, scale: 1.12 }}
-            whileTap={{ scale: 0.88 }}
-            onClick={() => {
-              soundManager.playClickSound();
-              triggerHaptic('light');
-              onOpenInstalledApps();
-            }}
-            className={`w-10 h-10 rounded-[12px] border flex items-center justify-center shadow-md transition-colors ${
-              isDarkMode
-                ? 'bg-gradient-to-br from-indigo-600/90 to-purple-700/90 border-indigo-400/40 text-white hover:from-indigo-500 hover:to-purple-600 shadow-indigo-500/20'
-                : 'bg-gradient-to-br from-indigo-500 to-purple-600 border-indigo-300 text-white hover:opacity-90 shadow-indigo-300/30'
-            }`}
-            title="All Installed Applications (Swipe Up on Home)"
-          >
-            <LayoutGrid className="w-5 h-5 text-white drop-shadow-xs" />
-          </motion.button>
-        )}
-
-        {/* App Switcher Launcher */}
-        <motion.button
-          id="btn-dock-switcher"
-          whileHover={{ y: -4, scale: 1.12 }}
-          whileTap={{ scale: 0.88 }}
-          onClick={onOpenAppSwitcher}
-          className={`w-10 h-10 rounded-[12px] border flex items-center justify-center shadow-md transition-colors ${
-            isDarkMode
-              ? 'bg-neutral-800/90 border-neutral-700/80 text-white hover:bg-neutral-700'
-              : 'bg-white/90 border-neutral-200 text-neutral-800 hover:bg-neutral-100'
-          }`}
-          title="App Switcher"
-        >
-          <Layers className="w-5 h-5 text-purple-400" />
-        </motion.button>
       </motion.div>
+
+      {/* iOS Home Bar Handler below the dock: Single swipe = Home, Swipe up & hold = Recent Apps */}
+      <div 
+        className="w-full flex flex-col items-center pt-2 pb-0.5 relative"
+        onMouseEnter={() => setShowGestureTooltip(true)}
+        onMouseLeave={() => setShowGestureTooltip(false)}
+      >
+        <AnimatePresence>
+          {(showGestureTooltip || homeBarState !== 'idle') && (
+            <motion.div
+              initial={{ opacity: 0, y: 4, scale: 0.95 }}
+              animate={{ opacity: 1, y: -4, scale: 1 }}
+              exit={{ opacity: 0, y: 4, scale: 0.95 }}
+              className={`absolute -top-6 px-2.5 py-0.5 rounded-full text-[10px] font-medium tracking-tight shadow-md border pointer-events-none whitespace-nowrap z-30 transition-all ${
+                homeBarState === 'triggered'
+                  ? 'bg-amber-500 text-black border-amber-400 font-bold'
+                  : homeBarState === 'holding'
+                    ? 'bg-indigo-600 text-white border-indigo-400'
+                    : isDarkMode
+                      ? 'bg-neutral-900/90 text-neutral-300 border-neutral-700'
+                      : 'bg-white/95 text-neutral-700 border-neutral-200'
+              }`}
+            >
+              {homeBarState === 'triggered'
+                ? 'Recent Apps (App Switcher)'
+                : homeBarState === 'holding'
+                  ? 'Hold for Recent Apps • Release for Home'
+                  : 'Swipe up: Home • Swipe up & hold: Recent Apps'}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.div
+          id="dock-home-bar-handler"
+          role="button"
+          tabIndex={0}
+          aria-label="Home Bar: Single swipe for Home, swipe up and hold for Recent Apps"
+          drag="y"
+          dragConstraints={{ top: -80, bottom: 0 }}
+          dragElastic={0.35}
+          dragSnapToOrigin={true}
+          onPointerDown={(e) => handleHomeBarPointerDown(e.clientY)}
+          onPointerMove={(e) => handleHomeBarPointerMove(e.clientY)}
+          onPointerUp={(e) => handleHomeBarPointerUp(e.clientY)}
+          onPointerCancel={() => {
+            clearHomeBarHold();
+            homeBarStartCoordRef.current = null;
+            setHomeBarState('idle');
+          }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.96 }}
+          className="py-1 px-8 cursor-grab active:cursor-grabbing touch-none select-none flex items-center justify-center group"
+          title="Single swipe: Home • Swipe up & hold: Recent Apps"
+        >
+          <div
+            className={`h-1.5 rounded-full transition-all duration-200 shadow-xs ${
+              homeBarState === 'triggered'
+                ? 'w-44 bg-amber-400 shadow-md shadow-amber-500/50'
+                : homeBarState === 'holding'
+                  ? 'w-40 bg-indigo-400 shadow-md shadow-indigo-500/40'
+                  : homeBarState === 'swiping'
+                    ? 'w-36 bg-white'
+                    : `w-32 group-hover:w-36 ${
+                        isDarkMode
+                          ? 'bg-white/40 group-hover:bg-white/80'
+                          : 'bg-neutral-800/40 group-hover:bg-neutral-800/80'
+                      }`
+            }`}
+          />
+        </motion.div>
+      </div>
     </div>
   );
 };

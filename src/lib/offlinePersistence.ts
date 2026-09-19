@@ -77,6 +77,7 @@ export const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
   dockMaxLargeScreen: 7,
   launcherIconStyle: 'vibrant',
   launcherGridDensity: 'standard',
+  launcherIconArrangement: 'bottom',
   launcherShowLabels: true,
   launcherShowPageDots: true,
   launcherJiggleOnLongPress: true,

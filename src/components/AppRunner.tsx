@@ -45,6 +45,7 @@ import {
   STORAGE_KEYS 
 } from '../lib/offlinePersistence';
 import { triggerHaptic } from '../utils/haptics';
+import { soundManager } from '../lib/soundManager';
 
 interface AppRunnerProps {
   app: MiniAppConfig;
@@ -72,6 +73,7 @@ interface AppRunnerProps {
   pinnedAppIds?: string[];
   onTogglePinApp?: (appId: string) => void;
   onOpenApp?: (appId: string) => void;
+  onOpenAppSwitcher?: () => void;
   installedAppIds?: string[];
   onInstallApp?: (app: MiniAppConfig) => void;
   onUninstallApp?: (appId: string) => void;
@@ -102,35 +104,76 @@ export const AppRunner: React.FC<AppRunnerProps> = ({
   pinnedAppIds = [],
   onTogglePinApp,
   onOpenApp,
+  onOpenAppSwitcher,
   installedAppIds,
   onInstallApp,
   onUninstallApp
 }) => {
   const [mode, setMode] = useState<'native' | 'iframe'>(defaultMode);
   const [iframeKey, setIframeKey] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(true);
   const [showOfflineDetails, setShowOfflineDetails] = useState(false);
   const [justSavedLocal, setJustSavedLocal] = useState(false);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
+  // Home bar gesture handling in AppRunner:
+  const homeBarHoldTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const homeBarTriggeredRef = useRef(false);
+
+  const clearHomeBarTimer = () => {
+    if (homeBarHoldTimerRef.current) {
+      clearTimeout(homeBarHoldTimerRef.current);
+      homeBarHoldTimerRef.current = null;
+    }
+  };
+
+  const handleHomeBarDragStart = () => {
+    homeBarTriggeredRef.current = false;
+    clearHomeBarTimer();
+    homeBarHoldTimerRef.current = setTimeout(() => {
+      homeBarTriggeredRef.current = true;
+      triggerHaptic('heavy');
+      soundManager.playClickSound();
+      if (onOpenAppSwitcher) {
+        onOpenAppSwitcher();
+      }
+    }, 360);
+  };
+
+  const handleHomeBarDragEnd = (info: any) => {
+    clearHomeBarTimer();
+    if (homeBarTriggeredRef.current) {
+      return;
+    }
+    if (info.offset.y < -35 || info.velocity.y < -150) {
+      triggerHaptic('dismiss');
+      soundManager.playClickSound();
+      onClose();
+    }
+  };
+
   const handleBottomTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 1) {
       setTouchStartY(e.touches[0].clientY);
       setTouchStartX(e.touches[0].clientX);
+      handleHomeBarDragStart();
     }
   };
 
   const handleBottomTouchEnd = (e: React.TouchEvent) => {
+    clearHomeBarTimer();
+    if (homeBarTriggeredRef.current) return;
     if (touchStartY === null || touchStartX === null) return;
     const endY = e.changedTouches[0].clientY;
     const endX = e.changedTouches[0].clientX;
     const deltaY = endY - touchStartY;
     const deltaX = endX - touchStartX;
 
-    // Swipe up gesture detection (negative deltaY < -60px)
-    if (deltaY < -60 && Math.abs(deltaY) > Math.abs(deltaX) * 1.1) {
+    // Swipe up gesture detection (negative deltaY < -50px)
+    if (deltaY < -50 && Math.abs(deltaY) > Math.abs(deltaX) * 1.1) {
       triggerHaptic('dismiss');
+      soundManager.playClickSound();
       onClose();
     }
     setTouchStartY(null);
@@ -781,22 +824,25 @@ export const AppRunner: React.FC<AppRunnerProps> = ({
         )}
       </motion.div>
 
-      {/* iOS Bottom Home Bar Indicator Gesture (Swipe up, drag up, or tap to dismiss smoothly) */}
+      {/* iOS Bottom Home Bar Indicator Gesture (Swipe up = Home, Swipe up & hold = Recent Apps) */}
       <motion.div 
         drag="y"
-        dragConstraints={{ top: -300, bottom: 0 }}
+        dragConstraints={{ top: -140, bottom: 0 }}
         dragElastic={0.4}
         dragSnapToOrigin={true}
-        onDragEnd={(e, info) => {
-          if (info.offset.y < -50 || info.velocity.y < -200) {
+        onDragStart={handleHomeBarDragStart}
+        onDragEnd={(e, info) => handleHomeBarDragEnd(info)}
+        onTouchStart={handleBottomTouchStart}
+        onTouchEnd={handleBottomTouchEnd}
+        onClick={() => {
+          if (!homeBarTriggeredRef.current) {
+            triggerHaptic('dismiss');
+            soundManager.playClickSound();
             onClose();
           }
         }}
-        onTouchStart={handleBottomTouchStart}
-        onTouchEnd={handleBottomTouchEnd}
-        onClick={onClose}
-        className="h-5 w-full bg-neutral-100 dark:bg-[#161b22] border-t border-neutral-200 dark:border-[#30363d]/60 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing hover:bg-neutral-200 dark:hover:bg-[#21262d] transition-colors group shrink-0 touch-none select-none z-30"
-        title="Swipe up or click to return to Home Screen (Esc)"
+        className="h-6 w-full bg-neutral-100/90 dark:bg-[#161b22]/90 backdrop-blur-md border-t border-neutral-200/80 dark:border-[#30363d]/60 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing hover:bg-neutral-200 dark:hover:bg-[#21262d] transition-colors group shrink-0 touch-none select-none z-30"
+        title="Swipe up: Home • Swipe up & hold: Recent Apps"
       >
         <div className="w-28 h-1.5 bg-neutral-400 dark:bg-white/30 group-hover:bg-indigo-500 rounded-full group-hover:w-32 transition-all shadow-xs" />
       </motion.div>

@@ -160,6 +160,7 @@ export interface SystemSettings {
   // Launcher & Home Screen Personalization
   launcherIconStyle?: LauncherIconStyle;
   launcherGridDensity?: LauncherGridDensity;
+  launcherIconArrangement?: 'bottom' | 'top';
   launcherShowLabels?: boolean;
   launcherShowPageDots?: boolean;
   launcherJiggleOnLongPress?: boolean;

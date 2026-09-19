@@ -473,7 +473,7 @@ export const HarmonyMusicPlayerAppModule: React.FC = () => {
   return (
     <div
       id="harmony-music-container"
-      className="relative flex-1 w-full flex flex-col bg-neutral-100 dark:bg-[#0d1117] text-neutral-900 dark:text-[#c9d1d9] min-h-0 overflow-hidden select-none"
+      className="music-app-container no-scrollbar relative flex-1 w-full flex flex-col bg-neutral-100 dark:bg-[#0d1117] text-neutral-900 dark:text-[#c9d1d9] min-h-0 overflow-hidden select-none"
     >
       {/* Toast Feedback Popup */}
       {feedbackMsg && (
@@ -484,7 +484,7 @@ export const HarmonyMusicPlayerAppModule: React.FC = () => {
       )}
 
       {/* Main View Area */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden pb-16 md:pb-0">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden pb-16 md:pb-0 no-scrollbar">
         {activeTab === 'player' && (
           <PlayerStage
             currentTrack={currentTrack}
