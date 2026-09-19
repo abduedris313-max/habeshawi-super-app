@@ -1254,6 +1254,43 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
                 </div>
 
+                {/* Primary Accent Color Palette */}
+                <div>
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5 px-1">
+                    Primary Accent Color
+                  </div>
+                  <div className={`p-3.5 rounded-2xl border flex items-center justify-around ${
+                    isDark ? 'bg-[#1c1c1e] border-[#2c2c2e]' : 'bg-white border-[#e5e5ea]'
+                  }`}>
+                    {[
+                      { color: '#8b5cf6', name: 'Harmony Purple', preset: 'oled' },
+                      { color: '#3b82f6', name: 'Electric Blue', preset: 'slate' },
+                      { color: '#10b981', name: 'Emerald', preset: 'axum-emerald' },
+                      { color: '#f59e0b', name: 'Amber', preset: 'habeshawi-gold' },
+                      { color: '#ec4899', name: 'Rose', preset: 'sheba-crimson' },
+                      { color: '#06b6d4', name: 'Cyan', preset: 'slate' },
+                    ].map(item => (
+                      <button
+                        key={item.color}
+                        onClick={() => {
+                          soundManager.playHapticClick();
+                          onUpdateSettings({
+                            accentColor: item.color,
+                            themePreset: item.preset as any
+                          });
+                        }}
+                        style={{ backgroundColor: item.color }}
+                        className="w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-transform hover:scale-110 active:scale-95"
+                        title={item.name}
+                      >
+                        {settings.accentColor === item.color && (
+                          <Check className="w-4 h-4 text-white stroke-[3]" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Accent Color Palette */}
                 <div>
                   <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5 px-1">
@@ -1278,7 +1315,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             </div>
                           </div>
                           {isSelected && (
-                            <Check className="w-4 h-4 text-indigo-500 stroke-[3]" />
+                            <Check 
+                              style={{ color: settings.accentColor || '#6366f1' }}
+                              className="w-4 h-4 stroke-[3]" 
+                            />
                           )}
                         </button>
                       );

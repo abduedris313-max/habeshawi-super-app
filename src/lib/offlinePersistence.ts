@@ -451,3 +451,29 @@ export const INITIAL_OFFLINE_FINANCE_LOANS: FinanceLoan[] = [];
 export const INITIAL_OFFLINE_FINANCE_SUBSCRIPTIONS: FinanceSubscription[] = [];
 export const INITIAL_OFFLINE_FINANCE_TRANSACTIONS: FinanceTransaction[] = [];
 
+// -----------------------------------------------------------------------------
+// Offline Manual User Accounts Persistence
+// -----------------------------------------------------------------------------
+export interface LocalManualAccount {
+  uid: string;
+  email: string;
+  displayName: string;
+  password?: string;
+  createdAt: number;
+}
+
+const LOCAL_ACCOUNTS_KEY = 'habeshawi_manual_accounts_v1';
+export const ACTIVE_MANUAL_USER_KEY = 'habeshawi_active_manual_user';
+
+export function saveLocalManualAccount(account: LocalManualAccount): void {
+  const existing = getLocalItem<LocalManualAccount[]>(LOCAL_ACCOUNTS_KEY, []);
+  const filtered = existing.filter(a => a.email.toLowerCase() !== account.email.toLowerCase());
+  filtered.push(account);
+  setLocalItem(LOCAL_ACCOUNTS_KEY, filtered);
+}
+
+export function getLocalManualAccount(email: string): LocalManualAccount | null {
+  const existing = getLocalItem<LocalManualAccount[]>(LOCAL_ACCOUNTS_KEY, []);
+  return existing.find(a => a.email.toLowerCase() === email.trim().toLowerCase()) || null;
+}
+

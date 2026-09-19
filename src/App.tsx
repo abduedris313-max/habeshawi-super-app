@@ -53,7 +53,8 @@ import {
   INITIAL_OFFLINE_DRAFTS, 
   INITIAL_OFFLINE_PLAYLISTS,
   INITIAL_OFFLINE_EVENTS,
-  DEFAULT_SYSTEM_SETTINGS
+  DEFAULT_SYSTEM_SETTINGS,
+  ACTIVE_MANUAL_USER_KEY
 } from './lib/offlinePersistence';
 import { getInstalledAppIds, saveInstalledAppIds, syncInstalledAppsFromCloud } from './lib/appStoreService';
 import { soundManager } from './lib/soundManager';
@@ -405,8 +406,25 @@ export default function App() {
 
       // Sync accent color CSS variables
       if (settings.accentColor) {
-        root.style.setProperty('--accent-color', settings.accentColor);
-        root.style.setProperty('--accent-color-rgb', hexToRgb(settings.accentColor));
+        const hex = settings.accentColor;
+        const rgbStr = hexToRgb(hex);
+        const [r, g, b] = rgbStr.split(',').map(n => parseInt(n.trim(), 10) || 0);
+        const hoverR = Math.max(0, Math.min(255, Math.round(r * 0.88)));
+        const hoverG = Math.max(0, Math.min(255, Math.round(g * 0.88)));
+        const hoverB = Math.max(0, Math.min(255, Math.round(b * 0.88)));
+        const hoverHex = `#${hoverR.toString(16).padStart(2, '0')}${hoverG.toString(16).padStart(2, '0')}${hoverB.toString(16).padStart(2, '0')}`;
+        
+        const darkR = Math.max(0, Math.min(255, Math.round(r * 0.5)));
+        const darkG = Math.max(0, Math.min(255, Math.round(g * 0.5)));
+        const darkB = Math.max(0, Math.min(255, Math.round(b * 0.5)));
+        const darkHex = `#${darkR.toString(16).padStart(2, '0')}${darkG.toString(16).padStart(2, '0')}${darkB.toString(16).padStart(2, '0')}`;
+
+        root.style.setProperty('--accent-color', hex);
+        root.style.setProperty('--accent-color-rgb', rgbStr);
+        root.style.setProperty('--accent-color-hover', hoverHex);
+        root.style.setProperty('--accent-color-light', `rgba(${rgbStr}, 0.18)`);
+        root.style.setProperty('--accent-color-dark', darkHex);
+        root.style.setProperty('--accent-glow', `rgba(${rgbStr}, 0.38)`);
       }
     }
   }, [
@@ -456,14 +474,26 @@ export default function App() {
 
   // Firebase Auth Subscription
   useEffect(() => {
+    const savedManualUser = getLocalItem<SystemUser | null>(ACTIVE_MANUAL_USER_KEY, null);
+
     const unsubscribe = subscribeToAuth((fbUser) => {
-      if (fbUser) {
+      if (fbUser && !fbUser.isAnonymous) {
         setUser({
           uid: fbUser.uid,
           email: fbUser.email,
           displayName: fbUser.displayName || (fbUser.isAnonymous ? 'Guest User' : fbUser.email?.split('@')[0] || 'User'),
           photoURL: fbUser.photoURL,
-          isAnonymous: fbUser.isAnonymous
+          isAnonymous: false
+        });
+      } else if (savedManualUser && !savedManualUser.isAnonymous) {
+        setUser(savedManualUser);
+      } else if (fbUser) {
+        setUser({
+          uid: fbUser.uid,
+          email: fbUser.email,
+          displayName: fbUser.displayName || 'Guest User',
+          photoURL: fbUser.photoURL,
+          isAnonymous: true
         });
       } else {
         // Fallback to local guest profile for offline mode
@@ -818,15 +848,6 @@ export default function App() {
         isDarkMode={settings.isDarkMode}
       />
 
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        currentUser={user}
-        isDarkMode={settings.isDarkMode}
-        initialMode={authModalMode}
-        onAuthSuccess={(msg) => triggerNotification('Account Synced', msg, 'Habeshawi Auth')}
-      />
-
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -903,6 +924,17 @@ export default function App() {
         settings={settings}
         onUpdateSettings={handleUpdateSettings}
         isDarkMode={settings.isDarkMode}
+      />
+
+      {/* Topmost Authentication Sheet Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        currentUser={user}
+        isDarkMode={settings.isDarkMode}
+        initialMode={authModalMode}
+        onAuthSuccess={(msg) => triggerNotification('Account Synced', msg, 'Habeshawi Auth')}
+        onUserChange={(newUser) => setUser(newUser)}
       />
 
       {/* Mobile PWA Installation Banner */}

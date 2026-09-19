@@ -45,13 +45,17 @@ googleProvider.setCustomParameters({
 /**
  * Sign in with Google Popup
  */
-export async function signInWithGoogle(): Promise<User> {
+export async function signInWithGoogle(): Promise<User | null> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     await ensureUserProfile(result.user);
     return result.user;
   } catch (error: any) {
-    console.error('[Ajam Script Firebase Auth] Google sign in failed:', error);
+    if (error?.code === 'auth/popup-closed-by-user' || error?.code === 'auth/cancelled-popup-request') {
+      console.info('[Ajam Script Firebase Auth] Google sign-in popup closed by user.');
+      return null;
+    }
+    console.warn('[Ajam Script Firebase Auth] Google sign in status:', error?.code || error?.message);
     throw error;
   }
 }

@@ -57,7 +57,7 @@ export function getCachedGoogleAccessToken(): string | null {
 /**
  * Interactive sign-in with Google to request Calendar Scopes
  */
-export async function connectGoogleCalendar(): Promise<{ user: User; accessToken: string }> {
+export async function connectGoogleCalendar(): Promise<{ user: User; accessToken: string } | null> {
   const provider = new GoogleAuthProvider();
   CALENDAR_SCOPES.forEach(scope => provider.addScope(scope));
   provider.setCustomParameters({
@@ -65,14 +65,22 @@ export async function connectGoogleCalendar(): Promise<{ user: User; accessToken
     access_type: 'offline'
   });
 
-  const result = await signInWithPopup(auth, provider);
-  const credential = GoogleAuthProvider.credentialFromResult(result);
-  if (!credential?.accessToken) {
-    throw new Error('Could not obtain Google OAuth access token.');
-  }
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    if (!credential?.accessToken) {
+      throw new Error('Could not obtain Google OAuth access token.');
+    }
 
-  setCachedGoogleAccessToken(credential.accessToken);
-  return { user: result.user, accessToken: credential.accessToken };
+    setCachedGoogleAccessToken(credential.accessToken);
+    return { user: result.user, accessToken: credential.accessToken };
+  } catch (error: any) {
+    if (error?.code === 'auth/popup-closed-by-user' || error?.code === 'auth/cancelled-popup-request') {
+      console.info('[Google Calendar] Connect popup closed by user.');
+      return null;
+    }
+    throw error;
+  }
 }
 
 /**

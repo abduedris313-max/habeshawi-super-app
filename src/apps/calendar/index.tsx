@@ -248,9 +248,15 @@ export const HarmonyCalendarAppModule: React.FC<HarmonyCalendarAppModuleProps> =
   const handleConnectGoogle = async () => {
     setIsGoogleSyncing(true);
     try {
-      await connectGoogleCalendar();
-      setIsGoogleConnected(true);
-      await handleRefreshGoogleEvents();
+      const conn = await connectGoogleCalendar();
+      if (conn) {
+        setIsGoogleConnected(true);
+        await handleRefreshGoogleEvents();
+      }
+    } catch (err: any) {
+      if (err?.code !== 'auth/popup-closed-by-user' && err?.code !== 'auth/cancelled-popup-request') {
+        console.warn('Google Calendar connection failed:', err?.message || err);
+      }
     } finally {
       setIsGoogleSyncing(false);
     }

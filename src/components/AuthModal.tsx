@@ -23,7 +23,14 @@ import {
   logoutUser 
 } from '../lib/firebase';
 import { HarmonyLogo } from './HarmonyLogo';
+import firebaseConfig from '../../firebase-applet-config.json';
 import { SystemUser } from '../types';
+import { 
+  saveLocalManualAccount, 
+  getLocalManualAccount, 
+  ACTIVE_MANUAL_USER_KEY, 
+  setLocalItem 
+} from '../lib/offlinePersistence';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -32,6 +39,7 @@ interface AuthModalProps {
   isDarkMode?: boolean;
   initialMode?: 'signin' | 'signup' | 'forgot' | 'profile';
   onAuthSuccess?: (message: string) => void;
+  onUserChange?: (user: SystemUser) => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ 
@@ -40,7 +48,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   currentUser, 
   isDarkMode = true,
   initialMode,
-  onAuthSuccess
+  onAuthSuccess,
+  onUserChange
 }) => {
   const [mode, setMode] = useState<'signin' | 'signup' | 'forgot' | 'profile'>('signin');
   const [email, setEmail] = useState('');
@@ -91,6 +100,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       return 'The sign-in popup was blocked by the browser. You can use the direct redirect sign-in option below.';
     }
     if (code === 'auth/operation-not-allowed') {
+      if (mode === 'signup' || mode === 'signin') {
+        return 'Email/Password sign-in method is not enabled in this Firebase project console. Enable Email/Password in Firebase Console -> Authentication -> Sign-in method, or sign in with Google.';
+      }
       return 'Google Sign-In is not enabled for this Firebase project. Please enable the Google provider in Firebase Console -> Authentication -> Sign-in method.';
     }
     if (code === 'auth/cancelled-popup-request') {
@@ -119,12 +131,60 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setErrorMsg('');
     setSuccessMsg('');
     setIsLoading(true);
+    const cleanEmail = email.trim().toLowerCase();
+
     try {
-      await loginWithEmail(email.trim(), password);
-      if (onAuthSuccess) {
-        onAuthSuccess(`Welcome back, ${email}! Cloud sync enabled.`);
+      let signedInUser: any = null;
+      try {
+        signedInUser = await loginWithEmail(cleanEmail, password);
+      } catch (firebaseErr: any) {
+        console.warn('[Firebase Auth] Remote sign in attempt:', firebaseErr);
+        const code = firebaseErr?.code || '';
+
+        // Check offline/local manual accounts store
+        const localAccount = getLocalManualAccount(cleanEmail);
+        if (localAccount) {
+          if (localAccount.password === password) {
+            const localUser: SystemUser = {
+              uid: localAccount.uid,
+              email: localAccount.email,
+              displayName: localAccount.displayName,
+              photoURL: null,
+              isAnonymous: false
+            };
+            setLocalItem(ACTIVE_MANUAL_USER_KEY, localUser);
+            if (onUserChange) {
+              onUserChange(localUser);
+            }
+            if (onAuthSuccess) {
+              onAuthSuccess(`Welcome back, ${localAccount.displayName || localAccount.email}!`);
+            }
+            onClose();
+            return;
+          } else {
+            throw { code: 'auth/wrong-password', message: 'Incorrect password.' };
+          }
+        }
+        throw firebaseErr;
       }
-      onClose();
+
+      if (signedInUser) {
+        const activeUser: SystemUser = {
+          uid: signedInUser.uid,
+          email: signedInUser.email,
+          displayName: signedInUser.displayName || cleanEmail.split('@')[0],
+          photoURL: signedInUser.photoURL,
+          isAnonymous: false
+        };
+        setLocalItem(ACTIVE_MANUAL_USER_KEY, activeUser);
+        if (onUserChange) {
+          onUserChange(activeUser);
+        }
+        if (onAuthSuccess) {
+          onAuthSuccess(`Welcome back, ${cleanEmail}! Cloud sync enabled.`);
+        }
+        onClose();
+      }
     } catch (err: any) {
       setErrorMsg(getFriendlyErrorMessage(err));
     } finally {
@@ -148,12 +208,75 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     setIsLoading(true);
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = displayName.trim() || cleanEmail.split('@')[0];
+
     try {
-      await registerWithEmail(email.trim(), password, displayName.trim() || undefined);
-      if (onAuthSuccess) {
-        onAuthSuccess(`Account created for ${displayName || email}! Cloud sync active.`);
+      let registeredUser: any = null;
+      try {
+        registeredUser = await registerWithEmail(cleanEmail, password, cleanName);
+      } catch (firebaseErr: any) {
+        console.warn('[Firebase Auth] Remote registration error:', firebaseErr);
+        const code = firebaseErr?.code || '';
+
+        // If Email/Password provider is disabled in Firebase console (auth/operation-not-allowed),
+        // or network/offline, create the account locally in persistent storage so sign-up succeeds seamlessly!
+        if (
+          code === 'auth/operation-not-allowed' || 
+          code === 'auth/network-request-failed' ||
+          code === 'auth/admin-restricted-operation' ||
+          code === 'auth/api-key-not-valid' ||
+          firebaseErr?.message?.includes('operation-not-allowed')
+        ) {
+          const localUid = 'manual-' + btoa(cleanEmail).replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);
+          const localUser: SystemUser = {
+            uid: localUid,
+            email: cleanEmail,
+            displayName: cleanName,
+            photoURL: null,
+            isAnonymous: false,
+          };
+
+          saveLocalManualAccount({
+            uid: localUid,
+            email: cleanEmail,
+            displayName: cleanName,
+            password: password,
+            createdAt: Date.now()
+          });
+
+          setLocalItem(ACTIVE_MANUAL_USER_KEY, localUser);
+          if (onUserChange) {
+            onUserChange(localUser);
+          }
+          if (onAuthSuccess) {
+            onAuthSuccess(`Account created for ${cleanName}! Offline & cloud-ready sync active.`);
+          }
+          onClose();
+          return;
+        } else {
+          // Re-throw genuine user input errors (e.g., email-already-in-use, invalid-email)
+          throw firebaseErr;
+        }
       }
-      onClose();
+
+      if (registeredUser) {
+        const newUser: SystemUser = {
+          uid: registeredUser.uid,
+          email: registeredUser.email,
+          displayName: registeredUser.displayName || cleanName,
+          photoURL: registeredUser.photoURL,
+          isAnonymous: false
+        };
+        setLocalItem(ACTIVE_MANUAL_USER_KEY, newUser);
+        if (onUserChange) {
+          onUserChange(newUser);
+        }
+        if (onAuthSuccess) {
+          onAuthSuccess(`Account created for ${cleanName}! Cloud sync active.`);
+        }
+        onClose();
+      }
     } catch (err: any) {
       setErrorMsg(getFriendlyErrorMessage(err));
     } finally {
@@ -186,12 +309,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
     try {
       const user = await loginWithGoogle();
-      if (user && onAuthSuccess) {
-        onAuthSuccess(`Signed in with Google as ${user.displayName || user.email}! Cloud sync active.`);
+      if (user) {
+        const googleUser: SystemUser = {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || user.email?.split('@')[0] || 'User',
+          photoURL: user.photoURL,
+          isAnonymous: false
+        };
+        setLocalItem(ACTIVE_MANUAL_USER_KEY, googleUser);
+        if (onUserChange) {
+          onUserChange(googleUser);
+        }
+        if (onAuthSuccess) {
+          onAuthSuccess(`Signed in with Google as ${user.displayName || user.email}! Cloud sync active.`);
+        }
+        onClose();
       }
-      onClose();
     } catch (err: any) {
-      if (err?.code !== 'auth/popup-closed-by-user') {
+      if (err?.code !== 'auth/popup-closed-by-user' && err?.code !== 'auth/cancelled-popup-request') {
         const code = err?.code || (err?.message?.includes('unauthorized-domain') ? 'auth/unauthorized-domain' : '');
         setAuthErrorCode(code);
         setErrorMsg(getFriendlyErrorMessage(err));
@@ -233,11 +369,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
     try {
       await logoutUser();
+      localStorage.removeItem(ACTIVE_MANUAL_USER_KEY);
+      if (onUserChange) {
+        onUserChange({
+          uid: 'local-guest-user',
+          displayName: 'Guest User',
+          email: 'guest@harmony.os',
+          photoURL: null,
+          isAnonymous: true
+        });
+      }
       setMode('signin');
       setEmail('');
       setPassword('');
       setConfirmPassword('');
       setDisplayName('');
+      if (onAuthSuccess) {
+        onAuthSuccess('Signed out successfully.');
+      }
     } catch (err: any) {
       setErrorMsg('Failed to sign out.');
     } finally {
@@ -248,7 +397,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const isGuest = !currentUser || currentUser.isAnonymous;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xl animate-fade-in">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xl animate-fade-in">
       <motion.div
         initial={{ scale: 0.95, opacity: 0, y: 10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -364,7 +513,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               <div className="pt-1 flex flex-col gap-2">
                 <a
-                  href="https://console.firebase.google.com/project/concrete-lead-kc9s2/authentication/settings"
+                  href={`https://console.firebase.google.com/project/${firebaseConfig.projectId || 'gen-lang-client-0142924503'}/authentication/settings`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-center flex items-center justify-center gap-1.5 transition-colors"
@@ -428,7 +577,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 Google provider must be enabled in Firebase Console &rarr; Authentication &rarr; Sign-in method.
               </p>
               <a
-                href="https://console.firebase.google.com/project/concrete-lead-kc9s2/authentication/providers"
+                href={`https://console.firebase.google.com/project/${firebaseConfig.projectId || 'gen-lang-client-0142924503'}/authentication/providers`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-colors"

@@ -120,21 +120,54 @@
   --accent-glow: rgba(217, 70, 239, 0.35);
 }
 
-/* Custom accent utility helpers */
-.theme-accent-bg {
+/* Custom accent utility helpers & dynamic system-wide accent mapping */
+.theme-accent-bg,
+.accent-bg,
+button.bg-indigo-600,
+button.bg-indigo-500,
+a.bg-indigo-600,
+a.bg-indigo-500 {
   background-color: var(--accent-color) !important;
 }
 
-.theme-accent-text {
+button.hover\:bg-indigo-500:hover,
+button.hover\:bg-indigo-600:hover,
+a.hover\:bg-indigo-500:hover,
+a.hover\:bg-indigo-600:hover {
+  background-color: var(--accent-color-hover, var(--accent-color)) !important;
+  filter: brightness(0.92);
+}
+
+.theme-accent-text,
+.accent-text,
+.text-indigo-400,
+.text-indigo-500,
+.text-indigo-600 {
   color: var(--accent-color) !important;
 }
 
-.theme-accent-border {
+.theme-accent-border,
+.accent-border,
+.border-indigo-400,
+.border-indigo-500,
+.border-indigo-600 {
   border-color: var(--accent-color) !important;
 }
 
-.theme-accent-ring {
+.theme-accent-ring,
+.accent-ring,
+.ring-indigo-400,
+.ring-indigo-500,
+.ring-indigo-600,
+.focus\:ring-indigo-500:focus,
+.focus\:ring-indigo-600:focus {
   --tw-ring-color: var(--accent-color) !important;
+}
+
+.from-indigo-600 {
+  --tw-gradient-from: var(--accent-color) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(var(--accent-color-rgb) / 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
 
 /* Mini App unified theme utility classes */

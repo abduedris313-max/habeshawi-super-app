@@ -50,15 +50,15 @@ import {
   INITIAL_OFFLINE_EVENTS 
 } from './offlinePersistence';
 
-// Support both environment variables (VITE_FIREBASE_*) and provisioned firebase-applet-config.json
+// Support both provisioned firebase-applet-config.json and environment variables
 const env = (import.meta as any).env || {};
 const resolvedConfig = {
-  apiKey: env.VITE_FIREBASE_API_KEY || firebaseConfig.apiKey,
-  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || firebaseConfig.authDomain,
-  projectId: env.VITE_FIREBASE_PROJECT_ID || firebaseConfig.projectId,
-  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || firebaseConfig.storageBucket,
-  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || firebaseConfig.messagingSenderId,
-  appId: env.VITE_FIREBASE_APP_ID || firebaseConfig.appId,
+  apiKey: firebaseConfig.apiKey || env.VITE_FIREBASE_API_KEY,
+  authDomain: firebaseConfig.authDomain || env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: firebaseConfig.projectId || env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: firebaseConfig.storageBucket || env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: firebaseConfig.messagingSenderId || env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: firebaseConfig.appId || env.VITE_FIREBASE_APP_ID,
 };
 
 let app: FirebaseApp;
@@ -71,7 +71,7 @@ if (!getApps().length) {
 export const auth = getAuth(app);
 
 // Initialize Firestore with auto-detect transport settings and robust local cache persistence
-const databaseId = env.VITE_FIREBASE_DATABASE_ID || (firebaseConfig as any).firestoreDatabaseId;
+const databaseId = (firebaseConfig as any).firestoreDatabaseId || env.VITE_FIREBASE_DATABASE_ID;
 
 let firestoreInstance: Firestore;
 if (typeof window !== 'undefined') {
@@ -191,10 +191,16 @@ export async function loginWithGoogle() {
     const userCredential = await signInWithPopup(auth, provider);
     return userCredential.user;
   } catch (error: any) {
-    console.error('[Firebase Auth Error] Google Sign-In with popup failed:', error);
+    if (error?.code === 'auth/popup-closed-by-user' || error?.code === 'auth/cancelled-popup-request') {
+      // User closed or dismissed the popup window intentionally; safe cancellation
+      console.info('[Firebase Auth] Google Sign-In popup closed by user.');
+      return null;
+    }
     if (error?.code === 'auth/unauthorized-domain') {
       const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
       console.warn(`[Firebase Auth] Domain "${currentHost}" must be whitelisted in Firebase Console under Authentication -> Settings -> Authorized Domains.`);
+    } else {
+      console.warn('[Firebase Auth] Google Sign-In with popup completed with status:', error?.code || error?.message);
     }
     throw error;
   }

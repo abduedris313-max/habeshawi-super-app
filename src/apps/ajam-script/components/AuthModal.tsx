@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, LogIn, UserCheck, ShieldCheck, Sparkles, ExternalLink, Copy, Check, ShieldAlert } from 'lucide-react';
 import { signInWithGoogle, signInAsGuest } from '../lib/firebase';
+import firebaseConfig from '../../../../firebase-applet-config.json';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -18,18 +19,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
     setErrorMsg(null);
     setErrorCode(null);
     try {
-      await signInWithGoogle();
-      onSuccess();
+      const user = await signInWithGoogle();
+      if (user) {
+        onSuccess();
+      }
     } catch (err: any) {
-      console.error(err);
-      const code = err?.code || (err?.message?.includes('unauthorized-domain') ? 'auth/unauthorized-domain' : '');
-      setErrorCode(code);
-      if (code === 'auth/unauthorized-domain') {
-        setErrorMsg(`Deployment Domain Not Authorized: ${typeof window !== 'undefined' ? window.location.hostname : ''} is not registered in Firebase Authorized Domains.`);
-      } else if (code === 'auth/popup-blocked') {
-        setErrorMsg('Sign-in popup was blocked by browser. Please allow popups or use Guest Scholar mode.');
-      } else {
-        setErrorMsg(err.message || 'Google Sign-In failed. Please try again.');
+      if (err?.code !== 'auth/popup-closed-by-user' && err?.code !== 'auth/cancelled-popup-request') {
+        const code = err?.code || (err?.message?.includes('unauthorized-domain') ? 'auth/unauthorized-domain' : '');
+        setErrorCode(code);
+        if (code === 'auth/unauthorized-domain') {
+          setErrorMsg(`Deployment Domain Not Authorized: ${typeof window !== 'undefined' ? window.location.hostname : ''} is not registered in Firebase Authorized Domains.`);
+        } else if (code === 'auth/popup-blocked') {
+          setErrorMsg('Sign-in popup was blocked by browser. Please allow popups or use Guest Scholar mode.');
+        } else {
+          setErrorMsg(err?.message || 'Google Sign-In failed. Please try again.');
+        }
       }
     } finally {
       setIsLoading(false);
@@ -103,7 +107,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, onSuccess }) => {
               </button>
             </div>
             <a
-              href="https://console.firebase.google.com/project/concrete-lead-kc9s2/authentication/settings"
+              href={`https://console.firebase.google.com/project/${firebaseConfig.projectId || 'gen-lang-client-0142924503'}/authentication/settings`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-center flex items-center justify-center gap-1.5 transition-colors"

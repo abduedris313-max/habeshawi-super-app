@@ -35,6 +35,7 @@ import {
   loginAdminWithGoogleAccount, 
   getGuestDemoProfile 
 } from '../services/adminAuthService';
+import firebaseConfig from '../../firebase-applet-config.json';
 
 interface AdminAuthModalProps {
   isOpen: boolean;
@@ -265,7 +266,7 @@ export const AdminAuthModal: React.FC<AdminAuthModalProps> = ({
                 </button>
               </div>
               <a
-                href="https://console.firebase.google.com/project/concrete-lead-kc9s2/authentication/settings"
+                href={`https://console.firebase.google.com/project/${firebaseConfig.projectId || 'gen-lang-client-0142924503'}/authentication/settings`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full py-2 px-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-center flex items-center justify-center gap-1.5 transition-colors cursor-pointer"

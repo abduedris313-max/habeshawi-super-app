@@ -691,14 +691,21 @@ export const HomeScreenSetupModal: React.FC<HomeScreenSetupModalProps> = ({
                   Primary Accent Color
                 </label>
                 <div className="flex items-center gap-3">
-                  {['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#06b6d4'].map(color => (
+                  {[
+                    { color: '#8b5cf6', preset: 'oled' },
+                    { color: '#3b82f6', preset: 'slate' },
+                    { color: '#10b981', preset: 'axum-emerald' },
+                    { color: '#f59e0b', preset: 'habeshawi-gold' },
+                    { color: '#ec4899', preset: 'sheba-crimson' },
+                    { color: '#06b6d4', preset: 'slate' }
+                  ].map(item => (
                     <button
-                      key={color}
-                      onClick={() => onUpdateSettings({ accentColor: color })}
-                      style={{ backgroundColor: color }}
+                      key={item.color}
+                      onClick={() => onUpdateSettings({ accentColor: item.color, themePreset: item.preset as any })}
+                      style={{ backgroundColor: item.color }}
                       className="w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-transform hover:scale-110"
                     >
-                      {settings.accentColor === color && (
+                      {settings.accentColor === item.color && (
                         <Check className="w-3.5 h-3.5 text-white" />
                       )}
                     </button>
@@ -725,7 +732,10 @@ export const HomeScreenSetupModal: React.FC<HomeScreenSetupModalProps> = ({
 
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md transition-all flex items-center gap-1.5"
+            style={{
+              backgroundColor: settings.accentColor || '#6366f1'
+            }}
+            className="px-5 py-2 rounded-xl text-white text-xs font-bold shadow-md transition-all flex items-center gap-1.5 hover:brightness-110 active:scale-95"
           >
             <Check className="w-3.5 h-3.5" />
             <span>Done & Apply</span>

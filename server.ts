@@ -9,16 +9,14 @@ import path from 'path';
 import fs from 'fs';
 import express, { Request, Response } from 'express';
 import { GoogleGenAI } from '@google/genai';
+import firebaseConfig from './firebase-applet-config.json';
+import { requireAuth, AuthRequest } from './src/middleware/auth.ts';
+import { getUsers, getOrCreateUser } from './src/db/users.ts';
 
-// Prioritize production environment variables if present
-const prodEnvPath = path.resolve(process.cwd(), '.env.production');
-if (fs.existsSync(prodEnvPath)) {
-  dotenv.config({ path: prodEnvPath });
-}
-dotenv.config(); // Complement with standard .env
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const PORT = 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
@@ -48,8 +46,37 @@ app.get('/api/health', (_req: Request, res: Response) => {
     environment: process.env.NODE_ENV || 'production',
     timestamp: new Date().toISOString(),
     service: 'Harmony OS Super App Backend',
-    firebaseProject: process.env.VITE_FIREBASE_PROJECT_ID || 'concrete-lead-kc9s2'
+    firebaseProject: firebaseConfig.projectId || process.env.VITE_FIREBASE_PROJECT_ID || 'gen-lang-client-0142924503'
   });
+});
+
+/**
+ * Cloud SQL Relational Users endpoints
+ */
+app.get('/api/users', requireAuth, async (_req: AuthRequest, res: Response) => {
+  try {
+    const users = await getUsers();
+    res.json(users);
+  } catch (error: any) {
+    console.error('Failed to fetch users from Cloud SQL:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch users' });
+  }
+});
+
+app.post('/api/users/sync', requireAuth, async (req: AuthRequest, res: Response) => {
+  try {
+    const uid = req.user?.uid;
+    const email = req.user?.email || '';
+    const name = (req.user as any)?.name || '';
+    if (!uid) {
+      return res.status(400).json({ error: 'Missing UID' });
+    }
+    const user = await getOrCreateUser(uid, email, name);
+    res.json({ success: true, user });
+  } catch (error: any) {
+    console.error('Failed to sync user to Cloud SQL:', error);
+    res.status(500).json({ error: error.message || 'Failed to sync user' });
+  }
 });
 
 /**
@@ -327,7 +354,11 @@ async function startServer() {
   app.use('/templates', express.static(path.join(process.cwd(), 'templates')));
   app.use(express.static(path.join(process.cwd(), 'public')));
 
-  if (process.env.NODE_ENV !== 'production') {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const distPath = path.join(process.cwd(), 'dist');
+  const hasDist = fs.existsSync(distPath);
+
+  if (!isProduction || !hasDist) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -335,7 +366,6 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
 
     app.get('/admin.html', (_req: Request, res: Response) => {

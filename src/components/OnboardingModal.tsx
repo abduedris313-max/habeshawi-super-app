@@ -142,11 +142,14 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               <button
                 key={step.id}
                 onClick={() => setCurrentStep(idx)}
+                style={{
+                  backgroundColor: idx <= currentStep ? (settings.accentColor || '#6366f1') : undefined
+                }}
                 className={`h-1.5 rounded-full transition-all ${
                   idx === currentStep
-                    ? 'w-6 bg-indigo-500'
+                    ? 'w-6'
                     : idx < currentStep
-                    ? 'w-2.5 bg-indigo-400/50'
+                    ? 'w-2.5 opacity-60'
                     : isDark ? 'w-2 bg-[#30363d]' : 'w-2 bg-neutral-200'
                 }`}
                 title={step.title}
@@ -293,15 +296,15 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                   </label>
                   <div className="flex items-center gap-3">
                     {[
-                      { color: '#8b5cf6', name: 'Harmony Purple' },
-                      { color: '#3b82f6', name: 'Electric Blue' },
-                      { color: '#10b981', name: 'Emerald' },
-                      { color: '#f59e0b', name: 'Amber' },
-                      { color: '#ec4899', name: 'Rose' },
+                      { color: '#8b5cf6', name: 'Harmony Purple', preset: 'oled' },
+                      { color: '#3b82f6', name: 'Electric Blue', preset: 'slate' },
+                      { color: '#10b981', name: 'Emerald', preset: 'axum-emerald' },
+                      { color: '#f59e0b', name: 'Amber', preset: 'habeshawi-gold' },
+                      { color: '#ec4899', name: 'Rose', preset: 'sheba-crimson' },
                     ].map(acc => (
                       <button
                         key={acc.color}
-                        onClick={() => onUpdateSettings({ accentColor: acc.color })}
+                        onClick={() => onUpdateSettings({ accentColor: acc.color, themePreset: acc.preset as any })}
                         style={{ backgroundColor: acc.color }}
                         className="w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-transform hover:scale-110 relative"
                         title={acc.name}
@@ -454,14 +457,17 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                       <div className="flex items-center gap-2 mt-3">
                         <button
                           onClick={() => onOpenAuth('signup')}
-                          className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-sm transition-colors"
+                          style={{
+                            backgroundColor: settings.accentColor || '#6366f1'
+                          }}
+                          className="px-3 py-1.5 rounded-xl text-white text-xs font-semibold shadow-sm transition-all hover:brightness-110 active:scale-95"
                         >
                           Create Account
                         </button>
                         <button
                           onClick={() => onOpenAuth('signin')}
                           className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-colors ${
-                            isDark ? 'bg-[#21262d] text-white border-[#30363d]' : 'bg-white text-neutral-800 border-neutral-200'
+                            isDark ? 'bg-[#21262d] text-white border-[#30363d] hover:bg-[#30363d]' : 'bg-white text-neutral-800 border-neutral-200 hover:bg-neutral-100'
                           }`}
                         >
                           Sign In
@@ -566,7 +572,11 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
           <button
             onClick={handleNext}
-            className="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold shadow-md transition-all flex items-center gap-1.5"
+            style={{
+              backgroundColor: settings.accentColor || '#6366f1',
+              boxShadow: `0 4px 14px 0 ${settings.accentColor ? settings.accentColor + '55' : 'rgba(99,102,241,0.35)'}`
+            }}
+            className="px-5 py-2 rounded-xl text-white text-xs font-bold shadow-md transition-all flex items-center gap-1.5 hover:brightness-105 active:scale-95"
           >
             <span>{currentStep === steps.length - 1 ? 'Enter Habeshawi' : 'Continue'}</span>
             <ChevronRight className="w-3.5 h-3.5" />
