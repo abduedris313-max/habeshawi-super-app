@@ -1,6 +1,6 @@
 {
-  "short_name": "HarmonyOS",
-  "name": "HarmonyOS Super App Ecosystem",
+  "short_name": "Habeshawi",
+  "name": "Habeshawi Super App",
   "icons": [
     {
       "src": "./pwa-icon.jpg",
@@ -27,6 +27,6 @@
   "theme_color": "#090a0f",
   "display": "standalone",
   "orientation": "portrait",
-  "description": "iOS-style Super App integrating all HarmonyOS Mini Apps with Firebase cloud sync.",
+  "description": "iOS-style Super App integrating all Habeshawi Mini Apps with Firebase cloud sync.",
   "categories": ["productivity", "utilities", "entertainment", "lifestyle"]
 }

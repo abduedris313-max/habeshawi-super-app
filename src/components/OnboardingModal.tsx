@@ -185,7 +185,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
                 <div className="space-y-1">
                   <h2 className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-                    Welcome to Habeshawi
+                    Welcome to Habeshawi Super App
                   </h2>
                   <p className={`text-sm ${isDark ? 'text-[#8b949e]' : 'text-neutral-600'}`}>
                     Your cultural & productivity Super App ecosystem. Everything you create, study, plan, and play in one beautifully unified environment.

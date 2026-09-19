@@ -87,7 +87,7 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = ({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">
-                      {notification.appName || 'Harmony OS'}
+                      {notification.appName || 'Habeshawi'}
                     </span>
                     <div className="flex items-center gap-1 text-[10px] text-neutral-400 font-mono">
                       <span>now</span>

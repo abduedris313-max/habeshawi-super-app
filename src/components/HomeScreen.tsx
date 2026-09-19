@@ -493,7 +493,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
               <div className="w-full shrink-0 mb-1">
                 <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1 px-1 flex items-center justify-between">
                   <span>Smart App Suggestions</span>
-                  <span className="text-[9px] text-indigo-400">Harmony AI</span>
+                  <span className="text-[9px] text-amber-400">Habeshawi AI</span>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
                   {suggestedApps.map((app) => (

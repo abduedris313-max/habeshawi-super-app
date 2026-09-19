@@ -45,7 +45,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
     status: 'ok',
     environment: process.env.NODE_ENV || 'production',
     timestamp: new Date().toISOString(),
-    service: 'Harmony OS Super App Backend',
+    service: 'Habeshawi Super App Backend',
     firebaseProject: firebaseConfig.projectId || process.env.VITE_FIREBASE_PROJECT_ID || 'gen-lang-client-0142924503'
   });
 });

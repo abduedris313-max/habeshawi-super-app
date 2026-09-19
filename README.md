@@ -1,6 +1,6 @@
-# Harmony OS Super App 🚀
+# Habeshawi Super App 🚀
 
-An iOS-styled, mobile-first **Super App Ecosystem** that integrates all of `@abduedris313-max`'s Harmony WebApps into a unified mini-app launcher platform powered by Firebase, Gemini AI, and PWA capabilities.
+An iOS-styled, mobile-first **Super App Ecosystem** that integrates Habeshawi Mini Apps (Notes, Docs, Writing, Music Player, Docs AI, Tri-Calendar, Financial Suite, Ajam Script, and App Store) into a unified mini-app launcher platform powered by Firebase, Gemini AI, and PWA capabilities.
 
 ---
 

@@ -579,8 +579,8 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
                     </p>
                     <p className="text-[10px] text-neutral-400 truncate">{notif.message}</p>
                   </div>
-                  <span className="text-[9px] text-indigo-400 shrink-0 font-mono mt-0.5">
-                    {notif.appName || 'Harmony'}
+                  <span className="text-[9px] text-amber-400 shrink-0 font-mono mt-0.5">
+                    {notif.appName || 'Habeshawi'}
                   </span>
                 </div>
               ))}

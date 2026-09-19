@@ -579,7 +579,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         </div>
                         <div className="min-w-0">
                           <h2 className="text-sm font-bold truncate group-hover:text-indigo-400 transition-colors">
-                            {currentUser?.displayName || 'Harmony User'}
+                            {currentUser?.displayName || 'Habeshawi User'}
                           </h2>
                           <p className="text-[11px] text-neutral-400 truncate">
                             {currentUser?.email || 'Apple ID, Cloud, Media & Purchases'}
@@ -792,7 +792,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           <ChevronRight className="w-4 h-4 text-neutral-400" />
                         </button>
 
-                        {/* About Harmony OS */}
+                        {/* About Habeshawi Super App */}
                         <button
                           onClick={() => handleNavigate('about')}
                           className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:opacity-80 transition-opacity"
@@ -802,8 +802,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                               <Info className="w-4 h-4 text-white" />
                             </div>
                             <div>
-                              <p className="text-xs sm:text-sm font-semibold">About Harmony OS</p>
-                              <p className="text-[11px] text-neutral-400">v2.4.0 Titanium Pro • Apple HIG Compliant</p>
+                              <p className="text-xs sm:text-sm font-semibold">About Habeshawi Super App</p>
+                              <p className="text-[11px] text-neutral-400">v2.5.0 Titanium Pro • Apple HIG Compliant</p>
                             </div>
                           </div>
                           <ChevronRight className="w-4 h-4 text-neutral-400" />
@@ -1727,7 +1727,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                     <div>
                       <h4 className={`text-sm sm:text-base ${settings.boldText ? 'font-extrabold' : 'font-bold'}`}>
-                        Harmony OS Universal Typography
+                        Habeshawi Super App Universal Typography
                       </h4>
                       <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 leading-relaxed">
                         Every system app, notification, launcher icon, and widget reflects this typography setting dynamically in real time.
