@@ -5,11 +5,15 @@
  * Jiggle/Edit Launcher mode, Custom icon styles (Vibrant, Tinted Glass, Dark OLED, Monochrome), and Gestures.
  */
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { TouchBackend } from 'react-dnd-touch-backend';
 import { HARMONY_APPS } from '../config/apps';
 import { MiniAppConfig, HarmonyNote, HarmonyWritingDraft, HarmonyCalendarEvent, Track, SystemSettings, LauncherIconStyle, LauncherGridDensity } from '../types';
 import { HabeshawiAppIcon } from './HabeshawiIcons';
+import { DraggablePinnedApp } from './DraggablePinnedApp';
 import { 
   Search, 
   Settings, 
@@ -56,6 +60,26 @@ import { triggerHaptic } from '../utils/haptics';
 import { soundManager } from '../lib/soundManager';
 import { WALLPAPER_PRESETS } from './HomeScreenSetupModal';
 
+/**
+ * Intelligent React DnD backend resolution:
+ * Selects TouchBackend for touch devices with gesture hold delays,
+ * and HTML5Backend for desktop mouse navigation.
+ */
+const getDndBackendConfig = () => {
+  if (typeof window === 'undefined') {
+    return { backend: HTML5Backend, options: undefined };
+  }
+  const hasTouch = 'ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+  const isFinePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+  if (hasTouch && !isFinePointer) {
+    return { 
+      backend: TouchBackend, 
+      options: { enableMouseEvents: true, delayTouchStart: 180 } 
+    };
+  }
+  return { backend: HTML5Backend, options: undefined };
+};
+
 interface HomeScreenProps {
   onOpenApp: (appId: string) => void;
   onOpenSpotlight: () => void;
@@ -75,6 +99,7 @@ interface HomeScreenProps {
   pinnedAppIds?: string[];
   installedAppIds?: string[];
   onTogglePinApp?: (appId: string) => void;
+  onReorderPinnedApps?: (newPinnedAppIds: string[]) => void;
   onOpenHomeScreenSetup?: () => void;
   onOpenOnboarding?: () => void;
   enabledWidgetIds?: HomeWidgetId[];
@@ -105,6 +130,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
   pinnedAppIds,
   installedAppIds,
   onTogglePinApp,
+  onReorderPinnedApps,
   onOpenHomeScreenSetup,
   onOpenOnboarding,
   enabledWidgetIds = ['calendar', 'finance', 'music', 'docs-ai'],
@@ -115,6 +141,8 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
   onUpdateWallpaperTheme,
   homeTrigger
 }) => {
+  // Select DnD backend
+  const dndConfig = useMemo(() => getDndBackendConfig(), []);
   // Page state: 0 = Today / Widgets, 1 = Main App Springboard Grid, 2 = App Library Folders
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [slideDirection, setSlideDirection] = useState<number>(1);
@@ -165,7 +193,11 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
   };
 
   // Gesture handling: Swipe Left/Right (Paging), Swipe Up (Installed Apps), Swipe Down (Notifications)
-  const handleGestureStart = (clientX: number, clientY: number) => {
+  const handleGestureStart = (clientX: number, clientY: number, target?: EventTarget | null) => {
+    // If the touch or mouse down is on a draggable app icon or interactive element, don't trigger page swipe
+    if (target instanceof HTMLElement && target.closest('[data-testid^="draggable-app-"], button, a, input, select')) {
+      return;
+    }
     startXRef.current = clientX;
     startYRef.current = clientY;
     isPointerDownRef.current = true;
@@ -223,6 +255,67 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
   const allInstalledApps = useMemo(() => {
     return HARMONY_APPS.filter(a => installedAppIds ? installedAppIds.includes(a.id) : true);
   }, [installedAppIds]);
+
+  // Pinned applications in user customized order
+  const pinnedAppsList = useMemo(() => {
+    const installedSet = new Set(installedAppIds || HARMONY_APPS.map(a => a.id));
+    const allMap = new Map(HARMONY_APPS.map(a => [a.id, a]));
+
+    if (pinnedAppIds && pinnedAppIds.length > 0) {
+      const result: MiniAppConfig[] = [];
+      const seen = new Set<string>();
+
+      pinnedAppIds.forEach(id => {
+        if (installedSet.has(id) && allMap.has(id) && !seen.has(id)) {
+          result.push(allMap.get(id)!);
+          seen.add(id);
+        }
+      });
+
+      return result.length > 0 ? result : allInstalledApps;
+    }
+
+    return allInstalledApps;
+  }, [pinnedAppIds, installedAppIds, allInstalledApps]);
+
+  // Local state for live drag-and-drop reordering with React DnD
+  const [orderedApps, setOrderedApps] = useState<MiniAppConfig[]>(pinnedAppsList);
+  const orderedAppsRef = useRef<MiniAppConfig[]>(pinnedAppsList);
+
+  useEffect(() => {
+    setOrderedApps(pinnedAppsList);
+    orderedAppsRef.current = pinnedAppsList;
+  }, [pinnedAppsList]);
+
+  // Move app during drag-and-drop hover
+  const moveApp = useCallback((dragIndex: number, hoverIndex: number) => {
+    setOrderedApps((prev) => {
+      if (
+        dragIndex === hoverIndex ||
+        dragIndex < 0 ||
+        hoverIndex < 0 ||
+        dragIndex >= prev.length ||
+        hoverIndex >= prev.length
+      ) {
+        return prev;
+      }
+      const updated = [...prev];
+      const [moved] = updated.splice(dragIndex, 1);
+      updated.splice(hoverIndex, 0, moved);
+      orderedAppsRef.current = updated;
+      return updated;
+    });
+    triggerHaptic('light');
+  }, []);
+
+  // Commit reordered pinned applications on drop
+  const handleCommitReorder = useCallback(() => {
+    const currentOrder = orderedAppsRef.current;
+    const newOrderIds = currentOrder.map(a => a.id);
+    onReorderPinnedApps?.(newOrderIds);
+    soundManager.playClickSound();
+    triggerHaptic('medium');
+  }, [onReorderPinnedApps]);
 
   // Frequently suggested apps for Page 0
   const suggestedApps = useMemo(() => {
@@ -307,18 +400,19 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
   };
 
   return (
-    <div 
-      id="home-screen" 
-      onTouchStart={(e) => {
-        if (e.touches.length === 1) handleGestureStart(e.touches[0].clientX, e.touches[0].clientY);
-      }}
-      onTouchEnd={(e) => {
-        if (e.changedTouches.length > 0) handleGestureEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-      }}
-      onMouseDown={(e) => handleGestureStart(e.clientX, e.clientY)}
-      onMouseUp={(e) => handleGestureEnd(e.clientX, e.clientY)}
-      className="flex-1 w-full h-full flex flex-col justify-between overflow-hidden px-3 pt-1 pb-1 max-w-4xl mx-auto select-none touch-none relative"
-    >
+    <DndProvider backend={dndConfig.backend} options={dndConfig.options}>
+      <div 
+        id="home-screen" 
+        onTouchStart={(e) => {
+          if (e.touches.length === 1) handleGestureStart(e.touches[0].clientX, e.touches[0].clientY, e.target);
+        }}
+        onTouchEnd={(e) => {
+          if (e.changedTouches.length > 0) handleGestureEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+        }}
+        onMouseDown={(e) => handleGestureStart(e.clientX, e.clientY, e.target)}
+        onMouseUp={(e) => handleGestureEnd(e.clientX, e.clientY)}
+        className="flex-1 w-full h-full flex flex-col justify-between overflow-hidden px-3 pt-1 pb-1 max-w-4xl mx-auto select-none touch-none relative"
+      >
       {/* ================= TOP LAUNCHER BAR (Search & Edit Mode Controls) ================= */}
       <div className="w-full max-w-md mx-auto mb-1.5 flex items-center justify-between gap-2 shrink-0 z-10">
         {/* Spotlight Search Pill */}
@@ -561,65 +655,23 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
               className={`w-full h-full flex flex-col ${isBottomArrangement ? 'justify-end pb-1.5 sm:pb-3' : 'justify-center'} overflow-hidden`}
             >
               <div className={`w-full grid ${gridColumnsClass} justify-items-center ${isBottomArrangement ? 'items-end' : 'items-center'}`}>
-                {allInstalledApps.map((app, index) => {
-                  const isPinned = pinnedAppIds ? pinnedAppIds.includes(app.id) : true;
-                  return (
-                    <motion.div
-                      key={app.id}
-                      whileHover={isEditMode ? {} : { scale: 1.06 }}
-                      whileTap={isEditMode ? {} : { scale: 0.92 }}
-                      className={`flex flex-col items-center group cursor-pointer relative ${
-                        isEditMode ? (index % 2 === 0 ? 'animate-jiggle' : 'animate-jiggle-alt') : ''
-                      }`}
-                      onClick={() => {
-                        if (!isEditMode) {
-                          onOpenApp(app.id);
-                        }
-                      }}
-                    >
-                      {/* Jiggle Mode Minus Badge */}
-                      {isEditMode && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            soundManager.playClickSound();
-                            onTogglePinApp?.(app.id);
-                          }}
-                          className="absolute -top-1.5 -left-1.5 z-30 w-5 h-5 rounded-full bg-neutral-800 text-white border border-neutral-600 flex items-center justify-center shadow-md hover:bg-red-600 transition-colors"
-                        >
-                          <Minus className="w-3 h-3 stroke-[3]" />
-                        </button>
-                      )}
-
-                      {/* App Squircle Icon */}
-                      <div 
-                        id={`app-icon-${app.id}`}
-                        className={`w-13 h-13 sm:w-15 sm:h-15 rounded-[16px] sm:rounded-[18px] p-1 flex flex-col items-center justify-center relative overflow-hidden transition-all group-hover:shadow-lg ${getAppIconContainerStyle(app, index)}`}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-black/25 pointer-events-none rounded-[16px]" />
-                        <div className="z-10 flex flex-col items-center justify-center w-full h-full">
-                          {getIconComponent(app.iconName, app.id)}
-                        </div>
-                        {app.badge && !isEditMode && (
-                          <span className="absolute top-0.5 right-0.5 px-1.5 py-0.2 rounded-full bg-red-500 text-[8px] font-bold text-white shadow-xs">
-                            {app.badge}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* App Text Label */}
-                      {showLabels && (
-                        <span className={`mt-1.5 text-[10.5px] sm:text-[11.5px] text-center tracking-tight leading-tight line-clamp-2 max-w-[74px] sm:max-w-[82px] select-none ${
-                          isDarkMode
-                            ? 'text-white/95 font-semibold drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.85)]'
-                            : 'text-neutral-900 font-bold drop-shadow-xs'
-                        }`}>
-                          {app.name}
-                        </span>
-                      )}
-                    </motion.div>
-                  );
-                })}
+                {orderedApps.map((app, index) => (
+                  <DraggablePinnedApp
+                    key={app.id}
+                    app={app}
+                    index={index}
+                    isEditMode={isEditMode}
+                    onOpenApp={onOpenApp}
+                    onTogglePinApp={onTogglePinApp}
+                    moveApp={moveApp}
+                    onCommitReorder={handleCommitReorder}
+                    iconStyle={iconStyle}
+                    isDarkMode={isDarkMode}
+                    showLabels={showLabels}
+                    getAppIconContainerStyle={getAppIconContainerStyle}
+                    getIconComponent={getIconComponent}
+                  />
+                ))}
 
                 {/* System Settings App Icon */}
                 <motion.div
@@ -818,7 +870,8 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
           </button>
         </div>
       )}
-    </div>
+      </div>
+    </DndProvider>
   );
 };
 

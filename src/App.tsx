@@ -213,6 +213,12 @@ export default function App() {
     });
   };
 
+  // Reorder pinned apps on the Home Screen via Drag-and-Drop (React DnD)
+  const handleReorderPinnedApps = (newOrder: string[]) => {
+    setPinnedAppIds(newOrder);
+    setLocalItem(STORAGE_KEYS.PINNED_APPS, newOrder);
+  };
+
   // System Settings with Offline Storage Cache & soundManager synchronization
   const [settings, setSettings] = useState<SystemSettings>(() => {
     const saved = getLocalItem<SystemSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SYSTEM_SETTINGS);
@@ -825,6 +831,7 @@ export default function App() {
                 pinnedAppIds={pinnedAppIds}
                 installedAppIds={installedAppIds}
                 onTogglePinApp={handleTogglePinApp}
+                onReorderPinnedApps={handleReorderPinnedApps}
                 enabledWidgetIds={enabledWidgetIds}
                 onUpdateWidgets={handleUpdateWidgets}
                 settings={settings}
