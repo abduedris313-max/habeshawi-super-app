@@ -36,6 +36,13 @@ All Harmony WebApps are accessible via responsive iOS-style mini app frames and 
   - Stream downloads with simulated network telemetry, progress bars, and package extraction.
   - Full local storage management with offline bundle precaching and package uninstallation.
   - Downloadable mini-apps include **Weather & Sky**, **Calculator & Scientific Unit Converter**, **Focus Studio (432Hz binaural generator)**, **Dev Terminal (CLI diagnostics)**, and **Habit Momentum (concentric activity rings)**.
+- **iOS Lock Screen & Security Suite**:
+  - Authentic iOS lock screen experience with customizable clock typography (SF Pro Default, Ultra Bold, SF Rounded, Ge’ez Heritage, Minimal Thin, and Editorial Serif).
+  - Passcode PIN protection (4–6 digits) with shake animation, Taptic haptic feedback, and numeric keypad.
+  - Live Lock Screen interactive preview right inside Settings.
+  - Quick action buttons for Flashlight toggle and Camera, swipe-to-unlock gesture, and media player widget integration.
+  - Inactivity auto-lock timer (Never, 1 min, 2 min, 5 min) and keyboard shortcut (`Cmd+L` / `Ctrl+Alt+L`) for instant locking.
+  - Granular lock preferences: wallpaper blur, date header, owner greeting subtitle, widget row, notification previews, and Control Center access controls.
 - **iOS 18 Touch Gestures & Haptic Feedback**:
   - Touch gesture support across the system: swipe up on active mini-apps to dismiss to Springboard, swipe down on Home Screen for Spotlight, and horizontal swipe between Springboard and App Library.
   - Multi-tier `navigator.vibrate()` tactile patterns mimicking Taptic Engine feedback (light, medium, heavy, success, selection, and error).

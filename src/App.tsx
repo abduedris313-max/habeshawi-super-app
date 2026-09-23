@@ -74,6 +74,7 @@ import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { NotificationBanner } from './components/NotificationBanner';
 import { InstalledAppsModal } from './components/InstalledAppsModal';
 import { NotificationCenter } from './components/NotificationCenter';
+import { LockScreen } from './components/LockScreen';
 import { HabeshawiSplashScreen } from './components/HabeshawiSplashScreen';
 import { HabeshawiLoadingScreen } from './components/HabeshawiLoadingScreen';
 import { HabeshawiPopupProvider } from './components/HabeshawiPopup';
@@ -85,6 +86,7 @@ export default function App() {
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false);
   const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
   const [isAppSwitcherOpen, setIsAppSwitcherOpen] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
   
   // Modals & User Journey States
   const [showSplashScreen, setShowSplashScreen] = useState(true);
@@ -590,17 +592,57 @@ export default function App() {
     };
   }, [user]);
 
-  // Keyboard shortcut listener for Spotlight (Cmd+K / Ctrl+K)
+  // Keyboard shortcut listener for Spotlight (Cmd+K / Ctrl+K) and Lock (Cmd+L / Ctrl+Alt+L)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setIsSpotlightOpen(prev => !prev);
       }
+      // Lock screen shortcut
+      if ((e.metaKey && e.key.toLowerCase() === 'l') || (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'l')) {
+        e.preventDefault();
+        if (settings.lockScreenEnabled !== false) {
+          soundManager.playLockSound();
+          setIsLocked(true);
+        }
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [settings.lockScreenEnabled]);
+
+  // Auto-lock inactivity timer listener
+  useEffect(() => {
+    if (settings.lockScreenEnabled === false || isLocked) return;
+    const timeoutSetting = settings.lockScreenAutoLockTimeout || '5min';
+    if (timeoutSetting === 'never') return;
+
+    let timeoutMs = 5 * 60 * 1000;
+    if (timeoutSetting === '1min') timeoutMs = 1 * 60 * 1000;
+    if (timeoutSetting === '2min') timeoutMs = 2 * 60 * 1000;
+    if (timeoutSetting === '5min') timeoutMs = 5 * 60 * 1000;
+
+    let timerId: ReturnType<typeof setTimeout>;
+
+    const resetTimer = () => {
+      clearTimeout(timerId);
+      timerId = setTimeout(() => {
+        soundManager.playLockSound();
+        setIsLocked(true);
+      }, timeoutMs);
+    };
+
+    resetTimer();
+
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'touchstart', 'scroll'];
+    activityEvents.forEach((ev) => window.addEventListener(ev, resetTimer, { passive: true }));
+
+    return () => {
+      clearTimeout(timerId);
+      activityEvents.forEach((ev) => window.removeEventListener(ev, resetTimer));
+    };
+  }, [settings.lockScreenEnabled, settings.lockScreenAutoLockTimeout, isLocked]);
 
   // Launch Mini App
   const handleOpenApp = (appId: string) => {
@@ -884,6 +926,10 @@ export default function App() {
         suppressedNotifications={suppressedNotifications}
         onClearSuppressedNotifications={handleClearSuppressedNotifications}
         onTriggerTestNotification={handleTriggerTestNotification}
+        onLockScreen={() => {
+          soundManager.playLockSound();
+          setIsLocked(true);
+        }}
       />
 
       <SpotlightSearch
@@ -926,6 +972,10 @@ export default function App() {
           setLocalItem(STORAGE_KEYS.PINNED_APPS, apps);
         }}
         installedAppIds={installedAppIds}
+        onLockScreenNow={() => {
+          soundManager.playLockSound();
+          setIsLocked(true);
+        }}
       />
 
       {/* First-Time User Onboarding & Welcome Tour */}
@@ -998,6 +1048,28 @@ export default function App() {
 
       {/* Mobile PWA Installation Banner */}
       <PwaInstallPrompt />
+
+      {/* iOS Lock Screen Overlay */}
+      <AnimatePresence>
+        {isLocked && settings.lockScreenEnabled !== false && (
+          <LockScreen
+            isLocked={isLocked}
+            onUnlock={() => setIsLocked(false)}
+            settings={settings}
+            onUpdateSettings={handleUpdateSettings}
+            notifications={allNotifications}
+            currentTrack={currentTrack}
+            isPlayingMusic={isPlayingMusic}
+            onTogglePlayMusic={() => setIsPlayingMusic(!isPlayingMusic)}
+            wallpaperTheme={wallpaperTheme}
+            onOpenControlCenter={() => setIsControlCenterOpen(true)}
+            onOpenApp={(appId) => {
+              setIsLocked(false);
+              handleOpenApp(appId);
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Global Habeshawi Fullscreen Splash Screen */}
       <AnimatePresence>

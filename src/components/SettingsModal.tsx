@@ -5,12 +5,12 @@
  * Display & Brightness, Sounds & Haptics, Cloud Sync, and PWA installation.
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, Settings, Github, ExternalLink, ShieldCheck, Download, Smartphone, 
   Flame, Info, Moon, Sun, Monitor, Volume2, BellOff, Check, Palette,
-  Sliders, ArrowUp, ArrowDown, RotateCcw, Eye, Smartphone as MobileIcon, Laptop,
+  Sliders, ArrowUp, ArrowDown, RotateCcw, Eye, EyeOff, Flashlight, Camera, Smartphone as MobileIcon, Laptop,
   Notebook, FileText, PenTool, Disc, Sparkles, Calendar, Wallet, ShoppingBag, Layers, Plus, Trash2,
   User, LogIn, UserPlus, LogOut, KeyRound, Copy, LayoutGrid, ChevronRight, ChevronLeft, Search, Bell, Wifi, Radio,
   Lock, Cloud, RefreshCw, SmartphoneNfc, Terminal, Sparkle, ShieldAlert, SlidersHorizontal,
@@ -27,7 +27,9 @@ import {
   SystemFontFamily,
   FontSizeScale,
   DisplayScale,
-  ColorTemperature
+  ColorTemperature,
+  LockScreenClockStyle,
+  LockScreenAutoLockTimeout
 } from '../types';
 import { soundManager } from '../lib/soundManager';
 import { DEFAULT_DOCK_APP_IDS, DEFAULT_WIDGET_SIZES, STORAGE_KEYS, ACTIVE_MANUAL_USER_KEY, setLocalItem } from '../lib/offlinePersistence';
@@ -36,6 +38,7 @@ import firebaseConfig from '../../firebase-applet-config.json';
 import { AVAILABLE_WIDGETS, HomeWidgetId, WidgetSize } from './widgets/types';
 import { WALLPAPER_PRESETS } from './HomeScreenSetupModal';
 import { HabeshawiBrandEmblem, HabeshawiTibebBorder } from './HabeshawiIcons';
+import { triggerHaptic } from '../utils/haptics';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -53,14 +56,16 @@ interface SettingsModalProps {
   pinnedAppIds?: string[];
   onUpdatePinnedApps?: (apps: string[]) => void;
   installedAppIds?: string[];
+  onLockScreenNow?: () => void;
 }
 
 type SettingsSubPage = 
   | 'main' 
   | 'account'
   | 'launcher' 
+  | 'lockscreen'
   | 'display' 
-  | 'fonts'
+  | 'fonts' 
   | 'sounds' 
   | 'notifications' 
   | 'cloud' 
@@ -290,12 +295,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onUpdateWidgets,
   pinnedAppIds,
   onUpdatePinnedApps,
-  installedAppIds
+  installedAppIds,
+  onLockScreenNow
 }) => {
   const [activePage, setActivePage] = useState<SettingsSubPage>('main');
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedUid, setCopiedUid] = useState(false);
   const [accountMessage, setAccountMessage] = useState<string | null>(null);
+  const [passcodeDraft, setPasscodeDraft] = useState<string>(settings.lockScreenPasscode || '1234');
+  const [showPasscodeVisible, setShowPasscodeVisible] = useState<boolean>(false);
+  const [passcodeSavedToast, setPasscodeSavedToast] = useState<boolean>(false);
+
+  // Sync passcodeDraft when settings update externally
+  useEffect(() => {
+    if (settings.lockScreenPasscode) {
+      setPasscodeDraft(settings.lockScreenPasscode);
+    }
+  }, [settings.lockScreenPasscode]);
 
   // Filtered settings for instant search
   const searchResults = useMemo(() => {
@@ -304,6 +320,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     const items = [
       { id: 'account', title: 'Habeshawi Account & Sign In', subtitle: 'Sign in, create account, Apple ID, profile & cloud sync', icon: User, bg: 'bg-indigo-600' },
       { id: 'launcher', title: 'Home Screen & Launcher', subtitle: 'Wallpapers, icon styles, grid density, widgets', icon: LayoutGrid, bg: 'bg-indigo-500' },
+      { id: 'lockscreen', title: 'Lock Screen & Security', subtitle: 'Passcode, clock styles, widgets, auto-lock & quick actions', icon: Lock, bg: 'bg-amber-600' },
       { id: 'display', title: 'Display & Brightness', subtitle: 'Light/Dark mode, accent presets, Night Shift, Contrast', icon: Sun, bg: 'bg-blue-500' },
       { id: 'fonts', title: 'Typography & Fonts', subtitle: 'Global font family, text size scaling, bold text', icon: Type, bg: 'bg-violet-500' },
       { id: 'sounds', title: 'Sounds & Haptics', subtitle: 'Typewriter clicks, volume, haptic touch feedback', icon: Volume2, bg: 'bg-pink-500' },
@@ -462,6 +479,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <span className="text-sm font-bold truncate max-w-[200px]">
               {activePage === 'account' && 'Habeshawi Account'}
               {activePage === 'launcher' && 'Home & Launcher'}
+              {activePage === 'lockscreen' && 'Lock Screen & Security'}
               {activePage === 'display' && 'Display & Brightness'}
               {activePage === 'fonts' && 'Typography & Fonts'}
               {activePage === 'sounds' && 'Sounds & Haptics'}
@@ -745,6 +763,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             <div>
                               <p className="text-xs sm:text-sm font-semibold">Home Screen & Launcher</p>
                               <p className="text-[11px] text-neutral-400">Wallpapers, Icon Styles, Grid Density, Widgets</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-neutral-400" />
+                        </button>
+
+                        {/* Lock Screen & Security */}
+                        <button
+                          onClick={() => handleNavigate('lockscreen')}
+                          className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:opacity-80 transition-opacity"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-7 h-7 rounded-lg bg-amber-600 flex items-center justify-center shadow-xs">
+                              <Lock className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-xs sm:text-sm font-semibold">Lock Screen & Security</p>
+                              <p className="text-[11px] text-neutral-400">
+                                Passcode {settings.lockScreenRequirePasscode ? 'On' : 'Off'} • {settings.lockScreenClockStyle || 'Default'} Clock
+                              </p>
                             </div>
                           </div>
                           <ChevronRight className="w-4 h-4 text-neutral-400" />
@@ -1661,6 +1698,447 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       >
                         <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
                           settings.launcherJiggleOnLongPress !== false ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ) : activePage === 'lockscreen' ? (
+              /* ================= SUBPAGE: LOCK SCREEN & SECURITY ================= */
+              <motion.div
+                key="subpage-lockscreen"
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 16 }}
+                transition={{ duration: 0.18 }}
+                className="space-y-4"
+              >
+                {/* Live Miniature Lock Screen Preview */}
+                <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-black/20 border border-white/5">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-2">
+                    Lock Screen Preview
+                  </div>
+                  <div className="w-44 h-72 rounded-[24px] border-2 border-neutral-700/80 shadow-2xl relative overflow-hidden flex flex-col justify-between p-2.5 select-none bg-neutral-900">
+                    {/* Background Preview */}
+                    <div className={`absolute inset-0 ${
+                      WALLPAPER_PRESETS.find(p => p.id === wallpaperTheme)
+                        ? (isDark ? WALLPAPER_PRESETS.find(p => p.id === wallpaperTheme)!.darkBgClass : WALLPAPER_PRESETS.find(p => p.id === wallpaperTheme)!.lightBgClass)
+                        : 'from-amber-900 to-black'
+                    } bg-gradient-to-br ${settings.lockScreenWallpaperBlur ? 'blur-xs scale-105' : ''}`} />
+                    <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+
+                    {/* Mini Status bar */}
+                    <div className="relative z-10 flex items-center justify-between text-[8px] text-white/80 font-bold px-1 pt-0.5">
+                      <span>Habeshawi</span>
+                      <Lock className="w-2.5 h-2.5 text-white/90" />
+                      <span>98%</span>
+                    </div>
+
+                    {/* Mini Clock & Date */}
+                    <div className="relative z-10 flex flex-col items-center text-center my-auto">
+                      {settings.lockScreenShowDate !== false && (
+                        <div className="text-[8px] text-white/80 font-medium leading-none mb-1">
+                          Wednesday, Sep 24
+                        </div>
+                      )}
+                      <div className={`text-3xl text-white font-bold tracking-tight leading-none drop-shadow-md ${
+                        settings.lockScreenClockStyle === 'bold' ? 'font-black scale-105' :
+                        settings.lockScreenClockStyle === 'rounded' ? 'font-rounded font-bold' :
+                        settings.lockScreenClockStyle === 'ethiopic' ? 'font-ethiopic' :
+                        settings.lockScreenClockStyle === 'minimal' ? 'font-extralight tracking-widest' :
+                        settings.lockScreenClockStyle === 'serif' ? 'font-serif italic' : 'font-bold'
+                      }`}>
+                        09:41
+                      </div>
+                      {settings.lockScreenOwnerText && (
+                        <div className="text-[7px] text-white/70 uppercase tracking-wider mt-1 truncate max-w-[120px]">
+                          {settings.lockScreenOwnerText}
+                        </div>
+                      )}
+
+                      {/* Mini Widgets Row */}
+                      {settings.lockScreenShowWidgets !== false && (
+                        <div className="flex items-center gap-1 mt-2">
+                          <span className="px-1.5 py-0.5 rounded-full bg-black/40 text-[7px] text-white/90 border border-white/20">
+                            22° Addis
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded-full bg-black/40 text-[7px] text-white/90 border border-white/20">
+                            Focus
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Mini Bottom Controls */}
+                    <div className="relative z-10 flex flex-col items-center">
+                      <div className="w-full flex items-center justify-between px-1 mb-1">
+                        <div className="w-5 h-5 rounded-full bg-black/50 border border-white/30 flex items-center justify-center">
+                          <Flashlight className="w-2.5 h-2.5 text-white" />
+                        </div>
+                        <div className="w-5 h-5 rounded-full bg-black/50 border border-white/30 flex items-center justify-center">
+                          <Camera className="w-2.5 h-2.5 text-white" />
+                        </div>
+                      </div>
+                      <div className="w-12 h-0.5 rounded-full bg-white/70" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Primary Action: Lock Device Now & Status */}
+                <div className={`p-3.5 rounded-2xl border ${
+                  isDark ? 'bg-[#1c1c1e] border-[#2c2c2e]' : 'bg-white border-[#e5e5ea]'
+                } space-y-3`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs sm:text-sm font-semibold">Enable Lock Screen</p>
+                      <p className="text-[11px] text-neutral-400">Display secure lock screen when device is locked</p>
+                    </div>
+                    <button
+                      role="switch"
+                      aria-checked={settings.lockScreenEnabled !== false}
+                      onClick={() => {
+                        soundManager.playClickSound();
+                        onUpdateSettings({ lockScreenEnabled: settings.lockScreenEnabled === false });
+                      }}
+                      className={`w-11 h-6 rounded-full p-0.5 transition-colors relative ${
+                        settings.lockScreenEnabled !== false ? 'bg-amber-500' : isDark ? 'bg-[#39393d]' : 'bg-[#e5e5ea]'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
+                        settings.lockScreenEnabled !== false ? 'translate-x-5' : 'translate-x-0'
+                      }`} />
+                    </button>
+                  </div>
+
+                  {onLockScreenNow && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        soundManager.playClickSound();
+                        onClose();
+                        onLockScreenNow();
+                      }}
+                      className="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-md active:scale-98"
+                    >
+                      <Lock className="w-4 h-4" />
+                      <span>Lock Device Now</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Section: Passcode & Security */}
+                <div>
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5 px-1">
+                    Passcode & Access Security
+                  </div>
+                  <div className={`rounded-2xl border overflow-hidden divide-y ${
+                    isDark ? 'bg-[#1c1c1e] border-[#2c2c2e] divide-[#2c2c2e]' : 'bg-white border-[#e5e5ea] divide-[#e5e5ea]'
+                  }`}>
+                    {/* Require Passcode Toggle */}
+                    <div className="p-3.5 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs sm:text-sm font-semibold">Require Passcode to Unlock</p>
+                        <p className="text-[11px] text-neutral-400">
+                          {settings.lockScreenRequirePasscode 
+                            ? 'Numeric PIN required to access Home Screen' 
+                            : 'Swipe or click to unlock freely'}
+                        </p>
+                      </div>
+                      <button
+                        role="switch"
+                        aria-checked={!!settings.lockScreenRequirePasscode}
+                        onClick={() => {
+                          soundManager.playClickSound();
+                          onUpdateSettings({ lockScreenRequirePasscode: !settings.lockScreenRequirePasscode });
+                        }}
+                        className={`w-11 h-6 rounded-full p-0.5 transition-colors relative ${
+                          settings.lockScreenRequirePasscode ? 'bg-emerald-500' : isDark ? 'bg-[#39393d]' : 'bg-[#e5e5ea]'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
+                          settings.lockScreenRequirePasscode ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* Change / Configure Passcode PIN */}
+                    {settings.lockScreenRequirePasscode && (
+                      <div className="p-3.5 space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-semibold">Passcode (4–6 Digits)</label>
+                          <span className="text-[10px] text-neutral-400">Current: {settings.lockScreenPasscode || '1234'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className={`flex-1 flex items-center rounded-xl px-3 py-2 border ${
+                            isDark ? 'bg-[#2c2c2e] border-neutral-700' : 'bg-neutral-100 border-neutral-300'
+                          }`}>
+                            <KeyRound className="w-4 h-4 text-amber-500 mr-2 shrink-0" />
+                            <input
+                              type={showPasscodeVisible ? 'text' : 'password'}
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              maxLength={6}
+                              value={passcodeDraft}
+                              onChange={(e) => setPasscodeDraft(e.target.value.replace(/[^0-9]/g, ''))}
+                              placeholder="Enter 4-6 digit PIN"
+                              className="w-full bg-transparent text-xs sm:text-sm font-mono tracking-widest focus:outline-hidden"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPasscodeVisible(!showPasscodeVisible)}
+                              className="text-neutral-400 hover:text-white text-xs px-1"
+                            >
+                              {showPasscodeVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (passcodeDraft.length >= 4) {
+                                soundManager.playClickSound();
+                                triggerHaptic('success');
+                                onUpdateSettings({ lockScreenPasscode: passcodeDraft });
+                                setPasscodeSavedToast(true);
+                                setTimeout(() => setPasscodeSavedToast(false), 2000);
+                              }
+                            }}
+                            disabled={passcodeDraft.length < 4}
+                            className="px-3.5 py-2 rounded-xl bg-amber-500 disabled:opacity-40 text-neutral-950 font-bold text-xs transition-colors shrink-0"
+                          >
+                            {passcodeSavedToast ? 'Saved!' : 'Save PIN'}
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] text-neutral-400">
+                          <span>Default is 1234</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              soundManager.playClickSound();
+                              setPasscodeDraft('1234');
+                              onUpdateSettings({ lockScreenPasscode: '1234' });
+                            }}
+                            className="text-amber-400 hover:underline"
+                          >
+                            Reset to 1234
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Auto-Lock Timeout Selector */}
+                    <div className="p-3.5 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs sm:text-sm font-semibold">Auto-Lock Inactivity Timer</p>
+                        <p className="text-[11px] text-neutral-400">Lock screen automatically after period of inactivity</p>
+                      </div>
+                      <div className="flex items-center gap-1 bg-black/10 dark:bg-white/10 p-0.5 rounded-lg text-[10px]">
+                        {[
+                          { id: 'never', label: 'Never' },
+                          { id: '1min', label: '1m' },
+                          { id: '2min', label: '2m' },
+                          { id: '5min', label: '5m' },
+                        ].map((opt) => {
+                          const isSelected = (settings.lockScreenAutoLockTimeout || '5min') === opt.id;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => {
+                                soundManager.playClickSound();
+                                onUpdateSettings({ lockScreenAutoLockTimeout: opt.id as any });
+                              }}
+                              className={`px-2 py-1 rounded font-bold transition-colors ${
+                                isSelected
+                                  ? 'bg-amber-500 text-neutral-950 shadow-xs'
+                                  : isDark ? 'text-neutral-400 hover:text-white' : 'text-neutral-600 hover:text-neutral-900'
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section: Clock Typography & Layout */}
+                <div>
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5 px-1">
+                    Clock Typography & Layout
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { id: 'default', name: 'SF Pro Default', sample: '09:41', font: 'font-bold' },
+                      { id: 'bold', name: 'Ultra Bold', sample: '09:41', font: 'font-black' },
+                      { id: 'rounded', name: 'SF Rounded', sample: '09:41', font: 'font-bold font-rounded' },
+                      { id: 'ethiopic', name: 'Ge’ez Heritage', sample: '09:41', font: 'font-bold font-ethiopic' },
+                      { id: 'minimal', name: 'Minimal Thin', sample: '09:41', font: 'font-extralight tracking-widest' },
+                      { id: 'serif', name: 'Editorial Serif', sample: '09:41', font: 'font-serif italic font-medium' },
+                    ].map((styleOpt) => {
+                      const isSelected = (settings.lockScreenClockStyle || 'default') === styleOpt.id;
+                      return (
+                        <button
+                          key={styleOpt.id}
+                          type="button"
+                          onClick={() => {
+                            soundManager.playClickSound();
+                            onUpdateSettings({ lockScreenClockStyle: styleOpt.id as any });
+                          }}
+                          className={`p-3 rounded-2xl border text-center transition-all ${
+                            isSelected
+                              ? 'ring-2 ring-amber-500 border-amber-500 bg-amber-500/10'
+                              : isDark
+                                ? 'bg-[#1c1c1e] border-[#2c2c2e] hover:border-neutral-600'
+                                : 'bg-white border-[#e5e5ea] hover:border-neutral-400'
+                          }`}
+                        >
+                          <div className={`text-2xl text-white my-1 ${styleOpt.font}`}>
+                            {styleOpt.sample}
+                          </div>
+                          <div className="text-[11px] font-bold truncate mt-1">
+                            {styleOpt.name}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Section: Content & Visual Elements */}
+                <div>
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5 px-1">
+                    Lock Screen Content & Elements
+                  </div>
+                  <div className={`rounded-2xl border overflow-hidden divide-y ${
+                    isDark ? 'bg-[#1c1c1e] border-[#2c2c2e] divide-[#2c2c2e]' : 'bg-white border-[#e5e5ea] divide-[#e5e5ea]'
+                  }`}>
+                    {/* Show Date */}
+                    <div className="p-3.5 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs sm:text-sm font-semibold">Show Date Header</p>
+                        <p className="text-[11px] text-neutral-400">Displays day and date above the clock</p>
+                      </div>
+                      <button
+                        role="switch"
+                        aria-checked={settings.lockScreenShowDate !== false}
+                        onClick={() => {
+                          soundManager.playClickSound();
+                          onUpdateSettings({ lockScreenShowDate: settings.lockScreenShowDate === false });
+                        }}
+                        className={`w-11 h-6 rounded-full p-0.5 transition-colors relative ${
+                          settings.lockScreenShowDate !== false ? 'bg-amber-500' : isDark ? 'bg-[#39393d]' : 'bg-[#e5e5ea]'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
+                          settings.lockScreenShowDate !== false ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* Owner Greeting Text */}
+                    <div className="p-3.5 space-y-1.5">
+                      <label className="text-xs sm:text-sm font-semibold">Owner Greeting / Subtitle</label>
+                      <input
+                        type="text"
+                        value={settings.lockScreenOwnerText || ''}
+                        onChange={(e) => onUpdateSettings({ lockScreenOwnerText: e.target.value })}
+                        placeholder="e.g. Habeshawi OS • Selam"
+                        className={`w-full rounded-xl px-3 py-2 text-xs sm:text-sm border ${
+                          isDark ? 'bg-[#2c2c2e] border-neutral-700' : 'bg-neutral-100 border-neutral-300'
+                        } focus:outline-hidden`}
+                      />
+                    </div>
+
+                    {/* Wallpaper Blur */}
+                    <div className="p-3.5 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs sm:text-sm font-semibold">Wallpaper Blur</p>
+                        <p className="text-[11px] text-neutral-400">Apply soft glassmorphism blur to lock screen background</p>
+                      </div>
+                      <button
+                        role="switch"
+                        aria-checked={!!settings.lockScreenWallpaperBlur}
+                        onClick={() => {
+                          soundManager.playClickSound();
+                          onUpdateSettings({ lockScreenWallpaperBlur: !settings.lockScreenWallpaperBlur });
+                        }}
+                        className={`w-11 h-6 rounded-full p-0.5 transition-colors relative ${
+                          settings.lockScreenWallpaperBlur ? 'bg-amber-500' : isDark ? 'bg-[#39393d]' : 'bg-[#e5e5ea]'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
+                          settings.lockScreenWallpaperBlur ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* Show Widgets Row */}
+                    <div className="p-3.5 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs sm:text-sm font-semibold">Lock Screen Widgets</p>
+                        <p className="text-[11px] text-neutral-400">Weather, battery, activity, and calendar chips</p>
+                      </div>
+                      <button
+                        role="switch"
+                        aria-checked={settings.lockScreenShowWidgets !== false}
+                        onClick={() => {
+                          soundManager.playClickSound();
+                          onUpdateSettings({ lockScreenShowWidgets: settings.lockScreenShowWidgets === false });
+                        }}
+                        className={`w-11 h-6 rounded-full p-0.5 transition-colors relative ${
+                          settings.lockScreenShowWidgets !== false ? 'bg-amber-500' : isDark ? 'bg-[#39393d]' : 'bg-[#e5e5ea]'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
+                          settings.lockScreenShowWidgets !== false ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* Show Notifications */}
+                    <div className="p-3.5 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs sm:text-sm font-semibold">Show Notifications</p>
+                        <p className="text-[11px] text-neutral-400">Display incoming notification cards on lock screen</p>
+                      </div>
+                      <button
+                        role="switch"
+                        aria-checked={settings.lockScreenShowNotifications !== false}
+                        onClick={() => {
+                          soundManager.playClickSound();
+                          onUpdateSettings({ lockScreenShowNotifications: settings.lockScreenShowNotifications === false });
+                        }}
+                        className={`w-11 h-6 rounded-full p-0.5 transition-colors relative ${
+                          settings.lockScreenShowNotifications !== false ? 'bg-amber-500' : isDark ? 'bg-[#39393d]' : 'bg-[#e5e5ea]'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
+                          settings.lockScreenShowNotifications !== false ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
+                      </button>
+                    </div>
+
+                    {/* Allow Control Center Access */}
+                    <div className="p-3.5 flex items-center justify-between">
+                      <div>
+                        <p className="text-xs sm:text-sm font-semibold">Allow Control Center Access</p>
+                        <p className="text-[11px] text-neutral-400">Permit opening Control Center while locked</p>
+                      </div>
+                      <button
+                        role="switch"
+                        aria-checked={settings.lockScreenShowControlCenter !== false}
+                        onClick={() => {
+                          soundManager.playClickSound();
+                          onUpdateSettings({ lockScreenShowControlCenter: settings.lockScreenShowControlCenter === false });
+                        }}
+                        className={`w-11 h-6 rounded-full p-0.5 transition-colors relative ${
+                          settings.lockScreenShowControlCenter !== false ? 'bg-amber-500' : isDark ? 'bg-[#39393d]' : 'bg-[#e5e5ea]'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
+                          settings.lockScreenShowControlCenter !== false ? 'translate-x-5' : 'translate-x-0'
                         }`} />
                       </button>
                     </div>

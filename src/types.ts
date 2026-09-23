@@ -141,6 +141,8 @@ export type SystemFontFamily = 'system' | 'ethiopic' | 'sans' | 'geometric' | 's
 export type FontSizeScale = 'compact' | 'standard' | 'large' | 'xlarge';
 export type DisplayScale = 'compact' | 'standard' | 'expanded';
 export type ColorTemperature = 'standard' | 'warm' | 'cool';
+export type LockScreenClockStyle = 'default' | 'bold' | 'rounded' | 'ethiopic' | 'minimal' | 'serif';
+export type LockScreenAutoLockTimeout = 'never' | '1min' | '2min' | '5min';
 
 export interface SystemSettings {
   isDarkMode: boolean;
@@ -165,6 +167,18 @@ export interface SystemSettings {
   launcherShowPageDots?: boolean;
   launcherJiggleOnLongPress?: boolean;
   widgetSizes?: Record<string, WidgetSize>;
+  // Lock Screen & Security Personalization
+  lockScreenEnabled?: boolean;
+  lockScreenRequirePasscode?: boolean;
+  lockScreenPasscode?: string; // 4 to 6-digit PIN (default: '1234')
+  lockScreenClockStyle?: LockScreenClockStyle;
+  lockScreenShowDate?: boolean;
+  lockScreenShowNotifications?: boolean;
+  lockScreenShowWidgets?: boolean;
+  lockScreenShowControlCenter?: boolean;
+  lockScreenAutoLockTimeout?: LockScreenAutoLockTimeout;
+  lockScreenWallpaperBlur?: boolean;
+  lockScreenOwnerText?: string;
   // Global Typography & Font Settings
   fontFamily?: SystemFontFamily;
   fontSizeScale?: FontSizeScale;

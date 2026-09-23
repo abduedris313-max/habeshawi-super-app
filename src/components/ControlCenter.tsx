@@ -21,7 +21,8 @@ import {
   BellOff,
   Bell,
   Trash2,
-  Send
+  Send,
+  Lock
 } from 'lucide-react';
 import { SystemSettings, SystemNotification, ThemePreset } from '../types';
 import { soundManager } from '../lib/soundManager';
@@ -37,6 +38,7 @@ interface ControlCenterProps {
   suppressedNotifications: SystemNotification[];
   onClearSuppressedNotifications: () => void;
   onTriggerTestNotification: () => void;
+  onLockScreen?: () => void;
 }
 
 export const ControlCenter: React.FC<ControlCenterProps> = ({
@@ -48,7 +50,8 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
   userEmail,
   suppressedNotifications,
   onClearSuppressedNotifications,
-  onTriggerTestNotification
+  onTriggerTestNotification,
+  onLockScreen
 }) => {
   const [showNotificationTray, setShowNotificationTray] = useState(false);
 
@@ -137,17 +140,38 @@ export const ControlCenter: React.FC<ControlCenterProps> = ({
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-              isDark
-                ? 'bg-[#21262d] hover:bg-[#30363d] text-[#8b949e] hover:text-white'
-                : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-900'
-            }`}
-            aria-label="Close Control Center"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onLockScreen && (
+              <button
+                type="button"
+                onClick={() => {
+                  soundManager.playLockSound();
+                  onClose();
+                  onLockScreen();
+                }}
+                className={`px-2.5 py-1 rounded-full flex items-center gap-1.5 text-xs font-semibold transition-all ${
+                  isDark
+                    ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30'
+                    : 'bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300'
+                }`}
+                title="Lock Device Screen"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Lock</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                isDark
+                  ? 'bg-[#21262d] hover:bg-[#30363d] text-[#8b949e] hover:text-white'
+                  : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-900'
+              }`}
+              aria-label="Close Control Center"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Primary Control Tiles (Focus Mode + Appearance) */}
