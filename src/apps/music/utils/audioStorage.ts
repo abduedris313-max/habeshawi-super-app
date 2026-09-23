@@ -45,7 +45,13 @@ class AudioStorageEngine {
         };
 
         request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
+        request.onerror = () => {
+          this.dbPromise = null;
+          reject(request.error);
+        };
+        request.onblocked = () => {
+          console.warn('[AudioStorageEngine] IndexedDB open blocked');
+        };
       });
     }
     return this.dbPromise;

@@ -32,8 +32,7 @@ import {
   where, 
   orderBy, 
   deleteDoc, 
-  persistentLocalCache,
-  persistentMultipleTabManager,
+  memoryLocalCache,
   getDocFromServer,
   Firestore 
 } from 'firebase/firestore';
@@ -70,7 +69,8 @@ if (!getApps().length) {
 
 export const auth = getAuth(app);
 
-// Initialize Firestore with auto-detect transport settings and robust local cache persistence
+// Initialize Firestore with auto-detect transport settings and in-memory local cache
+// (prevents sandbox/iframe IndexedDB version upgrade abort errors like 'createOrUpgrade' failures)
 const databaseId = (firebaseConfig as any).firestoreDatabaseId || env.VITE_FIREBASE_DATABASE_ID;
 
 let firestoreInstance: Firestore;
@@ -80,9 +80,7 @@ if (typeof window !== 'undefined') {
       app,
       {
         experimentalAutoDetectLongPolling: true,
-        localCache: persistentLocalCache({
-          tabManager: persistentMultipleTabManager()
-        })
+        localCache: memoryLocalCache(),
       },
       databaseId && databaseId !== '(default)' ? databaseId : undefined
     );
