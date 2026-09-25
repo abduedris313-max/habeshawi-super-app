@@ -58,6 +58,7 @@ import {
 } from './lib/offlinePersistence';
 import { getInstalledAppIds, saveInstalledAppIds, syncInstalledAppsFromCloud } from './lib/appStoreService';
 import { soundManager } from './lib/soundManager';
+import { isNotificationAllowedForApp } from './lib/appQuickActions';
 import { triggerHaptic } from './utils/haptics';
 import { HomeScreen } from './components/HomeScreen';
 import { Dock } from './components/Dock';
@@ -283,8 +284,14 @@ export default function App() {
     };
   }, []);
 
-  // Unified Notification Trigger respecting Focus Mode
-  const triggerNotification = (title: string, message: string, appName: string = 'Habeshawi') => {
+  // Unified Notification Trigger respecting Focus Mode and Per-App Notification preferences
+  const triggerNotification = useCallback((title: string, message: string, appName: string = 'Habeshawi', appId?: string) => {
+    // Check per-app notification preferences
+    if (!isNotificationAllowedForApp(appId || appName)) {
+      console.debug(`[App] Notification suppressed by app preference for: ${appName} (${appId})`);
+      return;
+    }
+
     const notif: SystemNotification = {
       id: 'notif-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
       title,
@@ -312,7 +319,31 @@ export default function App() {
       soundManager.playNotificationChime();
       setActiveNotification(notif);
     }
-  };
+  }, [settings.focusMode]);
+
+  // Global listener for test or triggered notifications from components / Quick Actions
+  useEffect(() => {
+    const handleCustomTrigger = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        title: string;
+        message: string;
+        appName?: string;
+        appId?: string;
+      }>;
+      if (customEvent.detail) {
+        triggerNotification(
+          customEvent.detail.title,
+          customEvent.detail.message,
+          customEvent.detail.appName || 'Habeshawi',
+          customEvent.detail.appId
+        );
+      }
+    };
+    window.addEventListener('habeshawi_trigger_notification', handleCustomTrigger);
+    return () => {
+      window.removeEventListener('habeshawi_trigger_notification', handleCustomTrigger);
+    };
+  }, [triggerNotification]);
 
   // Test notification helper for Control Center & Notification Center
   const handleTriggerTestNotification = () => {

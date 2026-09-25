@@ -119,6 +119,21 @@ class AudioStorageEngine {
       tx.onerror = () => reject(tx.error);
     });
   }
+
+  /**
+   * Clear all tracks, audio binary blobs, and metadata from IndexedDB
+   */
+  public async clearAll(): Promise<void> {
+    const db = await this.getDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction([STORE_FILES, STORE_METADATA], 'readwrite');
+      tx.objectStore(STORE_FILES).clear();
+      tx.objectStore(STORE_METADATA).clear();
+
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
 }
 
 export const audioStorage = new AudioStorageEngine();

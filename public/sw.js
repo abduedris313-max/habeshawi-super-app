@@ -87,6 +87,31 @@ self.addEventListener('message', (event) => {
       console.warn('[SW] Failed to cache snapshot:', err);
     });
   }
+
+  // Handle Factory Reset & App Cache Purge messages
+  if (type === 'FACTORY_RESET_APP' || type === 'CLEAR_APP_CACHE') {
+    const targetAppId = event.data.appId;
+    if (targetAppId) {
+      const allCaches = [SHELL_CACHE_NAME, DATA_CACHE_NAME, FIRESTORE_CACHE_NAME, ASSETS_CACHE_NAME, AJAM_OFFLINE_CACHE];
+      Promise.all(
+        allCaches.map(async (cacheName) => {
+          try {
+            const cache = await caches.open(cacheName);
+            const requests = await cache.keys();
+            for (const req of requests) {
+              if (req.url.toLowerCase().includes(targetAppId.toLowerCase())) {
+                await cache.delete(req);
+              }
+            }
+          } catch (e) {
+            console.debug('[SW] Cache purge error for', cacheName, e);
+          }
+        })
+      ).then(() => {
+        console.log(`[SW] Factory reset cache wipe complete for: ${targetAppId}`);
+      });
+    }
+  }
 });
 
 // Fetch Event: Tiered caching strategies

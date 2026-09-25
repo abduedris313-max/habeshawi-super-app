@@ -28,6 +28,7 @@ import { HarmonyDocsApp } from './mini-apps/HarmonyDocsApp';
 import { HarmonyWritingApp } from './mini-apps/HarmonyWritingApp';
 import { HarmonyMusicPlayerApp } from './mini-apps/HarmonyMusicPlayerApp';
 import { HarmonyDocsAiApp } from './mini-apps/HarmonyDocsAiApp';
+import { HarmonyVoiceApp } from './mini-apps/HarmonyVoiceApp';
 import { HarmonyCalendarApp } from './mini-apps/HarmonyCalendarApp';
 import { HarmonyFinanceApp } from './mini-apps/HarmonyFinanceApp';
 import { HarmonyAjamScriptApp } from './mini-apps/HarmonyAjamScriptApp';
@@ -509,6 +510,13 @@ export const AppRunner: React.FC<AppRunnerProps> = ({
             user={user}
             aiChats={effectiveAiChats}
             onSaveAiChat={handleSaveAiChatWithPersistence}
+          />
+        );
+      case 'harmony-voice':
+        return (
+          <HarmonyVoiceApp
+            onSaveNote={handleSaveNoteWithPersistence}
+            onSaveDoc={handleSaveDocWithPersistence}
           />
         );
       case 'harmony-calendar':

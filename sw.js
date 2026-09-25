@@ -86,6 +86,27 @@ self.addEventListener('message', (event) => {
       console.warn('[SW] Failed to cache snapshot:', err);
     });
   }
+
+  // Handle explicit App Cache Clear from App Info modal
+  if (type === 'CLEAR_APP_CACHE' && event.data.appId) {
+    const targetAppId = event.data.appId;
+    const targetCaches = [FIRESTORE_CACHE_NAME, DATA_CACHE_NAME];
+    targetCaches.forEach((cacheName) => {
+      caches.open(cacheName).then(async (cache) => {
+        try {
+          const requests = await cache.keys();
+          for (const req of requests) {
+            if (req.url.includes(targetAppId)) {
+              await cache.delete(req);
+              console.log(`[SW] Purged cached entry for ${targetAppId}: ${req.url}`);
+            }
+          }
+        } catch (err) {
+          console.debug('[SW] Cache purge skipped:', err);
+        }
+      });
+    });
+  }
 });
 
 // Fetch Event: Tiered caching strategies (Stale-While-Revalidate for static assets, Cache-First for offline Firestore endpoints)

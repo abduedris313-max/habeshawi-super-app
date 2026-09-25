@@ -104,6 +104,25 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     rating: 4.9
   },
   {
+    id: 'harmony-voice',
+    name: 'Habeshawi Voice Live',
+    tagline: 'Two-Way Live Voice with Gemini 3.8',
+    iconName: 'mic',
+    iconCdnUrl: getLucideCdnIconUrl('mic'),
+    colorGradient: 'from-cyan-500 via-blue-600 to-indigo-700',
+    bgHex: '#0284c7',
+    deployedUrl: '#',
+    repoUrl: 'https://github.com/abduedris313-max/harmony-super-app',
+    description: 'Two-way real-time voice conversations powered by Gemini 3.8 Live API, fast audio transcription by Gemini 3.5 Transcribe, and voice memo intelligence.',
+    badge: 'Live',
+    version: '1.0.0',
+    size: '1.5 MB',
+    author: 'Habeshawi AI Voice Lab',
+    category: 'ai',
+    isSystemApp: true,
+    rating: 5.0
+  },
+  {
     id: 'harmony-calendar',
     name: 'Habeshawi Calendar',
     tagline: 'Gregorian • Hijri • Ethiopian with Google Sync',

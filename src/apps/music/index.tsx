@@ -190,6 +190,26 @@ export const HarmonyMusicPlayerAppModule: React.FC = () => {
     localStorage.setItem('harmony_music_favorites', JSON.stringify(favorites));
   }, [favorites]);
 
+  // Synchronize with Factory Reset for Music Player
+  useEffect(() => {
+    const handleFactoryReset = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail && detail.appId === 'harmony-music-player') {
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
+        setIsPlaying(false);
+        setTracks(SOLFEGGIO_PRESETS);
+        setCurrentTrackIndex(0);
+        setFavorites([]);
+      }
+    };
+    window.addEventListener('habeshawi_app_factory_reset', handleFactoryReset);
+    return () => {
+      window.removeEventListener('habeshawi_app_factory_reset', handleFactoryReset);
+    };
+  }, []);
+
   // 4. Playback Track Change & Audio Source Setup
   useEffect(() => {
     async function prepareAndPlayTrack() {

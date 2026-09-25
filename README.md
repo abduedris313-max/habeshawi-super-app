@@ -15,6 +15,7 @@ All Harmony WebApps are accessible via responsive iOS-style mini app frames and 
 | **harmony-writing** | [abduedris313-max.github.io/harmony-writing](https://abduedris313-max.github.io/harmony-writing/) | [github.com/abduedris313-max/harmony-writing](https://github.com/abduedris313-max/harmony-writing) | Focus-mode writing studio with daily word targets & typewriter sound FX |
 | **harmony-music-player** | [abduedris313-max.github.io/harmony-music-player](https://abduedris313-max.github.io/harmony-music-player/) | [github.com/abduedris313-max/harmony-music-player](https://github.com/abduedris313-max/harmony-music-player) | iOS Music Player with playlists, equalizer, synthesizer & background playback |
 | **harmony-docs-ai** | [abduedris313-max.github.io/harmony-docs-ai](https://abduedris313-max.github.io/harmony-docs-ai/) | [github.com/abduedris313-max/harmony-docs-ai](https://github.com/abduedris313-max/harmony-docs-ai) | Gemini AI powered document analysis, chat assistant & smart summaries |
+| **harmony-voice** | Built-in Mini App | [github.com/abduedris313-max/harmony-super-app](https://github.com/abduedris313-max/harmony-super-app) | Real-time two-way voice conversations with **Gemini 3.8 Live API**, audio transcription with **Gemini 3.5 Transcribe**, and conversational dialogue with **Gemini 3.8 Flash** |
 | **harmony-calendar** | [abduedris313-max.github.io/harmony-calendar](https://abduedris313-max.github.io/harmony-calendar/) | [github.com/abduedris313-max/harmony-calendar](https://github.com/abduedris313-max/harmony-calendar) | Tri-calendar platform (Gregorian, Hijri, Ethiopian) with astronomical converter & Google Calendar two-way sync |
 | **harmony-finance** | [abduedris313-max.github.io/harmony-finance](https://abduedris313-max.github.io/harmony-finance/) | [github.com/abduedris313-max/harmony-finance](https://github.com/abduedris313-max/harmony-finance) | Financial services suite: Expense & Income tracking, category budgeting, ledger accounts, loan EMI & amortization, and AI Advisor |
 
@@ -43,6 +44,13 @@ All Harmony WebApps are accessible via responsive iOS-style mini app frames and 
   - Quick action buttons for Flashlight toggle and Camera, swipe-to-unlock gesture, and media player widget integration.
   - Inactivity auto-lock timer (Never, 1 min, 2 min, 5 min) and keyboard shortcut (`Cmd+L` / `Ctrl+Alt+L`) for instant locking.
   - Granular lock preferences: wallpaper blur, date header, owner greeting subtitle, widget row, notification previews, and Control Center access controls.
+- **Springboard Context Menu & App Info Quick Actions**:
+  - Long-press any pinned application icon on the Home Screen to open an iOS-style contextual popover with actions: **App Info**, **Share**, and **Remove from Home Screen**.
+  - **App Info Modal**:
+    - **Quick Actions Section**: Apple iOS HIG grouped card container with fine-grained app preferences directly in the modal.
+    - **Notification Settings Toggle**: Instant switch to allow or mute notifications, banner previews, and audio chimes for the selected app, plus a "Test" button to preview alerts.
+    - **Local Cache Management**: Real-time byte calculation of cached storage records and offline snapshots, plus a single-tap **Clear Cache** action that purges local data and flushes Service Worker caches with haptic feedback.
+    - **Factory Reset Mini App**: Destructive reset action with two-step confirmation that completely wipes all local persistent storage (`localStorage` and `sessionStorage`), cached media (IndexedDB audio blobs, Service Worker CacheStorage entries), and user preferences for the specific mini-app, followed immediately by an iOS Taptic Engine success haptic feedback trigger.
 - **iOS 18 Touch Gestures & Haptic Feedback**:
   - Touch gesture support across the system: swipe up on active mini-apps to dismiss to Springboard, swipe down on Home Screen for Spotlight, and horizontal swipe between Springboard and App Library.
   - Multi-tier `navigator.vibrate()` tactile patterns mimicking Taptic Engine feedback (light, medium, heavy, success, selection, and error).

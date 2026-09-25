@@ -7,8 +7,10 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
+import http from 'http';
 import express, { Request, Response } from 'express';
-import { GoogleGenAI } from '@google/genai';
+import { WebSocketServer, WebSocket } from 'ws';
+import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
 import firebaseConfig from './firebase-applet-config.json';
 import { requireAuth, AuthRequest } from './src/middleware/auth.ts';
 import { getUsers, getOrCreateUser } from './src/db/users.ts';
@@ -18,9 +20,9 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
 
-// Lazy initializer for Google Gemini AI SDK
+// Lazy initializer for Google Gemini AI SDK with User-Agent telemetry
 let aiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI {
   if (!aiClient) {
@@ -28,7 +30,14 @@ function getGeminiClient(): GoogleGenAI {
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY environment variable is not set on the server.');
     }
-    aiClient = new GoogleGenAI({ apiKey });
+    aiClient = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
   }
   return aiClient;
 }
@@ -295,6 +304,125 @@ Analyze the provided manuscript image or text snippet and return JSON with keys:
 });
 
 // -----------------------------------------------------------------------------
+// HABESHAWI VOICE LIVE & TRANSCRIBE ENDPOINTS (Gemini 3.8 Live, 3.5 Transcribe, 3.8 Flash)
+// -----------------------------------------------------------------------------
+
+/**
+ * Audio Transcription Endpoint using gemini-3.5-transcribe
+ */
+app.post('/api/voice/transcribe', async (req: Request, res: Response) => {
+  try {
+    const { audioBase64, mimeType } = req.body;
+    if (!audioBase64) {
+      return res.status(400).json({ error: 'audioBase64 data is required' });
+    }
+
+    const ai = getGeminiClient();
+    const cleanBase64 = audioBase64.replace(/^data:audio\/[a-zA-Z0-9]+;base64,/, '');
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.5-transcribe',
+      contents: {
+        parts: [
+          {
+            inlineData: {
+              mimeType: mimeType || 'audio/webm',
+              data: cleanBase64,
+            },
+          },
+          {
+            text: 'Transcribe this spoken audio accurately. Provide the exact transcript.',
+          },
+        ],
+      },
+    });
+
+    const transcriptText = response.text || '';
+
+    // Generate summary and action items using gemini-3.8-flash if transcript is substantial
+    let summary = '';
+    let actionItems: string[] = [];
+    if (transcriptText.trim().length > 20) {
+      try {
+        const sumRes = await ai.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents: `Analyze this voice memo transcript and return JSON with keys "summary" (short string) and "actionItems" (array of strings):\n\n${transcriptText}`,
+          config: {
+            responseMimeType: 'application/json',
+          },
+        });
+        if (sumRes.text) {
+          const parsed = JSON.parse(sumRes.text);
+          summary = parsed.summary || '';
+          actionItems = parsed.actionItems || [];
+        }
+      } catch (sumErr) {
+        console.warn('[Voice Summary Warning]:', sumErr);
+      }
+    }
+
+    res.json({
+      success: true,
+      transcript: transcriptText,
+      summary,
+      actionItems,
+      model: 'gemini-3.5-transcribe',
+    });
+  } catch (error: any) {
+    console.error('[Gemini 3.5 Transcribe Error]:', error);
+    res.status(500).json({ error: error.message || 'Failed to transcribe audio' });
+  }
+});
+
+/**
+ * Conversational Turn Endpoint using gemini-3.8-flash
+ */
+app.post('/api/voice/respond', async (req: Request, res: Response) => {
+  try {
+    const { prompt, voiceName, persona, systemInstruction, conversationHistory } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+
+    const ai = getGeminiClient();
+    const defaultInstruction =
+      systemInstruction ||
+      `You are Habeshawi Voice, a warm and intelligent conversational assistant in the Habeshawi Super App ecosystem. Respond conversationally, concisely (1-3 sentences), and warmly.`;
+
+    const contents: any[] = [];
+    if (Array.isArray(conversationHistory)) {
+      conversationHistory.forEach((turn: any) => {
+        contents.push({
+          role: turn.role === 'user' ? 'user' : 'model',
+          parts: [{ text: turn.text || '' }],
+        });
+      });
+    }
+    contents.push({
+      role: 'user',
+      parts: [{ text: prompt }],
+    });
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents,
+      config: {
+        systemInstruction: defaultInstruction,
+        temperature: 0.7,
+      },
+    });
+
+    res.json({
+      text: response.text || 'Understood.',
+      model: 'gemini-3.8-flash',
+    });
+  } catch (error: any) {
+    console.error('[Gemini Voice Respond Error]:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate voice response' });
+  }
+});
+
+// -----------------------------------------------------------------------------
 // CENTRAL REPOSITORY CATALOG ENDPOINTS (Shared by SuperApp & Developer Console)
 // -----------------------------------------------------------------------------
 
@@ -345,6 +473,134 @@ app.delete('/api/repository/apps/:id', (req: Request, res: Response) => {
 // -----------------------------------------------------------------------------
 
 async function startServer() {
+  const server = http.createServer(app);
+  const wss = new WebSocketServer({ noServer: true });
+
+  // Handle WebSocket upgrade for Gemini 3.8 Live API
+  server.on('upgrade', (request, socket, head) => {
+    const { pathname } = new URL(request.url || '', `http://${request.headers.host}`);
+    if (pathname === '/api/voice/live' || pathname === '/live') {
+      wss.handleUpgrade(request, socket, head, (clientWs) => {
+        wss.emit('connection', clientWs, request);
+      });
+    }
+  });
+
+  // Client connection to Gemini 3.8 Live API
+  wss.on('connection', async (clientWs: WebSocket) => {
+    console.log('[Live Voice] Client connected to Gemini 3.8 Live WebSocket session');
+
+    let session: any = null;
+    let isSessionReady = false;
+
+    const initLiveSession = async (voiceName: string = 'Zephyr', systemInstruction?: string) => {
+      try {
+        const ai = getGeminiClient();
+        session = await ai.live.connect({
+          model: 'gemini-3.8-live',
+          config: {
+            responseModalities: [Modality.AUDIO],
+            speechConfig: {
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceName || 'Zephyr' } },
+            },
+            systemInstruction:
+              systemInstruction ||
+              'You are Habeshawi Voice, a warm, natural, and helpful voice assistant in the Habeshawi Super App ecosystem. Speak clearly, concisely, and conversationally in real-time.',
+          },
+          callbacks: {
+            onmessage: (message: LiveServerMessage) => {
+              const parts = message.serverContent?.modelTurn?.parts;
+              if (parts && parts.length > 0) {
+                for (const part of parts) {
+                  if (part.inlineData?.data) {
+                    clientWs.send(JSON.stringify({ type: 'audio', audio: part.inlineData.data }));
+                  }
+                  if (part.text) {
+                    clientWs.send(JSON.stringify({ type: 'text', text: part.text }));
+                  }
+                }
+              }
+              if (message.serverContent?.interrupted) {
+                clientWs.send(JSON.stringify({ type: 'interrupted', interrupted: true }));
+              }
+              if (message.serverContent?.turnComplete) {
+                clientWs.send(JSON.stringify({ type: 'turnComplete' }));
+              }
+            },
+            onclose: () => {
+              console.log('[Gemini Live Session Closed]');
+              if (clientWs.readyState === WebSocket.OPEN) {
+                clientWs.send(JSON.stringify({ type: 'session_closed' }));
+              }
+            },
+            onerror: (err: any) => {
+              console.error('[Gemini Live Error]:', err);
+              if (clientWs.readyState === WebSocket.OPEN) {
+                clientWs.send(
+                  JSON.stringify({
+                    type: 'error',
+                    message: err?.message || 'Gemini Live session error',
+                  })
+                );
+              }
+            },
+          },
+        });
+        isSessionReady = true;
+        console.log('[Live Voice] Gemini 3.8 Live session established successfully');
+      } catch (err: any) {
+        console.error('[Gemini Live Connect Failed]:', err);
+        if (clientWs.readyState === WebSocket.OPEN) {
+          clientWs.send(
+            JSON.stringify({
+              type: 'error',
+              message: `Gemini 3.8 Live API notice: ${err?.message || 'Check API key & model access.'}`,
+            })
+          );
+        }
+      }
+    };
+
+    clientWs.on('message', async (data) => {
+      try {
+        const msg = JSON.parse(data.toString());
+        if (msg.type === 'init') {
+          await initLiveSession(msg.voiceName, msg.systemInstruction);
+          return;
+        }
+
+        // Lazy initialize if first message is audio
+        if (!session && !isSessionReady) {
+          await initLiveSession();
+        }
+
+        if (msg.type === 'audio' && msg.audio && session) {
+          session.sendRealtimeInput({
+            audio: { data: msg.audio, mimeType: 'audio/pcm;rate=16000' },
+          });
+        } else if (msg.type === 'text' && msg.text && session) {
+          session.sendClientContent({
+            turns: [{ role: 'user', parts: [{ text: msg.text }] }],
+            turnComplete: true,
+          });
+        }
+      } catch (err: any) {
+        console.error('[Live Voice Incoming Message Error]:', err);
+      }
+    });
+
+    clientWs.on('close', () => {
+      console.log('[Live Voice] Client disconnected');
+      try {
+        session?.close?.();
+      } catch {}
+    });
+
+    clientWs.on('error', (err) => {
+      console.error('[Live Voice WS Error]:', err);
+    });
+  });
+
   // Direct route for /admin to /admin.html
   app.get('/admin', (_req: Request, res: Response) => {
     res.redirect('/admin.html');
@@ -377,9 +633,10 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  server.listen(PORT, '0.0.0.0', () => {
     console.log(`[Harmony OS Super App] Server running on http://0.0.0.0:${PORT}`);
     console.log(`[Harmony App Store Console] Admin dashboard at http://0.0.0.0:${PORT}/admin.html`);
+    console.log(`[Habeshawi Voice Live] Gemini 3.8 Live WebSocket ready at ws://0.0.0.0:${PORT}/api/voice/live`);
   });
 }
 

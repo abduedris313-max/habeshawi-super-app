@@ -812,6 +812,55 @@ export const HabeshawiHabitsIcon: React.FC<IconProps> = ({ className = 'w-6 h-6'
 );
 
 /**
+ * 16. Habeshawi Voice Live (ድምፅ): Acoustic Resonator, Mic Spark & Lalibela Soundwaves
+ */
+export const HabeshawiVoiceIcon: React.FC<IconProps> = ({ className = 'w-6 h-6' }) => (
+  <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="voice-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#38BDF8" />
+        <stop offset="50%" stopColor="#0284C7" />
+        <stop offset="100%" stopColor="#1E40AF" />
+      </linearGradient>
+      <linearGradient id="voice-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#FEF08A" />
+        <stop offset="60%" stopColor="#F59E0B" />
+        <stop offset="100%" stopColor="#D97706" />
+      </linearGradient>
+    </defs>
+
+    {/* Concentric Spherical Soundwaves */}
+    <circle cx="50" cy="50" r="42" stroke="url(#voice-cyan)" strokeWidth="2" strokeDasharray="6 4" opacity="0.5" />
+    <circle cx="50" cy="50" r="34" stroke="url(#voice-gold)" strokeWidth="2.5" opacity="0.7" />
+
+    {/* Microphone Capsule with Ethiopian Filigree */}
+    <rect x="42" y="24" width="16" height="28" rx="8" fill="url(#voice-gold)" stroke="#FEF08A" strokeWidth="1.5" />
+    <line x1="42" y1="36" x2="58" y2="36" stroke="#92400E" strokeWidth="1.5" />
+    <line x1="42" y1="42" x2="58" y2="42" stroke="#92400E" strokeWidth="1.5" />
+
+    {/* Mic Cradle / Sound Receiver Arc */}
+    <path
+      d="M34 40 C34 58, 66 58, 66 40"
+      stroke="#38BDF8"
+      strokeWidth="3.5"
+      strokeLinecap="round"
+    />
+    <line x1="50" y1="58" x2="50" y2="72" stroke="#38BDF8" strokeWidth="3.5" strokeLinecap="round" />
+    <path d="M40 72 H60" stroke="#38BDF8" strokeWidth="4" strokeLinecap="round" />
+
+    {/* Lateral Audio Radiance Waves */}
+    <path d="M24 38 C20 44, 20 54, 24 60" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" opacity="0.8" />
+    <path d="M16 32 C10 42, 10 58, 16 68" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" opacity="0.5" />
+
+    <path d="M76 38 C80 44, 80 54, 76 60" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" opacity="0.8" />
+    <path d="M84 32 C90 42, 90 58, 84 68" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" opacity="0.5" />
+
+    {/* Top Voice Sparkle */}
+    <polygon points="50,14 52,18 56,20 52,22 50,26 48,22 44,20 48,18" fill="#FEF08A" />
+  </svg>
+);
+
+/**
  * Unified Dispatcher: Get authentic Habeshawi icon by app ID or icon name
  */
 export const HabeshawiAppIcon: React.FC<{
@@ -823,6 +872,7 @@ export const HabeshawiAppIcon: React.FC<{
   const normalizedName = (iconName || '').toLowerCase();
 
   // Match by specific app ID first
+  if (normalizedId.includes('voice')) return <HabeshawiVoiceIcon className={className} />;
   if (normalizedId.includes('note')) return <HabeshawiNotesIcon className={className} />;
   if (normalizedId.includes('doc-ai') || normalizedId.includes('docs-ai') || normalizedId.includes('copilot')) {
     return <HabeshawiAiCopilotIcon className={className} />;
@@ -841,6 +891,9 @@ export const HabeshawiAppIcon: React.FC<{
   if (normalizedId.includes('habit')) return <HabeshawiHabitsIcon className={className} />;
 
   // Match by icon name
+  if (normalizedName === 'mic' || normalizedName === 'audio_spark' || normalizedName === 'voice') {
+    return <HabeshawiVoiceIcon className={className} />;
+  }
   if (normalizedName === 'notebook') return <HabeshawiNotesIcon className={className} />;
   if (normalizedName === 'file-text') return <HabeshawiDocsIcon className={className} />;
   if (normalizedName === 'pen-tool') return <HabeshawiWritingIcon className={className} />;

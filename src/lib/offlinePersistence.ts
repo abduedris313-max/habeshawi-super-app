@@ -26,6 +26,7 @@ export const STORAGE_KEYS = {
   WIDGET_SIZES: 'habeshawi_widget_sizes_v1',
   SETTINGS: 'habeshawi_system_settings_v1',
   NOTIFICATIONS: 'habeshawi_system_notifications_v1',
+  APP_NOTIFICATIONS: 'habeshawi_app_notifications_v1',
   SYSTEM_NOTES: 'habeshawi_offline_notes',
   SYSTEM_DOCS: 'habeshawi_offline_docs',
   SYSTEM_DRAFTS: 'habeshawi_offline_drafts',
