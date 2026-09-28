@@ -436,6 +436,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({
                   {onTogglePlayMusic && (
                     <button
                       type="button"
+                      aria-label={isPlayingMusic ? 'Pause music' : 'Play music'}
                       onClick={(e) => {
                         e.stopPropagation();
                         soundManager.playClickSound();
@@ -601,6 +602,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({
 
                 <button
                   type="button"
+                  aria-label="Delete digit"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDeleteDigit();
