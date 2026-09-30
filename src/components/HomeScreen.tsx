@@ -763,7 +763,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
 
               {/* Categorized App Cards (2x2 inside each folder card) */}
               <div className="w-full grid grid-cols-2 gap-2.5 flex-1 min-h-0 overflow-y-auto">
-                {Object.entries(appCategories).map(([categoryName, apps]) => {
+                {Object.entries(appCategories).map(([categoryName, apps]: [string, MiniAppConfig[]]) => {
                   if (apps.length === 0) return null;
                   return (
                     <div
