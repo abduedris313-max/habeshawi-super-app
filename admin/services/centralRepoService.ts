@@ -14,9 +14,23 @@ import {
   deleteDoc, 
   updateDoc 
 } from 'firebase/firestore';
-import { firestore } from '../../src/lib/firebase';
+import { auth, firestore } from '../../src/lib/firebase';
 import { CENTRAL_REPOSITORY_APPS, DEFAULT_REPOSITORIES } from '../../src/config/appRepository';
 import { AdminMiniApp, PublishAppFormData, CentralRepositoryStats, AuditLogEntry, AppRepositorySource } from '../types';
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  try {
+    const user = auth?.currentUser;
+    if (user) {
+      const token = await user.getIdToken();
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  } catch {
+    // Ignore error if unauthenticated
+  }
+  return headers;
+}
 
 const FIRESTORE_CATALOG_COLLECTION = 'central_apps_catalog';
 const LOCAL_STORAGE_KEY = 'harmony_admin_central_catalog';
@@ -139,9 +153,10 @@ export async function publishMiniApp(payload: PublishAppFormData): Promise<Admin
 
   // 2. Post to backend
   try {
+    const headers = await getAuthHeaders();
     await fetch('/api/repository/apps', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(newApp)
     });
   } catch (err) {
@@ -212,9 +227,10 @@ export async function updateMiniApp(appId: string, updates: Partial<AdminMiniApp
 
   // 2. Put to Backend
   try {
+    const headers = await getAuthHeaders();
     await fetch(`/api/repository/apps/${appId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(updatedApp)
     });
   } catch {
@@ -256,7 +272,8 @@ export async function deleteMiniApp(appId: string): Promise<void> {
 
   // 2. Backend delete
   try {
-    await fetch(`/api/repository/apps/${appId}`, { method: 'DELETE' });
+    const headers = await getAuthHeaders();
+    await fetch(`/api/repository/apps/${appId}`, { method: 'DELETE', headers });
   } catch {
     // ignore
   }
