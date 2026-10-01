@@ -14,11 +14,27 @@ import {
   deleteDoc, 
   updateDoc 
 } from 'firebase/firestore';
-import { firestore } from '../../src/lib/firebase';
+import { auth, firestore } from '../../src/lib/firebase';
 import { CENTRAL_REPOSITORY_APPS, DEFAULT_REPOSITORIES } from '../../src/config/appRepository';
 import { AdminMiniApp, PublishAppFormData, CentralRepositoryStats, AuditLogEntry, AppRepositorySource } from '../types';
 
 const FIRESTORE_CATALOG_COLLECTION = 'central_apps_catalog';
+
+/**
+ * Helper to get authorization headers if user is authenticated with Firebase
+ */
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (auth && auth.currentUser) {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      headers['Authorization'] = `Bearer ${token}`;
+    } catch {
+      // ignore auth token resolution failure
+    }
+  }
+  return headers;
+}
 const LOCAL_STORAGE_KEY = 'harmony_admin_central_catalog';
 const AUDIT_LOGS_KEY = 'harmony_admin_audit_logs';
 
@@ -139,9 +155,10 @@ export async function publishMiniApp(payload: PublishAppFormData): Promise<Admin
 
   // 2. Post to backend
   try {
+    const headers = await getAuthHeaders();
     await fetch('/api/repository/apps', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(newApp)
     });
   } catch (err) {
@@ -212,9 +229,10 @@ export async function updateMiniApp(appId: string, updates: Partial<AdminMiniApp
 
   // 2. Put to Backend
   try {
+    const headers = await getAuthHeaders();
     await fetch(`/api/repository/apps/${appId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(updatedApp)
     });
   } catch {
@@ -256,7 +274,8 @@ export async function deleteMiniApp(appId: string): Promise<void> {
 
   // 2. Backend delete
   try {
-    await fetch(`/api/repository/apps/${appId}`, { method: 'DELETE' });
+    const headers = await getAuthHeaders();
+    await fetch(`/api/repository/apps/${appId}`, { method: 'DELETE', headers });
   } catch {
     // ignore
   }
