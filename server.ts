@@ -8,7 +8,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import http from 'http';
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { WebSocketServer, WebSocket } from 'ws';
 import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
 import firebaseConfig from './firebase-applet-config.json';
@@ -21,6 +21,16 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json({ limit: '50mb' }));
+
+// Security Hardening Middleware: Disable Express fingerprinting and enforce security HTTP headers
+app.disable('x-powered-by');
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
 
 // Lazy initializer for Google Gemini AI SDK with User-Agent telemetry
 let aiClient: GoogleGenAI | null = null;
