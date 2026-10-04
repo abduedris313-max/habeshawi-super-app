@@ -68,7 +68,8 @@ app.get('/api/users', requireAuth, async (_req: AuthRequest, res: Response) => {
     res.json(users);
   } catch (error: any) {
     console.error('Failed to fetch users from Cloud SQL:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch users' });
+    // Security: Return generic error message to prevent leaking internal database schemas/errors
+    res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
@@ -84,7 +85,8 @@ app.post('/api/users/sync', requireAuth, async (req: AuthRequest, res: Response)
     res.json({ success: true, user });
   } catch (error: any) {
     console.error('Failed to sync user to Cloud SQL:', error);
-    res.status(500).json({ error: error.message || 'Failed to sync user' });
+    // Security: Return generic error message to prevent leaking internal details
+    res.status(500).json({ error: 'Failed to sync user' });
   }
 });
 
@@ -171,8 +173,12 @@ app.post(['/api/harmony/ai', '/api/gemini'], async (req: Request, res: Response)
   try {
     const { prompt, context, taskType } = req.body;
 
-    if (!prompt) {
-      return res.status(400).json({ error: 'Prompt is required' });
+    // Security: Input validation to ensure required fields and expected types
+    if (!prompt || typeof prompt !== 'string') {
+      return res.status(400).json({ error: 'Valid string prompt is required' });
+    }
+    if (context !== undefined && typeof context !== 'string') {
+      return res.status(400).json({ error: 'Context must be a string' });
     }
 
     const ai = getGeminiClient();
@@ -215,8 +221,9 @@ app.post(['/api/harmony/ai', '/api/gemini'], async (req: Request, res: Response)
       });
     }
 
+    // Security: Return generic error message to prevent exposing internal API keys/stacks
     res.status(500).json({
-      error: error.message || 'Failed to process request with Gemini AI'
+      error: 'Failed to process request with Gemini AI'
     });
   }
 });
@@ -370,7 +377,8 @@ app.post('/api/voice/transcribe', async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('[Gemini 3.5 Transcribe Error]:', error);
-    res.status(500).json({ error: error.message || 'Failed to transcribe audio' });
+    // Security: Do not leak exception stack traces or internal API details to caller
+    res.status(500).json({ error: 'Failed to transcribe audio' });
   }
 });
 
@@ -418,7 +426,8 @@ app.post('/api/voice/respond', async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('[Gemini Voice Respond Error]:', error);
-    res.status(500).json({ error: error.message || 'Failed to generate voice response' });
+    // Security: Do not leak exception details to caller
+    res.status(500).json({ error: 'Failed to generate voice response' });
   }
 });
 

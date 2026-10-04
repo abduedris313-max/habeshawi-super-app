@@ -152,7 +152,6 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
           <input
             ref={folderInputRef}
             type="file"
-            // @ts-expect-error webkitdirectory attribute for directory select
             webkitdirectory="true"
             directory="true"
             multiple
