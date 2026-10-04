@@ -323,7 +323,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
   }, [allInstalledApps]);
 
   // Categorized apps for Page 2 App Library
-  const appCategories = useMemo(() => {
+  const appCategories = useMemo<Record<string, MiniAppConfig[]>>(() => {
     const categories: Record<string, MiniAppConfig[]> = {
       'Productivity & AI': [],
       'Media & Audio': [],
@@ -763,7 +763,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
 
               {/* Categorized App Cards (2x2 inside each folder card) */}
               <div className="w-full grid grid-cols-2 gap-2.5 flex-1 min-h-0 overflow-y-auto">
-                {Object.entries(appCategories).map(([categoryName, apps]) => {
+                {(Object.entries(appCategories) as [string, MiniAppConfig[]][]).map(([categoryName, apps]) => {
                   if (apps.length === 0) return null;
                   return (
                     <div
