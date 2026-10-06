@@ -764,7 +764,8 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
               {/* Categorized App Cards (2x2 inside each folder card) */}
               <div className="w-full grid grid-cols-2 gap-2.5 flex-1 min-h-0 overflow-y-auto">
                 {Object.entries(appCategories).map(([categoryName, apps]) => {
-                  if (apps.length === 0) return null;
+                  const miniApps = apps as MiniAppConfig[];
+                  if (miniApps.length === 0) return null;
                   return (
                     <div
                       key={categoryName}
@@ -775,13 +776,13 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-bold truncate">{categoryName}</span>
                         <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-indigo-500/20 text-indigo-400 font-mono">
-                          {apps.length}
+                          {miniApps.length}
                         </span>
                       </div>
 
                       {/* Mini 2x2 icons grid */}
                       <div className="grid grid-cols-2 gap-2">
-                        {apps.slice(0, 4).map((app) => (
+                        {miniApps.slice(0, 4).map((app) => (
                           <div
                             key={app.id}
                             onClick={() => onOpenApp(app.id)}
