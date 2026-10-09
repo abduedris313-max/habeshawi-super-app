@@ -51,7 +51,8 @@ import {
   Zap,
   SlidersHorizontal,
   Flame,
-  X
+  X,
+  ShieldCheck
 } from 'lucide-react';
 import { WidgetFramework } from './widgets/WidgetFramework';
 import { HomeWidgetId } from './widgets/types';
@@ -161,6 +162,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [showQuickCustomizer, setShowQuickCustomizer] = useState<boolean>(false);
   const [libraryFilter, setLibraryFilter] = useState<string>('');
+  const [appLibraryTypeFilter, setAppLibraryTypeFilter] = useState<'all' | 'system' | 'user'>('all');
 
   // Long press detection for Jiggle Mode
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -323,6 +325,54 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
   }, [allInstalledApps]);
 
   // Categorized apps for Page 2 App Library
+  const systemAppsList = useMemo(() => {
+    return allInstalledApps.filter(app => app.isSystemApp === true || app.appType === 'system');
+  }, [allInstalledApps]);
+
+  const userAppsList = useMemo(() => {
+    return allInstalledApps.filter(app => !app.isSystemApp && app.appType !== 'system');
+  }, [allInstalledApps]);
+
+  const systemAppCategories = useMemo(() => {
+    const categories: Record<string, MiniAppConfig[]> = {
+      'Core Productivity & Docs': [],
+      'AI & Voice Intelligence': [],
+      'Sound & Cultural Heritage': [],
+      'Finance & App Hub': []
+    };
+
+    systemAppsList.forEach((app) => {
+      if (['harmony-notes', 'harmony-docs', 'harmony-writing'].includes(app.id)) {
+        categories['Core Productivity & Docs'].push(app);
+      } else if (['harmony-docs-ai', 'harmony-voice'].includes(app.id)) {
+        categories['AI & Voice Intelligence'].push(app);
+      } else if (['harmony-music-player', 'harmony-ajam-script'].includes(app.id)) {
+        categories['Sound & Cultural Heritage'].push(app);
+      } else {
+        categories['Finance & App Hub'].push(app);
+      }
+    });
+
+    return categories;
+  }, [systemAppsList]);
+
+  const userAppCategories = useMemo(() => {
+    const categories: Record<string, MiniAppConfig[]> = {
+      'Atmosphere & Calculations': [],
+      'Productivity & Wellness': []
+    };
+
+    userAppsList.forEach((app) => {
+      if (['harmony-weather', 'harmony-calculator', 'harmony-terminal'].includes(app.id)) {
+        categories['Atmosphere & Calculations'].push(app);
+      } else {
+        categories['Productivity & Wellness'].push(app);
+      }
+    });
+
+    return categories;
+  }, [userAppsList]);
+
   const appCategories = useMemo(() => {
     const categories: Record<string, MiniAppConfig[]> = {
       'Productivity & AI': [],
@@ -756,47 +806,229 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
                   <Folder className="w-3.5 h-3.5 text-indigo-400" />
                   <span>App Library & Collections</span>
                 </h2>
-                <span className="text-[10px] text-neutral-400 font-mono">
-                  {allInstalledApps.length} Apps
-                </span>
+                <div className="flex items-center gap-1.5 text-[10px] font-mono">
+                  <span className="text-blue-400 font-semibold">{systemAppsList.length} System</span>
+                  <span className="text-neutral-500">•</span>
+                  <span className="text-emerald-400 font-semibold">{userAppsList.length} User</span>
+                </div>
               </div>
 
-              {/* Categorized App Cards (2x2 inside each folder card) */}
-              <div className="w-full grid grid-cols-2 gap-2.5 flex-1 min-h-0 overflow-y-auto">
-                {Object.entries(appCategories).map(([categoryName, apps]) => {
-                  if (apps.length === 0) return null;
-                  return (
-                    <div
-                      key={categoryName}
-                      className={`p-3 rounded-2xl border flex flex-col justify-between ${
-                        isDarkMode ? 'bg-[#161b22]/90 border-[#30363d]' : 'bg-white/90 border-neutral-200'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold truncate">{categoryName}</span>
-                        <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-indigo-500/20 text-indigo-400 font-mono">
-                          {apps.length}
-                        </span>
+              {/* Segmented Filter Control: All | System Apps | User Apps */}
+              <div className={`grid grid-cols-3 p-1 rounded-xl border text-[11px] font-semibold mb-2 shrink-0 ${
+                isDarkMode ? 'bg-[#0d1117] border-[#30363d]' : 'bg-neutral-100 border-neutral-200'
+              }`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundManager.playClickSound();
+                    triggerHaptic('selection');
+                    setAppLibraryTypeFilter('all');
+                  }}
+                  className={`py-1 px-1.5 rounded-lg flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                    appLibraryTypeFilter === 'all'
+                      ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                      : 'text-neutral-400 hover:text-neutral-200'
+                  }`}
+                >
+                  <Folder className="w-3 h-3" />
+                  <span>All</span>
+                  <span className="text-[9px] opacity-75 font-mono">({allInstalledApps.length})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundManager.playClickSound();
+                    triggerHaptic('selection');
+                    setAppLibraryTypeFilter('system');
+                  }}
+                  className={`py-1 px-1.5 rounded-lg flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                    appLibraryTypeFilter === 'system'
+                      ? 'bg-blue-600 text-white shadow-xs font-bold'
+                      : 'text-neutral-400 hover:text-blue-400'
+                  }`}
+                >
+                  <ShieldCheck className="w-3 h-3" />
+                  <span>System</span>
+                  <span className="text-[9px] opacity-80 font-mono">({systemAppsList.length})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundManager.playClickSound();
+                    triggerHaptic('selection');
+                    setAppLibraryTypeFilter('user');
+                  }}
+                  className={`py-1 px-1.5 rounded-lg flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                    appLibraryTypeFilter === 'user'
+                      ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                      : 'text-neutral-400 hover:text-emerald-400'
+                  }`}
+                >
+                  <User className="w-3 h-3" />
+                  <span>User Apps</span>
+                  <span className="text-[9px] opacity-80 font-mono">({userAppsList.length})</span>
+                </button>
+              </div>
+
+              {/* Categorized App Cards Area */}
+              <div className="w-full flex-1 min-h-0 overflow-y-auto space-y-3 pr-0.5">
+                {appLibraryTypeFilter === 'all' ? (
+                  <>
+                    {/* System Applications Section */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5 px-1">
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-blue-400 uppercase tracking-wider">
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                          <span>System Applications ({systemAppsList.length})</span>
+                        </div>
+                        <span className="text-[9px] text-neutral-400">Pre-installed Core Suite</span>
                       </div>
 
-                      {/* Mini 2x2 icons grid */}
                       <div className="grid grid-cols-2 gap-2">
-                        {apps.slice(0, 4).map((app) => (
-                          <div
-                            key={app.id}
-                            onClick={() => onOpenApp(app.id)}
-                            className="flex items-center gap-1.5 p-1 rounded-xl hover:bg-white/10 cursor-pointer transition-colors"
-                          >
-                            <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${app.colorGradient} flex items-center justify-center shrink-0 p-0.5`}>
-                              {getIconComponent(app.iconName, app.id)}
+                        {Object.entries(systemAppCategories).map(([categoryName, apps]) => {
+                          if (apps.length === 0) return null;
+                          return (
+                            <div
+                              key={categoryName}
+                              className={`p-2.5 rounded-2xl border flex flex-col justify-between ${
+                                isDarkMode ? 'bg-[#161b22]/90 border-[#30363d]' : 'bg-white/90 border-neutral-200'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-[11px] font-bold truncate">{categoryName}</span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-blue-500/20 text-blue-400 font-mono">
+                                  {apps.length}
+                                </span>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-1.5">
+                                {apps.slice(0, 4).map((app) => (
+                                  <div
+                                    key={app.id}
+                                    onClick={() => onOpenApp(app.id)}
+                                    className="flex items-center gap-1.5 p-1 rounded-xl hover:bg-white/10 cursor-pointer transition-colors"
+                                  >
+                                    <div className={`w-6 h-6 rounded-lg bg-gradient-to-br ${app.colorGradient} flex items-center justify-center shrink-0 p-0.5`}>
+                                      {getIconComponent(app.iconName, app.id)}
+                                    </div>
+                                    <span className="text-[10px] font-semibold truncate">{app.name}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                            <span className="text-[10px] font-semibold truncate">{app.name}</span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
-                  );
-                })}
+
+                    {/* User Applications Section */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5 px-1 mt-1">
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
+                          <User className="w-3.5 h-3.5" />
+                          <span>User Applications ({userAppsList.length})</span>
+                        </div>
+                        <span className="text-[9px] text-neutral-400">Central Repository Add-ons</span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.entries(userAppCategories).map(([categoryName, apps]) => {
+                          if (apps.length === 0) return null;
+                          return (
+                            <div
+                              key={categoryName}
+                              className={`p-2.5 rounded-2xl border flex flex-col justify-between ${
+                                isDarkMode ? 'bg-[#161b22]/90 border-[#30363d]' : 'bg-white/90 border-neutral-200'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-[11px] font-bold truncate">{categoryName}</span>
+                                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 font-mono">
+                                  {apps.length}
+                                </span>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-1.5">
+                                {apps.slice(0, 4).map((app) => (
+                                  <div
+                                    key={app.id}
+                                    onClick={() => onOpenApp(app.id)}
+                                    className="flex items-center gap-1.5 p-1 rounded-xl hover:bg-white/10 cursor-pointer transition-colors"
+                                  >
+                                    <div className={`w-6 h-6 rounded-lg bg-gradient-to-br ${app.colorGradient} flex items-center justify-center shrink-0 p-0.5`}>
+                                      {getIconComponent(app.iconName, app.id)}
+                                    </div>
+                                    <span className="text-[10px] font-semibold truncate">{app.name}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                ) : appLibraryTypeFilter === 'system' ? (
+                  /* Focused System Apps Grid */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {systemAppsList.map((app) => (
+                      <div
+                        key={app.id}
+                        onClick={() => onOpenApp(app.id)}
+                        className={`p-2.5 rounded-2xl border flex items-center justify-between gap-2.5 cursor-pointer transition-all hover:scale-[1.01] ${
+                          isDarkMode ? 'bg-[#161b22]/90 hover:bg-[#21262d] border-[#30363d]' : 'bg-white/90 hover:bg-neutral-50 border-neutral-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${app.colorGradient} flex items-center justify-center text-white shrink-0 p-1 border border-white/20 shadow-xs`}>
+                            {getIconComponent(app.iconName, app.id)}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="text-xs font-bold truncate">{app.name}</h4>
+                              <span className="px-1.5 py-0.2 rounded-md text-[8px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/25">
+                                System
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-neutral-400 truncate">{app.tagline}</p>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Focused User Apps Grid */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {userAppsList.map((app) => (
+                      <div
+                        key={app.id}
+                        onClick={() => onOpenApp(app.id)}
+                        className={`p-2.5 rounded-2xl border flex items-center justify-between gap-2.5 cursor-pointer transition-all hover:scale-[1.01] ${
+                          isDarkMode ? 'bg-[#161b22]/90 hover:bg-[#21262d] border-[#30363d]' : 'bg-white/90 hover:bg-neutral-50 border-neutral-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${app.colorGradient} flex items-center justify-center text-white shrink-0 p-1 border border-white/20 shadow-xs`}>
+                            {getIconComponent(app.iconName, app.id)}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="text-xs font-bold truncate">{app.name}</h4>
+                              <span className="px-1.5 py-0.2 rounded-md text-[8px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                                User App
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-neutral-400 truncate">{app.tagline}</p>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Installed Applications Quick Drawer Trigger */}

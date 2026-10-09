@@ -3,9 +3,9 @@
  * @description Universal iOS Spotlight search modal for Harmony OS Super App.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { Search, X, Sparkles, Notebook, FileText, PenTool, Disc, ArrowRight } from 'lucide-react';
+import { Search, X, Sparkles, Notebook, FileText, PenTool, Disc, ArrowRight, ShieldCheck, User } from 'lucide-react';
 import { HARMONY_APPS } from '../config/apps';
 import { HarmonyNote, HarmonyDoc, HarmonyWritingDraft } from '../types';
 import { HabeshawiAppIcon } from './HabeshawiIcons';
@@ -41,10 +41,21 @@ export const SpotlightSearch: React.FC<SpotlightSearchProps> = ({
 
   if (!isOpen) return null;
 
-  const filteredApps = HARMONY_APPS.filter(app => 
-    app.name.toLowerCase().includes(query.toLowerCase()) ||
-    app.description.toLowerCase().includes(query.toLowerCase())
-  );
+  const filteredApps = useMemo(() => {
+    return HARMONY_APPS.filter(app => 
+      app.name.toLowerCase().includes(query.toLowerCase()) ||
+      app.description.toLowerCase().includes(query.toLowerCase()) ||
+      (app.tagline && app.tagline.toLowerCase().includes(query.toLowerCase()))
+    );
+  }, [query]);
+
+  const systemApps = useMemo(() => {
+    return filteredApps.filter(app => app.isSystemApp || app.appType === 'system');
+  }, [filteredApps]);
+
+  const userApps = useMemo(() => {
+    return filteredApps.filter(app => !app.isSystemApp && app.appType !== 'system');
+  }, [filteredApps]);
 
   const filteredNotes = notes.filter(n =>
     n.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -110,41 +121,95 @@ export const SpotlightSearch: React.FC<SpotlightSearchProps> = ({
 
         {/* Search Results List */}
         <div className="p-4 overflow-y-auto space-y-6 flex-1 scrollbar-none">
-          {/* Section 1: Integrated Habeshawi Mini Apps */}
-          <div>
-            <h4 className={`text-[11px] font-bold uppercase tracking-wider mb-2 ${
-              isDarkMode ? 'text-white/40' : 'text-neutral-500'
-            }`}>
-              Habeshawi Mini Apps
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {filteredApps.map((app) => (
-                <div
-                  key={app.id}
-                  onClick={() => {
-                    onOpenApp(app.id);
-                    onClose();
-                  }}
-                  className={`p-3 rounded-2xl cursor-pointer flex items-center gap-3 border transition-colors group ${
-                    isDarkMode
-                      ? 'bg-white/5 hover:bg-white/10 border-white/5'
-                      : 'bg-neutral-50 hover:bg-neutral-100 border-neutral-200/80 shadow-sm'
-                  }`}
-                >
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${app.colorGradient} flex items-center justify-center text-white shrink-0 shadow-sm p-1.5 border border-amber-400/30`}>
-                    <HabeshawiAppIcon appId={app.id} iconName={app.iconName} className="w-full h-full" />
+          {/* Section 1A: System Applications */}
+          {systemApps.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>System Applications ({systemApps.length})</span>
+                </h4>
+                <span className="text-[9px] text-neutral-400">Pre-installed Core</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {systemApps.map((app) => (
+                  <div
+                    key={app.id}
+                    onClick={() => {
+                      onOpenApp(app.id);
+                      onClose();
+                    }}
+                    className={`p-3 rounded-2xl cursor-pointer flex items-center gap-3 border transition-colors group ${
+                      isDarkMode
+                        ? 'bg-white/5 hover:bg-white/10 border-white/5'
+                        : 'bg-neutral-50 hover:bg-neutral-100 border-neutral-200/80 shadow-sm'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${app.colorGradient} flex items-center justify-center text-white shrink-0 shadow-sm p-1.5 border border-amber-400/30`}>
+                      <HabeshawiAppIcon appId={app.id} iconName={app.iconName} className="w-full h-full" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h5 className={`text-xs font-semibold truncate ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{app.name}</h5>
+                        <span className="px-1.5 py-0.2 rounded text-[8px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/25">
+                          System
+                        </span>
+                      </div>
+                      <p className={`text-[10px] truncate ${isDarkMode ? 'text-white/50' : 'text-neutral-500'}`}>{app.tagline}</p>
+                    </div>
+                    <ArrowRight className={`w-4 h-4 transition-colors ${
+                      isDarkMode ? 'text-white/30 group-hover:text-white' : 'text-neutral-400 group-hover:text-neutral-900'
+                    }`} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h5 className={`text-xs font-semibold truncate ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{app.name}</h5>
-                    <p className={`text-[10px] truncate ${isDarkMode ? 'text-white/50' : 'text-neutral-500'}`}>{app.tagline}</p>
-                  </div>
-                  <ArrowRight className={`w-4 h-4 transition-colors ${
-                    isDarkMode ? 'text-white/30 group-hover:text-white' : 'text-neutral-400 group-hover:text-neutral-900'
-                  }`} />
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Section 1B: User Applications */}
+          {userApps.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5" />
+                  <span>User Applications ({userApps.length})</span>
+                </h4>
+                <span className="text-[9px] text-neutral-400">Central Repo Add-ons</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {userApps.map((app) => (
+                  <div
+                    key={app.id}
+                    onClick={() => {
+                      onOpenApp(app.id);
+                      onClose();
+                    }}
+                    className={`p-3 rounded-2xl cursor-pointer flex items-center gap-3 border transition-colors group ${
+                      isDarkMode
+                        ? 'bg-white/5 hover:bg-white/10 border-white/5'
+                        : 'bg-neutral-50 hover:bg-neutral-100 border-neutral-200/80 shadow-sm'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${app.colorGradient} flex items-center justify-center text-white shrink-0 shadow-sm p-1.5 border border-amber-400/30`}>
+                      <HabeshawiAppIcon appId={app.id} iconName={app.iconName} className="w-full h-full" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h5 className={`text-xs font-semibold truncate ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{app.name}</h5>
+                        <span className="px-1.5 py-0.2 rounded text-[8px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                          User App
+                        </span>
+                      </div>
+                      <p className={`text-[10px] truncate ${isDarkMode ? 'text-white/50' : 'text-neutral-500'}`}>{app.tagline}</p>
+                    </div>
+                    <ArrowRight className={`w-4 h-4 transition-colors ${
+                      isDarkMode ? 'text-white/30 group-hover:text-white' : 'text-neutral-400 group-hover:text-neutral-900'
+                    }`} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Section 2: Synced Habeshawi Notes */}
           {filteredNotes.length > 0 && (

@@ -27,9 +27,12 @@ import {
   RefreshCw,
   Volume2,
   RotateCcw,
-  AlertTriangle
+  AlertTriangle,
+  User,
+  Maximize2
 } from 'lucide-react';
 import { MiniAppConfig, LauncherIconStyle } from '../types';
+import { getMiniAppUrl } from '../config/apps';
 import { soundManager } from '../lib/soundManager';
 import { triggerHaptic } from '../utils/haptics';
 import { 
@@ -364,10 +367,11 @@ export const DraggablePinnedApp: React.FC<DraggablePinnedAppProps> = ({
     triggerHaptic('light');
     soundManager.playClickSound();
 
+    const appUrl = getMiniAppUrl(app);
     const shareData = {
-      title: `${app.name} • Harmony OS`,
+      title: `${app.name} • Habeshawi Super App`,
       text: `${app.name}: ${app.tagline || app.description}`,
-      url: window.location.href,
+      url: appUrl,
     };
 
     try {
@@ -375,7 +379,7 @@ export const DraggablePinnedApp: React.FC<DraggablePinnedAppProps> = ({
         await navigator.share(shareData);
         setShowContextMenu(false);
       } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        await navigator.clipboard.writeText(`${app.name} (${window.location.href})\n${app.tagline || app.description}`);
+        await navigator.clipboard.writeText(`${app.name} (${appUrl})\n${app.tagline || app.description}`);
         setIsCopied(true);
         setTimeout(() => {
           setIsCopied(false);
@@ -653,6 +657,23 @@ export const DraggablePinnedApp: React.FC<DraggablePinnedAppProps> = ({
                   <ExternalLink className="w-3.5 h-3.5 text-indigo-500" />
                 </button>
 
+                {/* Open in Separate Window */}
+                <button
+                  id={`action-window-${app.id}`}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    soundManager.playClickSound();
+                    triggerHaptic('light');
+                    setShowContextMenu(false);
+                    window.open(getMiniAppUrl(app), '_blank');
+                  }}
+                  className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800/80 active:bg-neutral-200 dark:active:bg-neutral-700/80"
+                >
+                  <span>Open in Separate Window</span>
+                  <Maximize2 className="w-3.5 h-3.5 text-emerald-500" />
+                </button>
+
                 {/* App Info */}
                 <button
                   id={`action-info-${app.id}`}
@@ -749,6 +770,21 @@ export const DraggablePinnedApp: React.FC<DraggablePinnedAppProps> = ({
                       </div>
                     </div>
                     <h3 className="text-lg font-bold tracking-tight">{app.name}</h3>
+                    <div className="flex items-center gap-1.5 my-1">
+                      {app.isSystemApp || app.appType === 'system' ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/25 flex items-center gap-1 shadow-2xs">
+                          <ShieldCheck className="w-3 h-3 text-blue-400" />
+                          <span>System App</span>
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center gap-1 shadow-2xs">
+                          <User className="w-3 h-3 text-emerald-400" />
+                          <span>User App</span>
+                        </span>
+                      )}
+                      <span className="text-[10px] text-neutral-400 font-mono">•</span>
+                      <span className="text-[10px] text-neutral-400 capitalize">{app.category || 'Productivity'}</span>
+                    </div>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 max-w-[260px] line-clamp-2">
                       {app.tagline || app.description}
                     </p>
@@ -756,6 +792,20 @@ export const DraggablePinnedApp: React.FC<DraggablePinnedAppProps> = ({
 
                   {/* Metadata Chips Grid */}
                   <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-neutral-50 dark:bg-neutral-800/50 rounded-xl p-2.5 border border-neutral-100 dark:border-neutral-800 flex items-center gap-2">
+                      {app.isSystemApp || app.appType === 'system' ? (
+                        <ShieldCheck className="w-4 h-4 text-blue-500 shrink-0" />
+                      ) : (
+                        <User className="w-4 h-4 text-emerald-500 shrink-0" />
+                      )}
+                      <div className="min-w-0">
+                        <div className="text-[10px] text-neutral-400 uppercase font-medium tracking-wider">Classification</div>
+                        <div className="text-xs font-semibold truncate">
+                          {app.isSystemApp || app.appType === 'system' ? 'System App' : 'User App'}
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="bg-neutral-50 dark:bg-neutral-800/50 rounded-xl p-2.5 border border-neutral-100 dark:border-neutral-800 flex items-center gap-2">
                       <Layers className="w-4 h-4 text-indigo-500 shrink-0" />
                       <div className="min-w-0">
@@ -777,14 +827,6 @@ export const DraggablePinnedApp: React.FC<DraggablePinnedAppProps> = ({
                       <div className="min-w-0">
                         <div className="text-[10px] text-neutral-400 uppercase font-medium tracking-wider">Size</div>
                         <div className="text-xs font-semibold truncate">{app.size || '380 KB'}</div>
-                      </div>
-                    </div>
-
-                    <div className="bg-neutral-50 dark:bg-neutral-800/50 rounded-xl p-2.5 border border-neutral-100 dark:border-neutral-800 flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-cyan-500 shrink-0" />
-                      <div className="min-w-0">
-                        <div className="text-[10px] text-neutral-400 uppercase font-medium tracking-wider">Storage</div>
-                        <div className="text-xs font-semibold truncate">Offline Ready</div>
                       </div>
                     </div>
                   </div>

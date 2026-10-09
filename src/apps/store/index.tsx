@@ -35,7 +35,8 @@ import {
   Plus,
   Radio,
   Sliders,
-  AlertCircle
+  AlertCircle,
+  User
 } from 'lucide-react';
 import { CENTRAL_REPOSITORY_APPS, fetchCentralRepository } from '../../config/appRepository';
 import { 
@@ -62,7 +63,7 @@ interface HarmonyAppStoreProps {
 }
 
 type StoreTab = 'discover' | 'repositories' | 'installed';
-type CategoryFilter = 'all' | 'installed' | 'available' | 'productivity' | 'utilities' | 'finance' | 'audio' | 'ai' | 'developer' | 'health';
+type CategoryFilter = 'all' | 'system' | 'user' | 'installed' | 'available' | 'productivity' | 'utilities' | 'finance' | 'audio' | 'ai' | 'developer' | 'health';
 
 export const HarmonyAppStoreModule: React.FC<HarmonyAppStoreProps> = ({
   user,
@@ -81,11 +82,39 @@ export const HarmonyAppStoreModule: React.FC<HarmonyAppStoreProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
   const [selectedApp, setSelectedApp] = useState<MiniAppConfig | null>(null);
+  const [installedTypeFilter, setInstalledTypeFilter] = useState<'all' | 'system' | 'user'>('all');
 
   // Installed app IDs state (synced with props or default)
   const [installedIds, setInstalledIds] = useState<string[]>(() => {
     return propInstalledAppIds || CENTRAL_REPOSITORY_APPS.filter(a => a.isSystemApp || ['harmony-music-player', 'harmony-docs-ai', 'harmony-finance'].includes(a.id)).map(a => a.id);
   });
+
+  // System vs User installed counts
+  const installedSystemCount = useMemo(() => {
+    return installedIds.filter(id => {
+      const app = CENTRAL_REPOSITORY_APPS.find(a => a.id === id);
+      return app?.isSystemApp === true || app?.appType === 'system';
+    }).length;
+  }, [installedIds]);
+
+  const installedUserCount = useMemo(() => {
+    return installedIds.filter(id => {
+      const app = CENTRAL_REPOSITORY_APPS.find(a => a.id === id);
+      return app && !app.isSystemApp && app.appType !== 'system';
+    }).length;
+  }, [installedIds]);
+
+  // Filtered installed apps based on System vs User app filter
+  const filteredInstalledIds = useMemo(() => {
+    return installedIds.filter((id) => {
+      const app = CENTRAL_REPOSITORY_APPS.find((a) => a.id === id);
+      if (!app) return false;
+      const isSys = app.isSystemApp === true || app.appType === 'system';
+      if (installedTypeFilter === 'system') return isSys;
+      if (installedTypeFilter === 'user') return !isSys;
+      return true;
+    });
+  }, [installedIds, installedTypeFilter]);
 
   // Track currently downloading apps and their progress percentages
   const [downloadingApps, setDownloadingApps] = useState<Record<string, number>>({});
@@ -237,6 +266,10 @@ export const HarmonyAppStoreModule: React.FC<HarmonyAppStoreProps> = ({
       if (!matchesSearch) return false;
 
       switch (activeCategory) {
+        case 'system':
+          return app.isSystemApp === true || app.appType === 'system';
+        case 'user':
+          return !app.isSystemApp && app.appType !== 'system';
         case 'installed':
           return isInstalled;
         case 'available':
@@ -427,6 +460,8 @@ export const HarmonyAppStoreModule: React.FC<HarmonyAppStoreProps> = ({
                 {(
                   [
                     { id: 'all', label: 'All Apps' },
+                    { id: 'system', label: 'System Apps' },
+                    { id: 'user', label: 'User Apps' },
                     { id: 'available', label: 'Ready to Download' },
                     { id: 'installed', label: `Installed (${installedIds.length})` },
                     { id: 'productivity', label: 'Productivity' },
@@ -527,8 +562,19 @@ export const HarmonyAppStoreModule: React.FC<HarmonyAppStoreProps> = ({
                             {app.tagline}
                           </p>
 
-                          {/* App Metadata Specs: Version • Size • Author */}
-                          <div className="flex items-center gap-2 mt-1 text-[10px] text-neutral-500 font-mono">
+                          {/* App Metadata Specs: Classification • Version • Size • Author */}
+                          <div className="flex items-center gap-2 mt-1.5 text-[10px] text-neutral-500 font-mono flex-wrap">
+                            {app.isSystemApp || app.appType === 'system' ? (
+                              <span className="px-1.5 py-0.2 rounded text-[8px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/25 flex items-center gap-1 font-sans">
+                                <ShieldCheck className="w-2.5 h-2.5" />
+                                System
+                              </span>
+                            ) : (
+                              <span className="px-1.5 py-0.2 rounded text-[8px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center gap-1 font-sans">
+                                <User className="w-2.5 h-2.5" />
+                                User App
+                              </span>
+                            )}
                             <span>{app.version || 'v1.0.0'}</span>
                             <span>•</span>
                             <span>{app.size || '1.5 MB'}</span>
@@ -758,11 +804,58 @@ export const HarmonyAppStoreModule: React.FC<HarmonyAppStoreProps> = ({
             </p>
           </div>
 
+          {/* Installed Apps Classification Filter Bar */}
+          <div className={`grid grid-cols-3 p-1 rounded-xl border text-xs font-semibold ${
+            isDarkMode ? 'bg-[#161b22] border-[#30363d]' : 'bg-neutral-100 border-neutral-200'
+          }`}>
+            <button
+              type="button"
+              onClick={() => setInstalledTypeFilter('all')}
+              className={`py-1.5 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                installedTypeFilter === 'all'
+                  ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                  : 'text-neutral-400 hover:text-neutral-200'
+              }`}
+            >
+              <span>All Apps</span>
+              <span className="text-[10px] opacity-75 font-mono">({installedIds.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setInstalledTypeFilter('system')}
+              className={`py-1.5 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                installedTypeFilter === 'system'
+                  ? 'bg-blue-600 text-white shadow-xs font-bold'
+                  : 'text-neutral-400 hover:text-blue-400'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>System Apps</span>
+              <span className="text-[10px] opacity-80 font-mono">({installedSystemCount})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setInstalledTypeFilter('user')}
+              className={`py-1.5 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                installedTypeFilter === 'user'
+                  ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                  : 'text-neutral-400 hover:text-emerald-400'
+              }`}
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>User Apps</span>
+              <span className="text-[10px] opacity-80 font-mono">({installedUserCount})</span>
+            </button>
+          </div>
+
           {/* Installed Apps List */}
           <div className="space-y-3">
-            {installedIds.map((id) => {
+            {filteredInstalledIds.map((id) => {
               const app = CENTRAL_REPOSITORY_APPS.find((a) => a.id === id);
               if (!app) return null;
+              const isSys = app.isSystemApp || app.appType === 'system';
 
               return (
                 <div
@@ -778,9 +871,15 @@ export const HarmonyAppStoreModule: React.FC<HarmonyAppStoreProps> = ({
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <h4 className="font-bold text-sm truncate">{app.name}</h4>
-                        {app.isSystemApp && (
-                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-semibold bg-neutral-700 text-neutral-300">
-                            System
+                        {isSys ? (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center gap-1">
+                            <ShieldCheck className="w-2.5 h-2.5" />
+                            System App
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                            <User className="w-2.5 h-2.5" />
+                            User App
                           </span>
                         )}
                       </div>
@@ -794,16 +893,16 @@ export const HarmonyAppStoreModule: React.FC<HarmonyAppStoreProps> = ({
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={() => onOpenApp(app.id)}
-                      className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1 shadow-xs"
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1 shadow-xs cursor-pointer"
                     >
                       <Play className="w-3 h-3 fill-current" />
                       <span>Open</span>
                     </button>
 
-                    {!app.isSystemApp && (
+                    {!isSys && (
                       <button
                         onClick={() => handleUninstallApp(app.id)}
-                        className="p-2 rounded-xl text-xs text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/30 transition-colors"
+                        className="p-2 rounded-xl text-xs text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/30 transition-colors cursor-pointer"
                         title="Uninstall / Offload to free storage"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -845,11 +944,22 @@ export const HarmonyAppStoreModule: React.FC<HarmonyAppStoreProps> = ({
                   <div>
                     <h2 className="text-lg font-bold leading-tight">{selectedApp.name}</h2>
                     <p className="text-xs text-neutral-400 mt-0.5">{selectedApp.tagline}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      {selectedApp.isSystemApp || selectedApp.appType === 'system' ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/25 flex items-center gap-1">
+                          <ShieldCheck className="w-3 h-3 text-blue-400" />
+                          <span>System App (Core OS)</span>
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center gap-1">
+                          <User className="w-3 h-3 text-emerald-400" />
+                          <span>User App (Central Repository)</span>
+                        </span>
+                      )}
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                         Verified Ecosystem App
                       </span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-neutral-500/10 text-neutral-400 border border-neutral-500/20">
                         {selectedApp.size || '1.5 MB'}
                       </span>
                     </div>

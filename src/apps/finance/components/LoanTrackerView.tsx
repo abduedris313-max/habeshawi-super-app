@@ -129,49 +129,49 @@ export const LoanTrackerView: React.FC<LoanTrackerViewProps> = ({
   };
 
   return (
-    <div className="space-y-4 text-neutral-900 dark:text-white">
+    <div className="space-y-2.5 sm:space-y-4 text-neutral-900 dark:text-white">
       {/* Top Banner: Total Debt Portfolio & EMI Summary */}
-      <div className="p-4.5 rounded-2xl bg-white dark:bg-gradient-to-br dark:from-[#1c2230] dark:via-[#161b22] dark:to-[#0f131a] border border-neutral-200 dark:border-[#30363d] shadow-xs">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+      <div className="p-3 sm:p-4.5 rounded-xl sm:rounded-2xl bg-white dark:bg-gradient-to-br dark:from-[#1c2230] dark:via-[#161b22] dark:to-[#0f131a] border border-neutral-200 dark:border-[#30363d] shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 mb-2 sm:mb-3">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:text-[#8b949e]">
-              Total Active Debt & Loan Portfolio
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:text-[#8b949e]">
+              Active Debt & Loan Portfolio
             </span>
-            <h2 className="text-2xl sm:text-3xl font-bold font-mono text-rose-600 dark:text-rose-400 mt-0.5">
+            <h2 className="text-xl sm:text-3xl font-bold font-mono text-rose-600 dark:text-rose-400 mt-0.5">
               {formatCurrency(totalOutstandingDebt, currencyCode)}
             </h2>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={onOpenAddLoan}
-              className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+              className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Add New Loan</span>
+              <span>Add Loan</span>
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-neutral-200 dark:border-[#30363d]/70 text-xs">
-          <div className="p-2.5 rounded-xl bg-neutral-50 dark:bg-[#0d1117] border border-neutral-200 dark:border-[#30363d]/60">
-            <span className="text-[10px] text-neutral-500 dark:text-[#8b949e] uppercase font-bold">Monthly Combined EMI</span>
-            <p className="text-base font-bold font-mono text-neutral-900 dark:text-white mt-0.5">
-              {formatCurrency(totalMonthlyEmi, currencyCode)} <span className="text-xs font-normal text-indigo-600 dark:text-indigo-300">/mo</span>
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-3 pt-2 sm:pt-3 border-t border-neutral-200 dark:border-[#30363d]/70 text-xs">
+          <div className="p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl bg-neutral-50 dark:bg-[#0d1117] border border-neutral-200 dark:border-[#30363d]/60">
+            <span className="text-[9px] sm:text-[10px] text-neutral-500 dark:text-[#8b949e] uppercase font-bold truncate block">Monthly EMI</span>
+            <p className="text-xs sm:text-base font-bold font-mono text-neutral-900 dark:text-white mt-0.5 truncate">
+              {formatCurrency(totalMonthlyEmi, currencyCode)}
             </p>
           </div>
 
-          <div className="p-2.5 rounded-xl bg-neutral-50 dark:bg-[#0d1117] border border-neutral-200 dark:border-[#30363d]/60">
-            <span className="text-[10px] text-neutral-500 dark:text-[#8b949e] uppercase font-bold">Total Paid Back So Far</span>
-            <p className="text-base font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">
+          <div className="p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl bg-neutral-50 dark:bg-[#0d1117] border border-neutral-200 dark:border-[#30363d]/60">
+            <span className="text-[9px] sm:text-[10px] text-neutral-500 dark:text-[#8b949e] uppercase font-bold truncate block">Paid Back</span>
+            <p className="text-xs sm:text-base font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5 truncate">
               {formatCurrency(totalPaidSoFar, currencyCode)}
             </p>
           </div>
 
-          <div className="p-2.5 rounded-xl bg-neutral-50 dark:bg-[#0d1117] border border-neutral-200 dark:border-[#30363d]/60">
-            <span className="text-[10px] text-neutral-500 dark:text-[#8b949e] uppercase font-bold">Active Accounts</span>
-            <p className="text-base font-bold font-mono text-indigo-600 dark:text-indigo-300 mt-0.5">
-              {loans.filter(l => l.status === 'active').length} Active / {loans.length} Total
+          <div className="p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl bg-neutral-50 dark:bg-[#0d1117] border border-neutral-200 dark:border-[#30363d]/60">
+            <span className="text-[9px] sm:text-[10px] text-neutral-500 dark:text-[#8b949e] uppercase font-bold truncate block">Accounts</span>
+            <p className="text-xs sm:text-base font-bold font-mono text-indigo-600 dark:text-indigo-300 mt-0.5 truncate">
+              {loans.filter(l => l.status === 'active').length}/{loans.length}
             </p>
           </div>
         </div>

@@ -114,31 +114,31 @@ export const LoanModal: React.FC<LoanModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-[#161b22] border border-neutral-200 dark:border-[#30363d] text-neutral-900 dark:text-white rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-fade-in">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-white dark:bg-[#161b22] border border-neutral-200 dark:border-[#30363d] text-neutral-900 dark:text-white rounded-xl sm:rounded-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden shadow-2xl animate-fade-in">
         {/* Header */}
-        <div className="p-4 border-b border-neutral-200 dark:border-[#30363d] flex items-center justify-between bg-neutral-50 dark:bg-[#0d1117]">
+        <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-neutral-200 dark:border-[#30363d] flex items-center justify-between bg-neutral-50 dark:bg-[#0d1117]">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
-              <Landmark className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+              <Landmark className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
+              <h3 className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white">
                 {loanToEdit ? 'Edit Loan Account' : 'Add Loan / Debt Tracking'}
               </h3>
-              <p className="text-[11px] text-neutral-500 dark:text-[#8b949e]">EMI, Amortization & Repayment</p>
+              <p className="text-[10px] sm:text-[11px] text-neutral-500 dark:text-[#8b949e]">EMI, Amortization & Repayment</p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="p-1 rounded-full text-neutral-400 hover:text-neutral-900 dark:text-[#8b949e] dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-[#21262d] transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-4 overflow-y-auto space-y-4 flex-1 scrollbar-none text-xs">
+        <form onSubmit={handleSubmit} className="p-3 sm:p-4 overflow-y-auto space-y-3 sm:space-y-4 flex-1 scrollbar-none text-xs">
           {/* Title & Type */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>

@@ -131,12 +131,12 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-[#161b22] border border-neutral-200 dark:border-[#30363d] text-neutral-900 dark:text-white rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-fade-in">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-white dark:bg-[#161b22] border border-neutral-200 dark:border-[#30363d] text-neutral-900 dark:text-white rounded-xl sm:rounded-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden shadow-2xl animate-fade-in">
         {/* Header */}
-        <div className="p-4 border-b border-neutral-200 dark:border-[#30363d] flex items-center justify-between bg-neutral-50 dark:bg-[#0d1117]">
+        <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-neutral-200 dark:border-[#30363d] flex items-center justify-between bg-neutral-50 dark:bg-[#0d1117]">
           <div className="flex items-center gap-2">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${
+            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-bold text-xs sm:text-sm ${
               type === 'expense' ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400' :
               type === 'income' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
               'bg-blue-500/20 text-blue-600 dark:text-blue-400'
@@ -144,22 +144,22 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
               {type === 'expense' ? '-' : type === 'income' ? '+' : '⇄'}
             </div>
             <div>
-              <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
+              <h3 className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white">
                 {transactionToEdit ? 'Edit Transaction' : 'Record Transaction'}
               </h3>
-              <p className="text-[11px] text-neutral-500 dark:text-[#8b949e]">Harmony Ledger & Cash Flow</p>
+              <p className="text-[10px] sm:text-[11px] text-neutral-500 dark:text-[#8b949e]">Harmony Ledger & Cash Flow</p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="p-1 rounded-full text-neutral-500 dark:text-[#8b949e] hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-[#21262d] transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-4 overflow-y-auto space-y-4 flex-1 scrollbar-none text-xs">
+        <form onSubmit={handleSubmit} className="p-3 sm:p-4 overflow-y-auto space-y-3 sm:space-y-4 flex-1 scrollbar-none text-xs">
           {/* Type Selector Pills */}
           <div className="grid grid-cols-3 gap-1.5 p-1 bg-neutral-100 dark:bg-[#0d1117] rounded-xl border border-neutral-200 dark:border-[#30363d]">
             <button

@@ -23,6 +23,7 @@ import {
   Info
 } from 'lucide-react';
 import { MiniAppConfig, SystemUser, HarmonyNote, HarmonyDoc, HarmonyWritingDraft, HarmonyPlaylist, HarmonyAiChat, HarmonyCalendarEvent } from '../types';
+import { getMiniAppUrl, getMiniAppPath } from '../config/apps';
 import { HarmonyNotesApp } from './mini-apps/HarmonyNotesApp';
 import { HarmonyDocsApp } from './mini-apps/HarmonyDocsApp';
 import { HarmonyWritingApp } from './mini-apps/HarmonyWritingApp';
@@ -110,8 +111,13 @@ export const AppRunner: React.FC<AppRunnerProps> = ({
   onInstallApp,
   onUninstallApp
 }) => {
-  const [mode, setMode] = useState<'native' | 'iframe'>(defaultMode);
+  // Always open mini apps in native mode
+  const [mode, setMode] = useState<'native' | 'iframe'>('native');
   const [iframeKey, setIframeKey] = useState(0);
+
+  useEffect(() => {
+    setMode('native');
+  }, [app.id]);
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [showOfflineDetails, setShowOfflineDetails] = useState(false);
   const [justSavedLocal, setJustSavedLocal] = useState(false);
@@ -746,47 +752,23 @@ export const AppRunner: React.FC<AppRunnerProps> = ({
           </div>
         </div>
 
-        {/* Mode Switcher & Controls */}
+        {/* Controls: Native Mode & Expand in Separate Window */}
         <div className="flex items-center gap-1.5">
-          {/* Mode Switcher Pill */}
-          <div className="flex items-center bg-white dark:bg-[#0d1117] p-0.5 rounded-lg border border-neutral-200 dark:border-[#30363d] text-[10px]">
-            <button
-              onClick={() => setMode('native')}
-              className={`px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1 transition-all ${mode === 'native' ? 'bg-indigo-600 text-white shadow-xs' : 'text-neutral-600 dark:text-[#8b949e] hover:text-neutral-900 dark:hover:text-white'}`}
-            >
-              <Cloud className="w-2.5 h-2.5" />
-              <span>Native</span>
-            </button>
-            <button
-              onClick={() => setMode('iframe')}
-              className={`px-2 py-0.5 rounded text-[10px] font-semibold flex items-center gap-1 transition-all ${mode === 'iframe' ? 'bg-indigo-600 text-white shadow-xs' : 'text-neutral-600 dark:text-[#8b949e] hover:text-neutral-900 dark:hover:text-white'}`}
-            >
-              <Globe className="w-2.5 h-2.5" />
-              <span>GitHub Pages</span>
-            </button>
+          {/* Native Cloud Mode Badge */}
+          <div className="hidden xs:flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold">
+            <Cloud className="w-2.5 h-2.5" />
+            <span>Native</span>
           </div>
 
-          {/* GitHub Repo Link */}
-          <a
-            href={app.repoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-1.5 rounded-lg bg-neutral-200/60 dark:bg-white/5 hover:bg-neutral-300/80 dark:hover:bg-white/10 text-neutral-700 dark:text-white/70 hover:text-neutral-900 dark:hover:text-white transition-colors hidden md:flex"
-            title="Open GitHub Repository"
+          {/* Expand in Separate Window Icon Button */}
+          <button
+            onClick={() => window.open(getMiniAppUrl(app), '_blank')}
+            className="p-1.5 rounded-lg bg-neutral-200/60 dark:bg-white/5 hover:bg-neutral-300/80 dark:hover:bg-white/10 text-neutral-700 dark:text-white/70 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer flex items-center justify-center"
+            title={`Open in separate window (${getMiniAppUrl(app)})`}
+            aria-label={`Open ${app.name} in separate window`}
           >
-            <Github className="w-3.5 h-3.5" />
-          </a>
-
-          {/* Open Deployment in New Tab */}
-          <a
-            href={app.deployedUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-1.5 rounded-lg bg-neutral-200/60 dark:bg-white/5 hover:bg-neutral-300/80 dark:hover:bg-white/10 text-neutral-700 dark:text-white/70 hover:text-neutral-900 dark:hover:text-white transition-colors"
-            title="Open Deployed WebApp"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+            <Maximize2 className="w-3.5 h-3.5" />
+          </button>
 
           {/* IFrame Refresh */}
           {mode === 'iframe' && (

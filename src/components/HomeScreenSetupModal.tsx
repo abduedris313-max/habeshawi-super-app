@@ -29,7 +29,9 @@ import {
   FileText,
   Notebook,
   PenTool,
-  ShoppingBag
+  ShoppingBag,
+  ShieldCheck,
+  User
 } from 'lucide-react';
 import { HARMONY_APPS } from '../config/apps';
 import { SystemSettings, ThemeMode } from '../types';
@@ -156,10 +158,14 @@ export const HomeScreenSetupModal: React.FC<HomeScreenSetupModalProps> = ({
   if (!isOpen) return null;
 
   // Layout presets
-  const handleApplyPreset = (preset: 'all' | 'productivity' | 'lifestyle') => {
+  const handleApplyPreset = (preset: 'all' | 'system' | 'user' | 'productivity' | 'lifestyle') => {
     soundManager.playClickSound();
     if (preset === 'all') {
       onUpdatePinnedApps(HARMONY_APPS.map(a => a.id));
+    } else if (preset === 'system') {
+      onUpdatePinnedApps(HARMONY_APPS.filter(a => a.isSystemApp || a.appType === 'system').map(a => a.id));
+    } else if (preset === 'user') {
+      onUpdatePinnedApps(HARMONY_APPS.filter(a => !a.isSystemApp && a.appType !== 'system').map(a => a.id));
     } else if (preset === 'productivity') {
       onUpdatePinnedApps(['harmony-notes', 'harmony-docs', 'harmony-writing', 'harmony-docs-ai']);
     } else if (preset === 'lifestyle') {
@@ -319,37 +325,45 @@ export const HomeScreenSetupModal: React.FC<HomeScreenSetupModalProps> = ({
                 <label className={`text-xs font-bold block mb-2 ${isDark ? 'text-white' : 'text-neutral-900'}`}>
                   Quick Layout Presets
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     onClick={() => handleApplyPreset('all')}
-                    className={`p-2.5 rounded-xl border text-xs font-semibold text-center transition-all ${
+                    className={`p-2 rounded-xl border text-xs font-semibold text-center transition-all cursor-pointer ${
                       isDark ? 'bg-[#0d1117] border-[#30363d] hover:border-indigo-500' : 'bg-neutral-50 border-neutral-200 hover:border-indigo-400'
                     }`}
                   >
                     All Apps ({HARMONY_APPS.length})
                   </button>
                   <button
+                    onClick={() => handleApplyPreset('system')}
+                    className={`p-2 rounded-xl border text-xs font-semibold text-center transition-all cursor-pointer ${
+                      isDark ? 'bg-[#0d1117] border-blue-500/40 text-blue-400 hover:bg-blue-500/10' : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
+                    }`}
+                  >
+                    System Apps Only
+                  </button>
+                  <button
+                    onClick={() => handleApplyPreset('user')}
+                    className={`p-2 rounded-xl border text-xs font-semibold text-center transition-all cursor-pointer ${
+                      isDark ? 'bg-[#0d1117] border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10' : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                    }`}
+                  >
+                    User Apps Only
+                  </button>
+                  <button
                     onClick={() => handleApplyPreset('productivity')}
-                    className={`p-2.5 rounded-xl border text-xs font-semibold text-center transition-all ${
+                    className={`p-2 rounded-xl border text-xs font-semibold text-center transition-all cursor-pointer ${
                       isDark ? 'bg-[#0d1117] border-[#30363d] hover:border-indigo-500' : 'bg-neutral-50 border-neutral-200 hover:border-indigo-400'
                     }`}
                   >
                     Productivity Core
                   </button>
-                  <button
-                    onClick={() => handleApplyPreset('lifestyle')}
-                    className={`p-2.5 rounded-xl border text-xs font-semibold text-center transition-all ${
-                      isDark ? 'bg-[#0d1117] border-[#30363d] hover:border-indigo-500' : 'bg-neutral-50 border-neutral-200 hover:border-indigo-400'
-                    }`}
-                  >
-                    Media & Finance
-                  </button>
                 </div>
               </div>
 
-              {/* App Checklist */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
+              {/* App Checklist Categorized */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
                   <label className={`text-xs font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>
                     Springboard Pinned Apps ({pinnedAppIds.length} of {HARMONY_APPS.length})
                   </label>
@@ -358,49 +372,130 @@ export const HomeScreenSetupModal: React.FC<HomeScreenSetupModalProps> = ({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {HARMONY_APPS.map(app => {
-                    const isPinned = pinnedAppIds.includes(app.id);
-                    return (
-                      <button
-                        key={app.id}
-                        onClick={() => handleTogglePin(app.id)}
-                        className={`p-3 rounded-2xl border text-left transition-all relative flex flex-col justify-between ${
-                          isPinned
-                            ? 'bg-indigo-600/10 border-indigo-500/60 ring-1 ring-indigo-500/30'
-                            : isDark ? 'bg-[#0d1117] border-[#30363d] opacity-50' : 'bg-neutral-50 border-neutral-200 opacity-60'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between w-full mb-2">
-                          <div
-                            className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-sm"
-                            style={{ backgroundColor: app.bgHex }}
-                          >
-                            {app.name.slice(0, 2)}
+                {/* Section A: System Applications */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>System Applications ({HARMONY_APPS.filter(a => a.isSystemApp || a.appType === 'system').length})</span>
+                    </span>
+                    <span className="text-[10px] text-neutral-400 font-mono">Core Pre-installed</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {HARMONY_APPS.filter(a => a.isSystemApp || a.appType === 'system').map(app => {
+                      const isPinned = pinnedAppIds.includes(app.id);
+                      return (
+                        <button
+                          key={app.id}
+                          onClick={() => handleTogglePin(app.id)}
+                          className={`p-3 rounded-2xl border text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                            isPinned
+                              ? 'bg-blue-600/10 border-blue-500/60 ring-1 ring-blue-500/30'
+                              : isDark ? 'bg-[#0d1117] border-[#30363d] opacity-50' : 'bg-neutral-50 border-neutral-200 opacity-60'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full mb-2">
+                            <div
+                              className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-sm"
+                              style={{ backgroundColor: app.bgHex }}
+                            >
+                              {app.name.slice(0, 2)}
+                            </div>
+                            {isPinned ? (
+                              <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center">
+                                <Check className="w-3 h-3" />
+                              </div>
+                            ) : (
+                              <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                                isDark ? 'border-[#30363d] text-[#8b949e]' : 'border-neutral-300 text-neutral-400'
+                              }`}>
+                                <Plus className="w-3 h-3" />
+                              </div>
+                            )}
                           </div>
-                          {isPinned ? (
-                            <div className="w-5 h-5 rounded-full bg-indigo-500 text-white flex items-center justify-center">
-                              <Check className="w-3 h-3" />
+                          <div>
+                            <div className="flex items-center justify-between gap-1">
+                              <h4 className={`text-xs font-bold truncate ${isDark ? 'text-white' : 'text-neutral-900'}`}>
+                                {app.name}
+                              </h4>
                             </div>
-                          ) : (
-                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                              isDark ? 'border-[#30363d] text-[#8b949e]' : 'border-neutral-300 text-neutral-400'
-                            }`}>
-                              <Plus className="w-3 h-3" />
+                            <div className="flex items-center gap-1 my-0.5">
+                              <span className="text-[8px] font-semibold px-1 py-0.2 rounded bg-blue-500/20 text-blue-400">
+                                System
+                              </span>
                             </div>
-                          )}
-                        </div>
-                        <div>
-                          <h4 className={`text-xs font-bold truncate ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-                            {app.name}
-                          </h4>
-                          <p className={`text-[10px] truncate ${isDark ? 'text-[#8b949e]' : 'text-neutral-500'}`}>
-                            {app.tagline}
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  })}
+                            <p className={`text-[10px] truncate ${isDark ? 'text-[#8b949e]' : 'text-neutral-500'}`}>
+                              {app.tagline}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Section B: User Applications */}
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5" />
+                      <span>User Applications ({HARMONY_APPS.filter(a => !a.isSystemApp && a.appType !== 'system').length})</span>
+                    </span>
+                    <span className="text-[10px] text-neutral-400 font-mono">Central Repository Packages</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {HARMONY_APPS.filter(a => !a.isSystemApp && a.appType !== 'system').map(app => {
+                      const isPinned = pinnedAppIds.includes(app.id);
+                      return (
+                        <button
+                          key={app.id}
+                          onClick={() => handleTogglePin(app.id)}
+                          className={`p-3 rounded-2xl border text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                            isPinned
+                              ? 'bg-emerald-600/10 border-emerald-500/60 ring-1 ring-emerald-500/30'
+                              : isDark ? 'bg-[#0d1117] border-[#30363d] opacity-50' : 'bg-neutral-50 border-neutral-200 opacity-60'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full mb-2">
+                            <div
+                              className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-sm"
+                              style={{ backgroundColor: app.bgHex }}
+                            >
+                              {app.name.slice(0, 2)}
+                            </div>
+                            {isPinned ? (
+                              <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                                <Check className="w-3 h-3" />
+                              </div>
+                            ) : (
+                              <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                                isDark ? 'border-[#30363d] text-[#8b949e]' : 'border-neutral-300 text-neutral-400'
+                              }`}>
+                                <Plus className="w-3 h-3" />
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex items-center justify-between gap-1">
+                              <h4 className={`text-xs font-bold truncate ${isDark ? 'text-white' : 'text-neutral-900'}`}>
+                                {app.name}
+                              </h4>
+                            </div>
+                            <div className="flex items-center gap-1 my-0.5">
+                              <span className="text-[8px] font-semibold px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400">
+                                User App
+                              </span>
+                            </div>
+                            <p className={`text-[10px] truncate ${isDark ? 'text-[#8b949e]' : 'text-neutral-500'}`}>
+                              {app.tagline}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>

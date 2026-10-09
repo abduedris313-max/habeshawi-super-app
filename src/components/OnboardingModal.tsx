@@ -337,39 +337,101 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                   </p>
                 </div>
 
-                {/* Springboard Apps Selector */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {HARMONY_APPS.map(app => {
-                    const isPinned = pinnedAppIds.includes(app.id);
-                    return (
-                      <button
-                        key={app.id}
-                        onClick={() => toggleAppPin(app.id)}
-                        className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center gap-1.5 relative ${
-                          isPinned
-                            ? 'bg-indigo-600/15 border-indigo-500/60'
-                            : isDark
-                            ? 'bg-[#0d1117] border-[#30363d] opacity-50'
-                            : 'bg-neutral-50 border-neutral-200 opacity-60'
-                        }`}
-                      >
-                        <div 
-                          className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-md"
-                          style={{ backgroundColor: app.bgHex }}
-                        >
-                          {app.name.slice(0, 2)}
-                        </div>
-                        <span className={`text-xs font-bold truncate max-w-full ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-                          {app.name}
-                        </span>
-                        {isPinned && (
-                          <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-indigo-500 text-white flex items-center justify-center">
-                            <Check className="w-2.5 h-2.5" />
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
+                {/* Springboard Apps Selector Categorized */}
+                <div className="space-y-3">
+                  {/* System Apps */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>System Applications</span>
+                      </span>
+                      <span className="text-[10px] text-neutral-400 font-mono">Core Pre-installed</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {HARMONY_APPS.filter(a => a.isSystemApp || a.appType === 'system').map(app => {
+                        const isPinned = pinnedAppIds.includes(app.id);
+                        return (
+                          <button
+                            key={app.id}
+                            onClick={() => toggleAppPin(app.id)}
+                            className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center gap-1.5 relative ${
+                              isPinned
+                                ? 'bg-blue-600/15 border-blue-500/60'
+                                : isDark
+                                ? 'bg-[#0d1117] border-[#30363d] opacity-50'
+                                : 'bg-neutral-50 border-neutral-200 opacity-60'
+                            }`}
+                          >
+                            <div 
+                              className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-md"
+                              style={{ backgroundColor: app.bgHex }}
+                            >
+                              {app.name.slice(0, 2)}
+                            </div>
+                            <span className={`text-[11px] font-bold truncate max-w-full ${isDark ? 'text-white' : 'text-neutral-900'}`}>
+                              {app.name}
+                            </span>
+                            <span className="text-[8px] font-semibold px-1 py-0.2 rounded bg-blue-500/20 text-blue-400">
+                              System
+                            </span>
+                            {isPinned && (
+                              <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center">
+                                <Check className="w-2.5 h-2.5" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* User Apps */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5" />
+                        <span>User Applications</span>
+                      </span>
+                      <span className="text-[10px] text-neutral-400 font-mono">Central Repository</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {HARMONY_APPS.filter(a => !a.isSystemApp && a.appType !== 'system').map(app => {
+                        const isPinned = pinnedAppIds.includes(app.id);
+                        return (
+                          <button
+                            key={app.id}
+                            onClick={() => toggleAppPin(app.id)}
+                            className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center gap-1.5 relative ${
+                              isPinned
+                                ? 'bg-emerald-600/15 border-emerald-500/60'
+                                : isDark
+                                ? 'bg-[#0d1117] border-[#30363d] opacity-50'
+                                : 'bg-neutral-50 border-neutral-200 opacity-60'
+                            }`}
+                          >
+                            <div 
+                              className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-md"
+                              style={{ backgroundColor: app.bgHex }}
+                            >
+                              {app.name.slice(0, 2)}
+                            </div>
+                            <span className={`text-[11px] font-bold truncate max-w-full ${isDark ? 'text-white' : 'text-neutral-900'}`}>
+                              {app.name}
+                            </span>
+                            <span className="text-[8px] font-semibold px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400">
+                              User App
+                            </span>
+                            {isPinned && (
+                              <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                                <Check className="w-2.5 h-2.5" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
 
                 <div className={`p-3 rounded-2xl border text-xs flex items-center justify-between ${

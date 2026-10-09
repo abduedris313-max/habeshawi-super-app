@@ -2,6 +2,7 @@
  * @file apps.ts
  * @description Catalog & Metadata for all Habeshawi Projects mini apps.
  * Includes both core pre-installed apps and central repository downloadable packages.
+ * Configured with direct paths (e.g. /{mini-app-name}) for standalone window execution.
  */
 
 import { MiniAppConfig } from '../types';
@@ -16,6 +17,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('notebook'),
     colorGradient: 'from-amber-400 via-orange-500 to-amber-600',
     bgHex: '#f59e0b',
+    path: '/harmony-notes',
     deployedUrl: 'https://abduedris313-max.github.io/harmony-notes/',
     repoUrl: 'https://github.com/abduedris313-max/harmony-notes',
     description: 'Capture quick thoughts, bullet points, voice memos, and tagged categories with Habeshawi cloud sync.',
@@ -25,6 +27,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi Core',
     category: 'productivity',
     isSystemApp: true,
+    appType: 'system',
     rating: 4.9
   },
   {
@@ -35,6 +38,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('file-text'),
     colorGradient: 'from-blue-500 via-indigo-500 to-cyan-600',
     bgHex: '#3b82f6',
+    path: '/harmony-docs',
     deployedUrl: 'https://abduedris313-max.github.io/harmony-docs/',
     repoUrl: 'https://github.com/abduedris313-max/harmony-docs',
     description: 'Collaborative document editing, word counting, formatting, and exported PDFs.',
@@ -44,6 +48,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi Core',
     category: 'productivity',
     isSystemApp: true,
+    appType: 'system',
     rating: 4.9
   },
   {
@@ -54,6 +59,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('pen-tool'),
     colorGradient: 'from-emerald-400 via-teal-500 to-emerald-600',
     bgHex: '#10b981',
+    path: '/harmony-writing',
     deployedUrl: 'https://abduedris313-max.github.io/harmony-writing/',
     repoUrl: 'https://github.com/abduedris313-max/harmony-writing',
     description: 'Distraction-free typewriter environment, soundscapes, ambient timers, and stats.',
@@ -63,6 +69,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi Core',
     category: 'productivity',
     isSystemApp: true,
+    appType: 'system',
     rating: 4.8
   },
   {
@@ -73,6 +80,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('disc'),
     colorGradient: 'from-fuchsia-500 via-purple-600 to-pink-500',
     bgHex: '#d946ef',
+    path: '/harmony-music-player',
     deployedUrl: 'https://abduedris313-max.github.io/harmony-music-player/',
     repoUrl: 'https://github.com/abduedris313-max/harmony-music-player',
     description: 'iOS style Music Player with ambient streams, custom playlists, equalizer, and background mode.',
@@ -82,6 +90,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi Sound Team',
     category: 'audio',
     isSystemApp: true,
+    appType: 'system',
     rating: 5.0
   },
   {
@@ -92,6 +101,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('sparkles'),
     colorGradient: 'from-violet-500 via-purple-600 to-indigo-700',
     bgHex: '#8b5cf6',
+    path: '/harmony-docs-ai',
     deployedUrl: 'https://abduedris313-max.github.io/harmony-docs-ai/',
     repoUrl: 'https://github.com/abduedris313-max/harmony-docs-ai',
     description: 'Ask questions, summarize long documents, generate outlines, and refine draft prose.',
@@ -101,6 +111,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi AI Lab',
     category: 'ai',
     isSystemApp: true,
+    appType: 'system',
     rating: 4.9
   },
   {
@@ -111,6 +122,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('mic'),
     colorGradient: 'from-cyan-500 via-blue-600 to-indigo-700',
     bgHex: '#0284c7',
+    path: '/harmony-voice',
     deployedUrl: '#',
     repoUrl: 'https://github.com/abduedris313-max/harmony-super-app',
     description: 'Two-way real-time voice conversations powered by Gemini 3.8 Live API, fast audio transcription by Gemini 3.5 Transcribe, and voice memo intelligence.',
@@ -120,6 +132,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi AI Voice Lab',
     category: 'ai',
     isSystemApp: true,
+    appType: 'system',
     rating: 5.0
   },
   {
@@ -130,6 +143,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('calendar'),
     colorGradient: 'from-rose-500 via-red-600 to-amber-600',
     bgHex: '#ef4444',
+    path: '/harmony-calendar',
     deployedUrl: 'https://abduedris313-max.github.io/harmony-calendar/',
     repoUrl: 'https://github.com/abduedris313-max/harmony-calendar',
     description: 'Tri-calendar system supporting Gregorian, Hijri, and Ethiopian dates, live converter, and Google Calendar sync.',
@@ -139,6 +153,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi Core',
     category: 'productivity',
     isSystemApp: true,
+    appType: 'system',
     rating: 4.9
   },
   {
@@ -149,6 +164,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('wallet'),
     colorGradient: 'from-emerald-500 via-teal-600 to-cyan-700',
     bgHex: '#059669',
+    path: '/harmony-finance',
     deployedUrl: 'https://abduedris313-max.github.io/harmony-finance/',
     repoUrl: 'https://github.com/abduedris313-max/harmony-finance',
     description: 'Personal finance & wealth engine: cash flow ledger, category budgets, debt amortization schedules, and Gemini AI advisor.',
@@ -158,6 +174,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi Finance Group',
     category: 'finance',
     isSystemApp: true,
+    appType: 'system',
     rating: 4.9
   },
   {
@@ -168,6 +185,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('book-open'),
     colorGradient: 'from-amber-600 via-orange-600 to-emerald-700',
     bgHex: '#d97706',
+    path: '/harmony-ajam-script',
     deployedUrl: 'https://abduedris313-max.github.io/harmony-ajam-script/',
     repoUrl: 'https://github.com/abduedris313-max/harmony-ajam-script',
     description: 'Digital preservation, AI OCR transcription, verse audio, virtual keyboard, and catalog for historical Ethiopian Sufi Ajam manuscripts.',
@@ -177,6 +195,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi Preservation',
     category: 'productivity',
     isSystemApp: true,
+    appType: 'system',
     rating: 5.0
   },
   {
@@ -187,6 +206,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('shopping-bag'),
     colorGradient: 'from-blue-600 via-sky-500 to-indigo-600',
     bgHex: '#0284c7',
+    path: '/harmony-app-store',
     deployedUrl: '#',
     repoUrl: 'https://github.com/abduedris313-max/harmony-super-app',
     description: 'Habeshawi ecosystem central repository: fetch packages, stream download, and install mini-apps with offline persistence.',
@@ -196,9 +216,10 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi Core Systems',
     category: 'utilities',
     isSystemApp: true,
+    appType: 'system',
     rating: 5.0
   },
-  // Downloadable Packages from Central Repository
+  // Downloadable Packages from Central Repository (User Apps)
   {
     id: 'harmony-weather',
     name: 'Habeshawi Weather',
@@ -207,6 +228,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('cloud-sun'),
     colorGradient: 'from-sky-400 via-blue-500 to-indigo-600',
     bgHex: '#0ea5e9',
+    path: '/harmony-weather',
     deployedUrl: '#',
     repoUrl: 'https://github.com/abduedris313-max/harmony-weather',
     description: 'Real-time weather radar, 24-hour temperatures, UV Index, air quality metrics, and international city weather tracking.',
@@ -216,6 +238,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi Atmosphere Labs',
     category: 'utilities',
     isSystemApp: false,
+    appType: 'user',
     rating: 4.9
   },
   {
@@ -226,6 +249,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('calculator'),
     colorGradient: 'from-amber-500 via-orange-600 to-red-500',
     bgHex: '#f97316',
+    path: '/harmony-calculator',
     deployedUrl: '#',
     repoUrl: 'https://github.com/abduedris313-max/harmony-calculator',
     description: 'Standard and scientific mathematical calculation engine with tape history and currency, length, and temperature converters.',
@@ -235,6 +259,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi Numerics Studio',
     category: 'utilities',
     isSystemApp: false,
+    appType: 'user',
     rating: 4.8
   },
   {
@@ -245,6 +270,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('clock'),
     colorGradient: 'from-rose-500 via-pink-600 to-purple-600',
     bgHex: '#e11d48',
+    path: '/harmony-focus',
     deployedUrl: '#',
     repoUrl: 'https://github.com/abduedris313-max/harmony-focus',
     description: 'Interval productivity timer with circular SVG progress rings, 432Hz binaural audio synthesizer, and session streak tracker.',
@@ -254,6 +280,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi Zenith Labs',
     category: 'productivity',
     isSystemApp: false,
+    appType: 'user',
     rating: 4.9
   },
   {
@@ -264,6 +291,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('terminal'),
     colorGradient: 'from-emerald-500 via-teal-600 to-slate-800',
     bgHex: '#0f766e',
+    path: '/harmony-terminal',
     deployedUrl: '#',
     repoUrl: 'https://github.com/abduedris313-max/harmony-terminal',
     description: 'Interactive command shell for inspecting service worker caches, repository ping diagnostics, and package management.',
@@ -273,6 +301,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi DevTools',
     category: 'developer',
     isSystemApp: false,
+    appType: 'user',
     rating: 4.7
   },
   {
@@ -283,6 +312,7 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     iconCdnUrl: getLucideCdnIconUrl('activity'),
     colorGradient: 'from-cyan-500 via-teal-500 to-emerald-600',
     bgHex: '#06b6d4',
+    path: '/harmony-habits',
     deployedUrl: '#',
     repoUrl: 'https://github.com/abduedris313-max/harmony-habits',
     description: 'Health-inspired habit tracking with concentric SVG activity rings, daily streak counter, and haptic feedback.',
@@ -292,6 +322,71 @@ export const HARMONY_APPS: MiniAppConfig[] = [
     author: 'Habeshawi Wellness',
     category: 'health',
     isSystemApp: false,
+    appType: 'user',
     rating: 4.9
   }
 ];
+
+/**
+ * Pre-filtered arrays for System and User application categories
+ */
+export const SYSTEM_APPS: MiniAppConfig[] = HARMONY_APPS.filter(
+  (app) => app.isSystemApp === true || app.appType === 'system'
+);
+
+export const USER_APPS: MiniAppConfig[] = HARMONY_APPS.filter(
+  (app) => !app.isSystemApp && app.appType !== 'system'
+);
+
+/**
+ * Type guards and helper predicates for app categorization
+ */
+export const isSystemApp = (app: MiniAppConfig): boolean => {
+  return app.isSystemApp === true || app.appType === 'system';
+};
+
+export const isUserApp = (app: MiniAppConfig): boolean => {
+  return !isSystemApp(app);
+};
+
+/**
+ * Resolves the configurable specific path for a mini app (e.g. /harmony-finance)
+ */
+export const getMiniAppPath = (app: MiniAppConfig): string => {
+  if (app.path) {
+    return app.path.startsWith('/') ? app.path : `/${app.path}`;
+  }
+  return `/${app.id}`;
+};
+
+/**
+ * Resolves the full URL to open a mini app in a separate browser window ({base_url}/{mini-app-name})
+ */
+export const getMiniAppUrl = (app: MiniAppConfig): string => {
+  const relativePath = getMiniAppPath(app);
+  if (typeof window === 'undefined') {
+    return relativePath;
+  }
+  return `${window.location.origin}${relativePath}`;
+};
+
+/**
+ * Finds a mini app by configured path, ID, or slug alias (e.g. /harmony-finance or finance or /finance)
+ */
+export const findAppByPathOrSlug = (
+  pathOrSlug: string,
+  apps: MiniAppConfig[] = HARMONY_APPS
+): MiniAppConfig | undefined => {
+  if (!pathOrSlug) return undefined;
+  const clean = pathOrSlug.replace(/^\/+/, '').replace(/\/+$/, '').toLowerCase();
+  if (!clean || clean === 'index.html' || clean === 'admin' || clean === 'admin.html') {
+    return undefined;
+  }
+
+  return apps.find((a) => {
+    const appPathClean = (a.path || a.id).replace(/^\/+/, '').replace(/\/+$/, '').toLowerCase();
+    const appIdClean = a.id.toLowerCase();
+    const shortId = appIdClean.replace(/^harmony-/, '');
+    return clean === appPathClean || clean === appIdClean || clean === shortId;
+  });
+};

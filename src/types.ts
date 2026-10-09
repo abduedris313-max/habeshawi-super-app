@@ -11,6 +11,7 @@ export interface MiniAppConfig {
   iconCdnUrl: string; // Lucide CDN SVG URL
   colorGradient: string; // Tailwind gradient
   bgHex: string;
+  path?: string; // Configurable specific path e.g. /harmony-finance
   deployedUrl: string;
   repoUrl: string;
   description: string;
@@ -22,10 +23,13 @@ export interface MiniAppConfig {
   rating?: number;
   downloadsCount?: number;
   isSystemApp?: boolean;
+  appType?: 'system' | 'user';
   repositoryId?: string;
   permissions?: string[];
   installedAt?: string;
 }
+
+export type AppClassification = 'system' | 'user';
 
 export interface HarmonyNote {
   id: string;

@@ -30,7 +30,9 @@ import {
   Activity,
   ChevronRight,
   Sliders,
-  Info
+  Info,
+  ShieldCheck,
+  User
 } from 'lucide-react';
 import { HARMONY_APPS } from '../config/apps';
 import { MiniAppConfig } from '../types';
@@ -59,6 +61,7 @@ export const InstalledAppsModal: React.FC<InstalledAppsModalProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'system' | 'user'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Filter to installed apps based on installedAppIds list
@@ -69,6 +72,15 @@ export const InstalledAppsModal: React.FC<InstalledAppsModalProps> = ({
     return HARMONY_APPS.filter(app => installedAppIds.includes(app.id));
   }, [installedAppIds]);
 
+  // System vs User counts
+  const systemAppsCount = useMemo(() => {
+    return installedApps.filter(app => app.isSystemApp === true || app.appType === 'system').length;
+  }, [installedApps]);
+
+  const userAppsCount = useMemo(() => {
+    return installedApps.filter(app => !app.isSystemApp && app.appType !== 'system').length;
+  }, [installedApps]);
+
   // Categories list
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -78,7 +90,7 @@ export const InstalledAppsModal: React.FC<InstalledAppsModalProps> = ({
     return ['all', ...Array.from(set)];
   }, [installedApps]);
 
-  // Filtered apps by search and category
+  // Filtered apps by search, category, and system/user app classification
   const filteredApps = useMemo(() => {
     return installedApps.filter(app => {
       const matchesSearch = 
@@ -88,9 +100,15 @@ export const InstalledAppsModal: React.FC<InstalledAppsModalProps> = ({
       
       const matchesCategory = selectedCategory === 'all' || app.category === selectedCategory;
 
-      return matchesSearch && matchesCategory;
+      const isSys = app.isSystemApp === true || app.appType === 'system';
+      const matchesType = 
+        typeFilter === 'all' || 
+        (typeFilter === 'system' && isSys) || 
+        (typeFilter === 'user' && !isSys);
+
+      return matchesSearch && matchesCategory && matchesType;
     });
-  }, [installedApps, searchQuery, selectedCategory]);
+  }, [installedApps, searchQuery, selectedCategory, typeFilter]);
 
   const getIcon = (iconName: string, appId?: string) => {
     return <HabeshawiAppIcon appId={appId} iconName={iconName} className="w-full h-full p-1 drop-shadow-md" />;
@@ -229,6 +247,68 @@ export const InstalledAppsModal: React.FC<InstalledAppsModalProps> = ({
               )}
             </div>
 
+            {/* System vs User Apps Segmented Filter Bar */}
+            <div className={`grid grid-cols-3 p-1 rounded-xl border text-xs font-semibold ${
+              isDarkMode ? 'bg-[#0d1117] border-[#30363d]' : 'bg-neutral-100 border-neutral-200'
+            }`}>
+              <button
+                type="button"
+                id="filter-all-apps"
+                onClick={() => {
+                  soundManager.playClickSound();
+                  triggerHaptic('selection');
+                  setTypeFilter('all');
+                }}
+                className={`py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  typeFilter === 'all'
+                    ? 'bg-indigo-600 text-white shadow-xs font-bold'
+                    : 'text-neutral-400 hover:text-neutral-200'
+                }`}
+              >
+                <Grid className="w-3.5 h-3.5" />
+                <span>All Apps</span>
+                <span className="text-[10px] opacity-75 font-mono">({installedApps.length})</span>
+              </button>
+
+              <button
+                type="button"
+                id="filter-system-apps"
+                onClick={() => {
+                  soundManager.playClickSound();
+                  triggerHaptic('selection');
+                  setTypeFilter('system');
+                }}
+                className={`py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  typeFilter === 'system'
+                    ? 'bg-blue-600 text-white shadow-xs font-bold'
+                    : 'text-neutral-400 hover:text-blue-400'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>System Apps</span>
+                <span className="text-[10px] opacity-80 font-mono">({systemAppsCount})</span>
+              </button>
+
+              <button
+                type="button"
+                id="filter-user-apps"
+                onClick={() => {
+                  soundManager.playClickSound();
+                  triggerHaptic('selection');
+                  setTypeFilter('user');
+                }}
+                className={`py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  typeFilter === 'user'
+                    ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                    : 'text-neutral-400 hover:text-emerald-400'
+                }`}
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>User Apps</span>
+                <span className="text-[10px] opacity-80 font-mono">({userAppsCount})</span>
+              </button>
+            </div>
+
             {/* Category Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
               {categories.map((cat) => {
@@ -317,10 +397,25 @@ export const InstalledAppsModal: React.FC<InstalledAppsModalProps> = ({
                       </div>
 
                       {/* Info */}
-                      <div className="mt-3">
+                      <div className="mt-2.5">
                         <h4 className="text-xs font-bold truncate group-hover:text-indigo-400 transition-colors">
                           {app.name}
                         </h4>
+                        {/* App Classification Badge */}
+                        <div className="flex items-center gap-1.5 my-1">
+                          {app.isSystemApp || app.appType === 'system' ? (
+                            <span className="px-1.5 py-0.2 rounded-md text-[9px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/25 flex items-center gap-1">
+                              <ShieldCheck className="w-2.5 h-2.5" />
+                              System
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.2 rounded-md text-[9px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center gap-1">
+                              <User className="w-2.5 h-2.5" />
+                              User App
+                            </span>
+                          )}
+                          <span className="text-[9px] text-neutral-500 font-mono">{app.size || '1.5 MB'}</span>
+                        </div>
                         <p className="text-[10px] text-neutral-400 line-clamp-1 mt-0.5">
                           {app.tagline || app.description}
                         </p>
@@ -360,6 +455,17 @@ export const InstalledAppsModal: React.FC<InstalledAppsModalProps> = ({
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <h4 className="text-xs font-bold truncate">{app.name}</h4>
+                            {app.isSystemApp || app.appType === 'system' ? (
+                              <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-md bg-blue-500/15 text-blue-400 border border-blue-500/25 flex items-center gap-1">
+                                <ShieldCheck className="w-2.5 h-2.5" />
+                                System
+                              </span>
+                            ) : (
+                              <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center gap-1">
+                                <User className="w-2.5 h-2.5" />
+                                User App
+                              </span>
+                            )}
                             {app.badge && (
                               <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-neutral-700 text-neutral-300">
                                 {app.badge}

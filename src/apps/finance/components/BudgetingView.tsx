@@ -96,17 +96,17 @@ export const BudgetingView: React.FC<BudgetingViewProps> = ({
   };
 
   return (
-    <div className="space-y-4 text-neutral-900 dark:text-white">
+    <div className="space-y-2.5 sm:space-y-4 text-neutral-900 dark:text-white">
       {/* Overall Budget Overview Card */}
-      <div className="p-4.5 rounded-2xl bg-white dark:bg-gradient-to-br dark:from-[#1c2230] dark:via-[#161b22] dark:to-[#0f131a] border border-neutral-200 dark:border-[#30363d] shadow-xs">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+      <div className="p-3 sm:p-4.5 rounded-xl sm:rounded-2xl bg-white dark:bg-gradient-to-br dark:from-[#1c2230] dark:via-[#161b22] dark:to-[#0f131a] border border-neutral-200 dark:border-[#30363d] shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 mb-2 sm:mb-3">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:text-[#8b949e]">
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-neutral-500 dark:text-[#8b949e]">
               Monthly Category Budget Gauge
             </span>
-            <h2 className="text-xl sm:text-2xl font-bold font-mono text-neutral-900 dark:text-white mt-0.5">
+            <h2 className="text-lg sm:text-2xl font-bold font-mono text-neutral-900 dark:text-white mt-0.5">
               {formatCurrency(totalBudgetSpent, currencyCode)}{' '}
-              <span className="text-sm font-normal text-neutral-500 dark:text-[#8b949e]">
+              <span className="text-xs sm:text-sm font-normal text-neutral-500 dark:text-[#8b949e]">
                 of {formatCurrency(totalBudgetLimit, currencyCode)} limit
               </span>
             </h2>
@@ -114,16 +114,16 @@ export const BudgetingView: React.FC<BudgetingViewProps> = ({
 
           <button
             onClick={handleOpenAdd}
-            className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+            className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Set Category Budget</span>
+            <span>Set Budget</span>
           </button>
         </div>
 
         {/* Global Progress Bar */}
-        <div className="space-y-1.5 my-3">
-          <div className="flex justify-between text-xs font-mono">
+        <div className="space-y-1 my-2 sm:my-3">
+          <div className="flex justify-between text-[11px] sm:text-xs font-mono">
             <span className={overallPercentage > 100 ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-indigo-600 dark:text-indigo-300'}>
               {overallPercentage}% Utilized
             </span>
@@ -132,7 +132,7 @@ export const BudgetingView: React.FC<BudgetingViewProps> = ({
             </span>
           </div>
 
-          <div className="w-full h-3 bg-neutral-100 dark:bg-[#0d1117] rounded-full overflow-hidden p-0.5 border border-neutral-200 dark:border-[#30363d]">
+          <div className="w-full h-2 sm:h-2.5 bg-neutral-100 dark:bg-[#0d1117] rounded-full overflow-hidden p-0.5 border border-neutral-200 dark:border-[#30363d]">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
                 overallPercentage > 100 ? 'bg-gradient-to-r from-rose-500 to-red-600' :
@@ -144,31 +144,31 @@ export const BudgetingView: React.FC<BudgetingViewProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-neutral-200 dark:border-[#30363d]/60 text-center">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-1.5 sm:pt-2 border-t border-neutral-200 dark:border-[#30363d]/60 text-center">
           <div>
-            <span className="text-[10px] text-neutral-500 dark:text-[#8b949e] uppercase font-bold">Planned</span>
-            <p className="text-xs font-bold font-mono text-neutral-900 dark:text-white mt-0.5">{formatCurrency(totalBudgetLimit, currencyCode)}</p>
+            <span className="text-[9px] sm:text-[10px] text-neutral-500 dark:text-[#8b949e] uppercase font-bold">Planned</span>
+            <p className="text-[11px] sm:text-xs font-bold font-mono text-neutral-900 dark:text-white mt-0.5 truncate">{formatCurrency(totalBudgetLimit, currencyCode)}</p>
           </div>
           <div>
-            <span className="text-[10px] text-neutral-500 dark:text-[#8b949e] uppercase font-bold">Actual Spent</span>
-            <p className="text-xs font-bold font-mono text-rose-600 dark:text-rose-400 mt-0.5">{formatCurrency(totalBudgetSpent, currencyCode)}</p>
+            <span className="text-[9px] sm:text-[10px] text-neutral-500 dark:text-[#8b949e] uppercase font-bold">Actual Spent</span>
+            <p className="text-[11px] sm:text-xs font-bold font-mono text-rose-600 dark:text-rose-400 mt-0.5 truncate">{formatCurrency(totalBudgetSpent, currencyCode)}</p>
           </div>
           <div>
-            <span className="text-[10px] text-neutral-500 dark:text-[#8b949e] uppercase font-bold">Available</span>
-            <p className="text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">{formatCurrency(Math.max(0, totalBudgetRemaining), currencyCode)}</p>
+            <span className="text-[9px] sm:text-[10px] text-neutral-500 dark:text-[#8b949e] uppercase font-bold">Available</span>
+            <p className="text-[11px] sm:text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5 truncate">{formatCurrency(Math.max(0, totalBudgetRemaining), currencyCode)}</p>
           </div>
         </div>
       </div>
 
       {/* Category Budget Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
         {budgetStatuses.length > 0 ? (
           budgetStatuses.map((status) => {
             const rawBudget = budgets.find(b => b.category === status.category);
             return (
               <div
                 key={status.category}
-                className={`p-4 rounded-2xl border transition-all shadow-xs flex flex-col justify-between ${
+                className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all shadow-xs flex flex-col justify-between ${
                   status.isOverBudget
                     ? 'bg-rose-50 dark:bg-rose-950/20 border-rose-300 dark:border-rose-500/40'
                     : status.percentageUsed >= status.alertThreshold
@@ -177,30 +177,30 @@ export const BudgetingView: React.FC<BudgetingViewProps> = ({
                 }`}
               >
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
+                  <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                      <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
                         status.isOverBudget ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400' :
                         status.percentageUsed >= status.alertThreshold ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400' :
                         'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
                       }`}>
                         {status.isOverBudget ? '!' : '✓'}
                       </div>
-                      <h4 className="text-sm font-bold text-neutral-900 dark:text-white">{status.category}</h4>
+                      <h4 className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white truncate">{status.category}</h4>
                     </div>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       {rawBudget && (
                         <>
                           <button
                             onClick={() => handleOpenEdit(rawBudget)}
-                            className="p-1 rounded-lg bg-neutral-100 dark:bg-[#21262d] hover:bg-neutral-200 dark:hover:bg-[#30363d] text-neutral-600 dark:text-[#8b949e] hover:text-neutral-900 dark:hover:text-white transition-colors text-xs"
+                            className="p-1 rounded-lg bg-neutral-100 dark:bg-[#21262d] hover:bg-neutral-200 dark:hover:bg-[#30363d] text-neutral-600 dark:text-[#8b949e] hover:text-neutral-900 dark:hover:text-white transition-colors text-xs cursor-pointer"
                           >
                             <Edit2 className="w-3 h-3" />
                           </button>
                           <button
                             onClick={() => onDeleteBudget(rawBudget.id)}
-                            className="p-1 rounded-lg bg-neutral-100 dark:bg-[#21262d] hover:bg-rose-500/20 text-neutral-600 dark:text-[#8b949e] hover:text-rose-600 dark:hover:text-rose-400 transition-colors text-xs"
+                            className="p-1 rounded-lg bg-neutral-100 dark:bg-[#21262d] hover:bg-rose-500/20 text-neutral-600 dark:text-[#8b949e] hover:text-rose-600 dark:hover:text-rose-400 transition-colors text-xs cursor-pointer"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
@@ -209,11 +209,11 @@ export const BudgetingView: React.FC<BudgetingViewProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-baseline justify-between my-2 text-xs font-mono">
-                    <span className="text-neutral-900 dark:text-white font-bold text-sm">
+                  <div className="flex items-baseline justify-between my-1 sm:my-2 text-xs font-mono">
+                    <span className="text-neutral-900 dark:text-white font-bold text-xs sm:text-sm">
                       {formatCurrency(status.spent, currencyCode)}
                     </span>
-                    <span className="text-neutral-500 dark:text-[#8b949e]">
+                    <span className="text-[10px] sm:text-xs text-neutral-500 dark:text-[#8b949e]">
                       limit: {formatCurrency(status.budgetLimit, currencyCode)}
                     </span>
                   </div>

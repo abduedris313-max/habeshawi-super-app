@@ -1,13 +1,13 @@
 /**
  * @file HabeshawiSplashScreen.tsx
- * @description Authentic Habeshawi Boot & Splash Screen for Habeshawi SuperApp OS.
+ * @description Authentic Habeshawi Boot & Splash Screen for Habeshawi Super App.
  * Features an animated golden Lalibela cross with radiant sunburst aura,
  * traditional Tibeb woven progress thread, Amharic Ge'ez typography, and audio-haptic feedback.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, ArrowRight, Volume2, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { Sparkles, ArrowRight, Volume2, ShieldCheck, Sun, Moon, CheckCircle2 } from 'lucide-react';
 import { HabeshawiBrandEmblem, HabeshawiTibebBorder, HabeshawiCrossWatermark } from './HabeshawiIcons';
 import { soundManager } from '../lib/soundManager';
 import { triggerHaptic } from '../utils/haptics';
@@ -16,16 +16,26 @@ interface HabeshawiSplashScreenProps {
   onComplete: () => void;
   isDarkMode?: boolean;
   onToggleTheme?: () => void;
+  isFirstTimeUser?: boolean;
 }
 
 export const HabeshawiSplashScreen: React.FC<HabeshawiSplashScreenProps> = ({
   onComplete,
   isDarkMode = true,
-  onToggleTheme
+  onToggleTheme,
+  isFirstTimeUser
 }) => {
   const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState('በመጫን ላይ... (Initializing Habeshawi Kernel)');
+  const [statusText, setStatusText] = useState('በመጫን ላይ... (Initializing Habeshawi Super App)');
   const [isReady, setIsReady] = useState(false);
+  const autoEnterTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Check if first-time user (either from prop or local storage)
+  const isFirstTime = typeof isFirstTimeUser === 'boolean'
+    ? isFirstTimeUser
+    : typeof window !== 'undefined' &&
+      !localStorage.getItem('habeshawi_has_onboarded_v1') &&
+      !localStorage.getItem('habeshawi_has_visited_super_app');
 
   useEffect(() => {
     // Play subtle soft boot audio chime
@@ -33,14 +43,16 @@ export const HabeshawiSplashScreen: React.FC<HabeshawiSplashScreenProps> = ({
     triggerHaptic('medium');
 
     const statusStages = [
-      { p: 20, t: 'የላሊበላ ስነ-ስርዓት በመጫን ላይ... (Loading Lalibela Framework)' },
-      { p: 45, t: 'የአክሱም ውሂብ ዝውውር በማስተካከል ላይ... (Connecting Axum Data Mesh)' },
-      { p: 70, t: 'የብራና ማከማቻ በማመሳሰል ላይ... (Syncing Birana Storage Engine)' },
+      { p: 25, t: 'የላሊበላ ስነ-ስርዓት በመጫን ላይ... (Loading Lalibela Framework)' },
+      { p: 50, t: 'የአክሱም ውሂብ ዝውውር በማስተካከል ላይ... (Connecting Axum Data Mesh)' },
+      { p: 75, t: 'የብራና ማከማቻ በማመሳሰል ላይ... (Syncing Birana Storage Engine)' },
       { p: 90, t: 'የጥበብ ስነ-ንድፍ በማዘጋጀት ላይ... (Applying Tibeb Visual Engine)' },
-      { p: 100, t: 'እንኳን ደህና መጡ! (Welcome to Habeshawi OS)' }
+      { p: 100, t: 'እንኳን ደህና መጡ! (Welcome to Habeshawi Super App)' }
     ];
 
     let currentStage = 0;
+    // Fast boot for returning users, steady boot for first-time onboarding
+    const stageDuration = isFirstTime ? 320 : 130;
     const interval = setInterval(() => {
       if (currentStage < statusStages.length) {
         setProgress(statusStages[currentStage].p);
@@ -49,18 +61,43 @@ export const HabeshawiSplashScreen: React.FC<HabeshawiSplashScreenProps> = ({
         if (currentStage === statusStages.length) {
           setIsReady(true);
           triggerHaptic('success');
+
+          // Unless it is the first time user, automatically go to the landing page
+          if (!isFirstTime) {
+            autoEnterTimerRef.current = setTimeout(() => {
+              try {
+                localStorage.setItem('habeshawi_has_visited_super_app', 'true');
+              } catch {
+                // ignore
+              }
+              onComplete();
+            }, 250);
+          }
         }
       } else {
         clearInterval(interval);
       }
-    }, 450);
+    }, stageDuration);
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      clearInterval(interval);
+      if (autoEnterTimerRef.current) {
+        clearTimeout(autoEnterTimerRef.current);
+      }
+    };
+  }, [isFirstTime, onComplete]);
 
   const handleEnter = () => {
+    if (autoEnterTimerRef.current) {
+      clearTimeout(autoEnterTimerRef.current);
+    }
     soundManager.playHapticClick();
     triggerHaptic('light');
+    try {
+      localStorage.setItem('habeshawi_has_visited_super_app', 'true');
+    } catch {
+      // ignore
+    }
     onComplete();
   };
 
@@ -156,13 +193,13 @@ export const HabeshawiSplashScreen: React.FC<HabeshawiSplashScreenProps> = ({
           <h1 className={`text-3xl sm:text-4xl font-black tracking-tight ${
             isDarkMode ? 'text-white' : 'text-stone-900'
           }`}>
-            Habeshawi <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500">OS</span>
+            Habeshawi <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500">Super App</span>
           </h1>
 
           <p className={`text-xs sm:text-sm font-medium max-w-xs mx-auto leading-relaxed ${
             isDarkMode ? 'text-stone-400' : 'text-stone-600'
           }`}>
-            የተቀናጀ የዲጂታል ሥነ-ምህዳር • Imperial SuperApp Ecosystem
+            የተቀናጀ የዲጂታል ሥነ-ምህዳር • Imperial Super App Ecosystem
           </p>
         </motion.div>
       </div>
@@ -203,16 +240,30 @@ export const HabeshawiSplashScreen: React.FC<HabeshawiSplashScreenProps> = ({
         {/* Enter Button or Auto-loading Indicator */}
         <AnimatePresence mode="wait">
           {isReady ? (
-            <motion.button
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              onClick={handleEnter}
-              className="w-full py-3.5 px-6 rounded-2xl font-bold text-sm bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 flex items-center justify-center gap-2 shadow-xl shadow-amber-500/25 active:scale-98 transition-all cursor-pointer border border-amber-300"
-            >
-              <span>ወደ ሥርዓቱ ይግቡ • Enter Habeshawi</span>
-              <ArrowRight className="w-4 h-4" />
-            </motion.button>
+            !isFirstTime ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                onClick={handleEnter}
+                className="w-full py-3.5 px-6 rounded-2xl font-bold text-sm bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-stone-950 flex items-center justify-center gap-2 shadow-xl shadow-amber-500/25 active:scale-98 transition-all cursor-pointer border border-amber-300"
+              >
+                <CheckCircle2 className="w-4 h-4 text-stone-950" />
+                <span>ወደ መነሻ ገጽ በመግባት ላይ... • Opening Landing Page</span>
+                <ArrowRight className="w-4 h-4" />
+              </motion.div>
+            ) : (
+              <motion.button
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                onClick={handleEnter}
+                className="w-full py-3.5 px-6 rounded-2xl font-bold text-sm bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 flex items-center justify-center gap-2 shadow-xl shadow-amber-500/25 active:scale-98 transition-all cursor-pointer border border-amber-300"
+              >
+                <span>ወደ መተግበሪያው ይግቡ • Enter Habeshawi Super App</span>
+                <ArrowRight className="w-4 h-4" />
+              </motion.button>
+            )
           ) : (
             <div className="h-12 flex items-center justify-center">
               <span className={`text-xs flex items-center gap-2 ${

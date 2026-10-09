@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { HARMONY_APPS } from './config/apps';
+import { HARMONY_APPS, findAppByPathOrSlug, getMiniAppPath } from './config/apps';
 import { 
   MiniAppConfig, 
   SystemSettings, 
@@ -81,16 +81,29 @@ import { HabeshawiLoadingScreen } from './components/HabeshawiLoadingScreen';
 import { HabeshawiPopupProvider } from './components/HabeshawiPopup';
 
 export default function App() {
+  // Direct mini-app path routing (e.g. {base_url}/{mini-app-name} or #/{mini-app-name})
+  const initialAppId = (() => {
+    if (typeof window === 'undefined') return null;
+    const path = window.location.pathname;
+    const hash = window.location.hash.replace(/^#\/?/, '');
+    const matched = findAppByPathOrSlug(path) || (hash ? findAppByPathOrSlug(hash) : undefined);
+    return matched ? matched.id : null;
+  })();
+
   // Navigation & View States
-  const [activeAppId, setActiveAppId] = useState<string | null>(null);
-  const [openAppIds, setOpenAppIds] = useState<string[]>([]);
+  const [activeAppId, setActiveAppId] = useState<string | null>(initialAppId);
+  const [openAppIds, setOpenAppIds] = useState<string[]>(initialAppId ? [initialAppId] : []);
   const [isControlCenterOpen, setIsControlCenterOpen] = useState(false);
   const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
   const [isAppSwitcherOpen, setIsAppSwitcherOpen] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   
   // Modals & User Journey States
-  const [showSplashScreen, setShowSplashScreen] = useState(true);
+  // If user opened a specific mini app directly in separate window, skip splash screen immediately
+  const [showSplashScreen, setShowSplashScreen] = useState<boolean>(() => {
+    if (initialAppId) return false;
+    return true;
+  });
   const [globalLoading, setGlobalLoading] = useState<{ isOpen: boolean; title?: string; subtitle?: string; amharicText?: string } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup' | 'forgot' | 'profile'>('signin');
@@ -99,6 +112,11 @@ export default function App() {
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(() => {
     return !getLocalItem<boolean>(STORAGE_KEYS.ONBOARDED, false);
+  });
+  const [isFirstTimeUser, setIsFirstTimeUser] = useState<boolean>(() => {
+    const hasOnboarded = getLocalItem<boolean>(STORAGE_KEYS.ONBOARDED, false);
+    const hasVisited = typeof window !== 'undefined' && localStorage.getItem('habeshawi_has_visited_super_app') === 'true';
+    return !hasOnboarded && !hasVisited;
   });
   const [isHomeScreenSetupOpen, setIsHomeScreenSetupOpen] = useState(false);
 
@@ -684,6 +702,40 @@ export default function App() {
     }
   };
 
+  // Synchronize browser URL with active mini app ({base_url}/{mini-app-name})
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (activeAppId) {
+      const app = HARMONY_APPS.find((a) => a.id === activeAppId);
+      if (app) {
+        const targetPath = getMiniAppPath(app);
+        if (window.location.pathname !== targetPath) {
+          window.history.pushState({ appId: app.id }, app.name, targetPath);
+        }
+      }
+    } else {
+      if (window.location.pathname !== '/' && window.location.pathname !== '') {
+        window.history.pushState(null, 'Habeshawi Super App', '/');
+      }
+    }
+  }, [activeAppId]);
+
+  // Handle browser back/forward navigation (popstate)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handlePopState = () => {
+      const matched = findAppByPathOrSlug(window.location.pathname);
+      if (matched) {
+        setActiveAppId(matched.id);
+        setShowSplashScreen(false);
+      } else {
+        setActiveAppId(null);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const handleCloseActiveApp = () => {
     triggerHaptic('dismiss');
     setActiveAppId(null);
@@ -1106,7 +1158,16 @@ export default function App() {
       <AnimatePresence>
         {showSplashScreen && (
           <HabeshawiSplashScreen
-            onComplete={() => setShowSplashScreen(false)}
+            onComplete={() => {
+              setShowSplashScreen(false);
+              try {
+                localStorage.setItem('habeshawi_has_visited_super_app', 'true');
+              } catch {
+                // ignore
+              }
+              setIsFirstTimeUser(false);
+            }}
+            isFirstTimeUser={isFirstTimeUser}
             isDarkMode={settings.isDarkMode}
             onToggleTheme={() =>
               handleUpdateSettings({

@@ -23,6 +23,14 @@ All Harmony WebApps are accessible via responsive iOS-style mini app frames and 
 
 ## ✨ Features & Architecture
 
+- **System vs User App Categorization**:
+  - The entire application ecosystem cleanly distinguishes between **System Apps** (first-party pre-installed OS core suite) and **User Apps** (downloadable packages from the central repository):
+    - 🛡️ **System Apps (10 Core Pre-installed Packages)**: Habeshawi Notes, Habeshawi Docs, Habeshawi Writing, Habeshawi Music, Habeshawi AI Copilot, Habeshawi Voice Live, Habeshawi Calendar, Habeshawi Finance, Habeshawi Ajam Script, and Habeshawi App Store.
+    - 👤 **User Apps (5 Central Repository Add-ons)**: Habeshawi Weather, Habeshawi Calculator, Habeshawi Focus, Habeshawi Terminal, and Habeshawi Habits.
+  - **App Library (Page 2)**: Features an Apple HIG segmented control toggle (**All**, **System Apps**, **User Apps**) with distinct section cards and counts.
+  - **Spotlight Search**: Classifies search results into distinct System Applications and User Applications categories with `ShieldCheck` and `User` badges.
+  - **Springboard Setup & Onboarding**: Structured into dedicated System Applications and User Applications checklists for granular launcher layout customization.
+  - **Habeshawi App Store & Installed Apps Manager**: Provides instant filtering and visual classification tags on every package card and application details view.
 - **App Store Developer Console & Admin Portal (`/admin.html` or `/admin`)**:
   - Completely separate codebase and administration dashboard dedicated to publishing, inspecting, version-bumping, and managing mini-apps across the central repository.
   - Multi-view navigation console:
@@ -37,6 +45,10 @@ All Harmony WebApps are accessible via responsive iOS-style mini app frames and 
   - Stream downloads with simulated network telemetry, progress bars, and package extraction.
   - Full local storage management with offline bundle precaching and package uninstallation.
   - Downloadable mini-apps include **Weather & Sky**, **Calculator & Scientific Unit Converter**, **Focus Studio (432Hz binaural generator)**, **Dev Terminal (CLI diagnostics)**, and **Habit Momentum (concentric activity rings)**.
+- **Authentic Habeshawi Splash Screen & Auto-Entry**:
+  - Golden Lalibela sunburst emblem, Ge'ez typography, and traditional Tibeb progress thread.
+  - Branded as **Habeshawi Super App** with kernel initialization status stages.
+  - **Smart Navigation**: Automatically directs returning users to the landing page (Springboard Home Screen launcher) upon loading completion, while giving first-time users an introductory greeting action button to enter the ecosystem.
 - **iOS Lock Screen & Security Suite**:
   - Authentic iOS lock screen experience with customizable clock typography (SF Pro Default, Ultra Bold, SF Rounded, Ge’ez Heritage, Minimal Thin, and Editorial Serif).
   - Passcode PIN protection (4–6 digits) with shake animation, Taptic haptic feedback, and numeric keypad.

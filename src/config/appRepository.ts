@@ -60,6 +60,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     rating: 4.9,
     downloadsCount: 142000,
     isSystemApp: true,
+    appType: 'system',
     repositoryId: 'harmony-official',
     permissions: ['storage', 'network', 'offline-cache']
   },
@@ -82,6 +83,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     rating: 4.8,
     downloadsCount: 98000,
     isSystemApp: true,
+    appType: 'system',
     repositoryId: 'harmony-official',
     permissions: ['storage', 'network', 'offline-cache']
   },
@@ -104,6 +106,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     rating: 4.9,
     downloadsCount: 76000,
     isSystemApp: true,
+    appType: 'system',
     repositoryId: 'harmony-official',
     permissions: ['storage', 'audio', 'offline-cache']
   },
@@ -126,6 +129,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     rating: 4.9,
     downloadsCount: 115000,
     isSystemApp: true,
+    appType: 'system',
     repositoryId: 'harmony-official',
     permissions: ['storage', 'network', 'offline-cache']
   },
@@ -147,7 +151,8 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     category: 'finance',
     rating: 4.8,
     downloadsCount: 84000,
-    isSystemApp: false,
+    isSystemApp: true,
+    appType: 'system',
     repositoryId: 'harmony-official',
     permissions: ['storage', 'network', 'offline-cache']
   },
@@ -169,7 +174,8 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     category: 'audio',
     rating: 4.7,
     downloadsCount: 92000,
-    isSystemApp: false,
+    isSystemApp: true,
+    appType: 'system',
     repositoryId: 'harmony-official',
     permissions: ['audio', 'storage', 'offline-cache']
   },
@@ -191,9 +197,33 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     category: 'ai',
     rating: 4.9,
     downloadsCount: 120000,
-    isSystemApp: false,
+    isSystemApp: true,
+    appType: 'system',
     repositoryId: 'harmony-official',
     permissions: ['network', 'storage', 'ai-copilot']
+  },
+  {
+    id: 'harmony-voice',
+    name: 'Habeshawi Voice Live',
+    tagline: 'Two-Way Live Voice with Gemini 3.8',
+    iconName: 'mic',
+    iconCdnUrl: getLucideCdnIconUrl('mic'),
+    colorGradient: 'from-cyan-500 via-blue-600 to-indigo-700',
+    bgHex: '#0284c7',
+    deployedUrl: '#',
+    repoUrl: 'https://github.com/abduedris313-max/harmony-super-app',
+    description: 'Two-way real-time voice conversations powered by Gemini 3.8 Live API, fast audio transcription by Gemini 3.5 Transcribe, and voice memo intelligence.',
+    badge: 'Live',
+    version: '1.0.0',
+    author: 'Habeshawi AI Voice Lab',
+    size: '1.5 MB',
+    category: 'ai',
+    rating: 5.0,
+    downloadsCount: 95000,
+    isSystemApp: true,
+    appType: 'system',
+    repositoryId: 'harmony-official',
+    permissions: ['audio', 'network', 'storage', 'offline-cache']
   },
   {
     id: 'harmony-ajam-script',
@@ -214,6 +244,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     rating: 5.0,
     downloadsCount: 65000,
     isSystemApp: true,
+    appType: 'system',
     repositoryId: 'harmony-official',
     permissions: ['storage', 'audio', 'offline-cache']
   },
@@ -236,6 +267,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     rating: 5.0,
     downloadsCount: 250000,
     isSystemApp: true,
+    appType: 'system',
     repositoryId: 'harmony-official',
     permissions: ['network', 'storage', 'service-worker', 'package-management']
   },
@@ -262,6 +294,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     rating: 4.9,
     downloadsCount: 42500,
     isSystemApp: false,
+    appType: 'user',
     repositoryId: 'harmony-community',
     permissions: ['network', 'storage', 'offline-cache']
   },
@@ -284,6 +317,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     rating: 4.8,
     downloadsCount: 68200,
     isSystemApp: false,
+    appType: 'user',
     repositoryId: 'harmony-community',
     permissions: ['storage', 'offline-cache']
   },
@@ -306,6 +340,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     rating: 4.9,
     downloadsCount: 35100,
     isSystemApp: false,
+    appType: 'user',
     repositoryId: 'harmony-community',
     permissions: ['audio', 'storage', 'notifications', 'offline-cache']
   },
@@ -328,6 +363,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     rating: 4.7,
     downloadsCount: 19400,
     isSystemApp: false,
+    appType: 'user',
     repositoryId: 'harmony-community',
     permissions: ['network', 'storage', 'system-diagnostics']
   },
@@ -350,6 +386,7 @@ export const CENTRAL_REPOSITORY_APPS: MiniAppConfig[] = [
     rating: 4.8,
     downloadsCount: 27800,
     isSystemApp: false,
+    appType: 'user',
     repositoryId: 'harmony-community',
     permissions: ['storage', 'notifications', 'offline-cache']
   }
