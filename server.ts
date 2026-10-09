@@ -20,6 +20,15 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+// Security HTTP headers to prevent MIME-sniffing, framing attacks, and referrer leakage
+app.use((_req: Request, res: Response, next: express.NextFunction) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
 app.use(express.json({ limit: '50mb' }));
 
 // Lazy initializer for Google Gemini AI SDK with User-Agent telemetry
@@ -68,7 +77,7 @@ app.get('/api/users', requireAuth, async (_req: AuthRequest, res: Response) => {
     res.json(users);
   } catch (error: any) {
     console.error('Failed to fetch users from Cloud SQL:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch users' });
+    res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
@@ -84,7 +93,7 @@ app.post('/api/users/sync', requireAuth, async (req: AuthRequest, res: Response)
     res.json({ success: true, user });
   } catch (error: any) {
     console.error('Failed to sync user to Cloud SQL:', error);
-    res.status(500).json({ error: error.message || 'Failed to sync user' });
+    res.status(500).json({ error: 'Failed to sync user' });
   }
 });
 
@@ -216,7 +225,7 @@ app.post(['/api/harmony/ai', '/api/gemini'], async (req: Request, res: Response)
     }
 
     res.status(500).json({
-      error: error.message || 'Failed to process request with Gemini AI'
+      error: 'Failed to process request with Gemini AI'
     });
   }
 });
@@ -370,7 +379,7 @@ app.post('/api/voice/transcribe', async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('[Gemini 3.5 Transcribe Error]:', error);
-    res.status(500).json({ error: error.message || 'Failed to transcribe audio' });
+    res.status(500).json({ error: 'Failed to transcribe audio' });
   }
 });
 
@@ -418,7 +427,7 @@ app.post('/api/voice/respond', async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('[Gemini Voice Respond Error]:', error);
-    res.status(500).json({ error: error.message || 'Failed to generate voice response' });
+    res.status(500).json({ error: 'Failed to generate voice response' });
   }
 });
 
