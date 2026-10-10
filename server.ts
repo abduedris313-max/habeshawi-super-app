@@ -429,6 +429,7 @@ app.post('/api/voice/respond', async (req: Request, res: Response) => {
 // In-memory runtime storage for repository catalog
 let memoryCatalog: any[] = [];
 
+// Public read access to mini-app catalog
 app.get('/api/repository/apps', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
@@ -437,7 +438,8 @@ app.get('/api/repository/apps', (_req: Request, res: Response) => {
   });
 });
 
-app.post('/api/repository/apps', (req: Request, res: Response) => {
+// SECURITY ENHANCEMENT: Enforce authentication on repository mutation endpoints to prevent unauthenticated tampering
+app.post('/api/repository/apps', requireAuth, (req: AuthRequest, res: Response) => {
   const newApp = req.body;
   if (!newApp || !newApp.id) {
     return res.status(400).json({ error: 'Valid app package payload is required.' });
@@ -451,7 +453,7 @@ app.post('/api/repository/apps', (req: Request, res: Response) => {
   res.status(201).json({ status: 'published', app: newApp });
 });
 
-app.put('/api/repository/apps/:id', (req: Request, res: Response) => {
+app.put('/api/repository/apps/:id', requireAuth, (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   const updates = req.body;
   const index = memoryCatalog.findIndex(a => a.id === id);
@@ -462,7 +464,7 @@ app.put('/api/repository/apps/:id', (req: Request, res: Response) => {
   res.status(404).json({ error: 'App package not found' });
 });
 
-app.delete('/api/repository/apps/:id', (req: Request, res: Response) => {
+app.delete('/api/repository/apps/:id', requireAuth, (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   memoryCatalog = memoryCatalog.filter(a => a.id !== id);
   res.json({ status: 'deleted', id });
