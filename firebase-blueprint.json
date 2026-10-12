@@ -170,6 +170,110 @@
         "lastLoginAt": { "type": "string" }
       },
       "required": ["uid", "email", "role"]
+    },
+    "harmony_finance_accounts": {
+      "title": "Harmony Finance Accounts",
+      "description": "Ledger accounts (checking, savings, cash, credit cards, investments)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "balance": { "type": "number" },
+        "currency": { "type": "string" },
+        "institution": { "type": "string" },
+        "accountNumberMasked": { "type": "string" },
+        "color": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "name", "balance"]
+    },
+    "harmony_finance_transactions": {
+      "title": "Harmony Finance Transactions",
+      "description": "Financial income, expense, and transfer transactions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "amount": { "type": "number" },
+        "type": { "type": "string" },
+        "category": { "type": "string" },
+        "date": { "type": "string" },
+        "accountId": { "type": "string" },
+        "toAccountId": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "notes": { "type": "string" },
+        "tags": { "type": "array" },
+        "isRecurring": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "amount", "type", "date", "accountId"]
+    },
+    "harmony_finance_budgets": {
+      "title": "Harmony Finance Budgets",
+      "description": "Monthly category budget targets and threshold alerts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "category": { "type": "string" },
+        "monthlyLimit": { "type": "number" },
+        "alertThreshold": { "type": "number" },
+        "currency": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "category", "monthlyLimit"]
+    },
+    "harmony_finance_loans": {
+      "title": "Harmony Finance Loans",
+      "description": "Debt and loan schedules, balances, and payment records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "type": { "type": "string" },
+        "lenderOrBorrower": { "type": "string" },
+        "originalPrincipal": { "type": "number" },
+        "currentBalance": { "type": "number" },
+        "interestRate": { "type": "number" },
+        "tenureMonths": { "type": "number" },
+        "monthlyEmi": { "type": "number" },
+        "startDate": { "type": "string" },
+        "nextDueDate": { "type": "string" },
+        "totalPaidSoFar": { "type": "number" },
+        "status": { "type": "string" },
+        "notes": { "type": "string" },
+        "paymentHistory": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "originalPrincipal", "currentBalance"]
+    },
+    "harmony_finance_subscriptions": {
+      "title": "Harmony Finance Subscriptions",
+      "description": "Recurring subscription expenses and billing alerts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "amount": { "type": "number" },
+        "category": { "type": "string" },
+        "billingCycle": { "type": "string" },
+        "nextBillingDate": { "type": "string" },
+        "accountId": { "type": "string" },
+        "status": { "type": "string" },
+        "remindDaysBefore": { "type": "number" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "name", "amount", "billingCycle", "nextBillingDate"]
     }
   },
   "firestore": {
@@ -212,6 +316,26 @@
     "/harmony_calendar/{eventId}": {
       "schema": "harmony_calendar",
       "description": "User calendar events supporting Gregorian, Hijri, Ethiopian, and Google Calendar sync"
+    },
+    "/harmony_finance_accounts/{accountId}": {
+      "schema": "harmony_finance_accounts",
+      "description": "User general ledger accounts and liquidity balances"
+    },
+    "/harmony_finance_transactions/{transactionId}": {
+      "schema": "harmony_finance_transactions",
+      "description": "User financial transaction ledger entries"
+    },
+    "/harmony_finance_budgets/{budgetId}": {
+      "schema": "harmony_finance_budgets",
+      "description": "User monthly category budgeting limits"
+    },
+    "/harmony_finance_loans/{loanId}": {
+      "schema": "harmony_finance_loans",
+      "description": "User loan and debt amortization tracking"
+    },
+    "/harmony_finance_subscriptions/{subscriptionId}": {
+      "schema": "harmony_finance_subscriptions",
+      "description": "User recurring subscription plans and upcoming renewals"
     }
   }
 }

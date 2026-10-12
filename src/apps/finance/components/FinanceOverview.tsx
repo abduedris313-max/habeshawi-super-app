@@ -37,6 +37,7 @@ import {
   calculateBudgetStatus, 
   formatCurrency 
 } from '../lib/calculations';
+import { ExpensePieChart } from './ExpensePieChart';
 
 interface FinanceOverviewProps {
   transactions: FinanceTransaction[];
@@ -239,6 +240,13 @@ export const FinanceOverview: React.FC<FinanceOverviewProps> = ({
           </button>
         </div>
       )}
+
+      {/* Expense Pie Chart Visualizer */}
+      <ExpensePieChart
+        transactions={transactions}
+        currencyCode={currencyCode}
+        onOpenAddExpense={() => onOpenAddTransaction('expense')}
+      />
 
       {/* Dual Column: Accounts / Obligations & Recent Activity */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-4">

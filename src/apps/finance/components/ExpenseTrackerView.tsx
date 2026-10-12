@@ -16,10 +16,12 @@ import {
   ArrowRightLeft, 
   Tag,
   Calendar,
-  Wallet
+  Wallet,
+  PieChart as PieChartIcon
 } from 'lucide-react';
 import { FinanceTransaction, FinanceAccount, FinanceCategory, TransactionType } from '../types';
 import { formatCurrency, exportTransactionsToCsv, downloadFile } from '../lib/calculations';
+import { ExpensePieChart } from './ExpensePieChart';
 
 interface ExpenseTrackerViewProps {
   transactions: FinanceTransaction[];
@@ -43,6 +45,7 @@ export const ExpenseTrackerView: React.FC<ExpenseTrackerViewProps> = ({
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [accountFilter, setAccountFilter] = useState<string>('all');
   const [dateMonthFilter, setDateMonthFilter] = useState<string>('');
+  const [showChart, setShowChart] = useState(false);
 
   // Extract unique categories and months
   const categories = useMemo(() => {
@@ -97,6 +100,19 @@ export const ExpenseTrackerView: React.FC<ExpenseTrackerViewProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              onClick={() => setShowChart(!showChart)}
+              className={`px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer border ${
+                showChart
+                  ? 'bg-rose-600 text-white border-transparent shadow-xs'
+                  : 'bg-neutral-100 dark:bg-[#21262d] hover:bg-neutral-200 dark:hover:bg-[#30363d] text-neutral-700 dark:text-[#c9d1d9] border-neutral-200 dark:border-transparent'
+              }`}
+              title="Toggle Expense Categorization Pie Chart"
+            >
+              <PieChartIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span>{showChart ? 'Hide Chart' : 'Chart'}</span>
+            </button>
+
             <button
               onClick={handleExportCsv}
               className="px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-lg sm:rounded-xl bg-neutral-100 dark:bg-[#21262d] hover:bg-neutral-200 dark:hover:bg-[#30363d] text-neutral-700 dark:text-[#c9d1d9] text-[11px] sm:text-xs font-semibold flex items-center gap-1 transition-colors border border-neutral-200 dark:border-transparent cursor-pointer"
@@ -197,6 +213,15 @@ export const ExpenseTrackerView: React.FC<ExpenseTrackerViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Visual Expense Categorization Pie Chart */}
+      {showChart && (
+        <ExpensePieChart
+          transactions={filteredTransactions}
+          currencyCode={currencyCode}
+          onOpenAddExpense={() => onOpenAddModal('expense')}
+        />
+      )}
 
       {/* Transaction Records List */}
       <div className="space-y-1.5 sm:space-y-2">

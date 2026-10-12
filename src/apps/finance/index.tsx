@@ -45,6 +45,7 @@ import { TransactionModal } from './components/TransactionModal';
 import { LoanModal } from './components/LoanModal';
 import { SystemUser } from '../../types';
 import {
+  auth,
   saveFinanceTransaction,
   deleteFinanceTransaction,
   subscribeFinanceTransactions,
@@ -79,7 +80,8 @@ interface HarmonyFinanceAppModuleProps {
 
 export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = ({ user }) => {
   const theme = useTheme();
-  const userId = user?.uid || 'offline-user';
+  const currentAuthUid = auth?.currentUser?.uid;
+  const userId = user?.uid || currentAuthUid || 'offline-user';
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<FinanceTab>('overview');
@@ -89,31 +91,37 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
     return localStorage.getItem('harmony_finance_currency') || 'USD';
   });
 
-  // State: Transactions
+  // State: Transactions (resilient offline-first persistence)
   const [transactions, setTransactions] = useState<FinanceTransaction[]>(() => {
-    return getLocalItem<FinanceTransaction[]>(
-      STORAGE_KEYS.FINANCE_TRANSACTIONS,
-      INITIAL_OFFLINE_FINANCE_TRANSACTIONS
-    );
+    const saved = getLocalItem<FinanceTransaction[] | null>(STORAGE_KEYS.FINANCE_TRANSACTIONS, null);
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      return saved;
+    }
+    setLocalItem(STORAGE_KEYS.FINANCE_TRANSACTIONS, INITIAL_OFFLINE_FINANCE_TRANSACTIONS);
+    return INITIAL_OFFLINE_FINANCE_TRANSACTIONS;
   });
 
-  // State: Accounts
+  // State: Accounts (resilient offline-first persistence)
   const [accounts, setAccounts] = useState<FinanceAccount[]>(() => {
-    return getLocalItem<FinanceAccount[]>(
-      STORAGE_KEYS.FINANCE_ACCOUNTS,
-      INITIAL_OFFLINE_FINANCE_ACCOUNTS
-    );
+    const saved = getLocalItem<FinanceAccount[] | null>(STORAGE_KEYS.FINANCE_ACCOUNTS, null);
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      return saved;
+    }
+    setLocalItem(STORAGE_KEYS.FINANCE_ACCOUNTS, INITIAL_OFFLINE_FINANCE_ACCOUNTS);
+    return INITIAL_OFFLINE_FINANCE_ACCOUNTS;
   });
 
-  // State: Budgets
+  // State: Budgets (resilient offline-first persistence)
   const [budgets, setBudgets] = useState<FinanceBudget[]>(() => {
-    return getLocalItem<FinanceBudget[]>(
-      STORAGE_KEYS.FINANCE_BUDGETS,
-      INITIAL_OFFLINE_FINANCE_BUDGETS
-    );
+    const saved = getLocalItem<FinanceBudget[] | null>(STORAGE_KEYS.FINANCE_BUDGETS, null);
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      return saved;
+    }
+    setLocalItem(STORAGE_KEYS.FINANCE_BUDGETS, INITIAL_OFFLINE_FINANCE_BUDGETS);
+    return INITIAL_OFFLINE_FINANCE_BUDGETS;
   });
 
-  // State: Loans
+  // State: Loans (resilient offline-first persistence)
   const [loans, setLoans] = useState<FinanceLoan[]>(() => {
     return getLocalItem<FinanceLoan[]>(
       STORAGE_KEYS.FINANCE_LOANS,
@@ -121,7 +129,7 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
     );
   });
 
-  // State: Subscriptions
+  // State: Subscriptions (resilient offline-first persistence)
   const [subscriptions, setSubscriptions] = useState<FinanceSubscription[]>(() => {
     return getLocalItem<FinanceSubscription[]>(
       STORAGE_KEYS.FINANCE_SUBSCRIPTIONS,
@@ -140,7 +148,7 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
   // Currency Selection toggle
   const [isCurrencyDropdownOpen, setIsCurrencyDropdownOpen] = useState(false);
 
-  // Firestore Subscriptions
+  // Firestore Subscriptions with Bi-directional First-Time Sync
   useEffect(() => {
     if (!userId || userId === 'offline-user') return;
 
@@ -148,6 +156,13 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
       if (cloudTx && cloudTx.length > 0) {
         setTransactions(cloudTx);
         setLocalItem(STORAGE_KEYS.FINANCE_TRANSACTIONS, cloudTx);
+      } else if (cloudTx && cloudTx.length === 0) {
+        const localTxs = getLocalItem<FinanceTransaction[]>(STORAGE_KEYS.FINANCE_TRANSACTIONS, []);
+        if (localTxs.length > 0) {
+          localTxs.forEach((tx) => {
+            saveFinanceTransaction(userId, tx).catch(() => {});
+          });
+        }
       }
     });
 
@@ -155,6 +170,13 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
       if (cloudAcc && cloudAcc.length > 0) {
         setAccounts(cloudAcc);
         setLocalItem(STORAGE_KEYS.FINANCE_ACCOUNTS, cloudAcc);
+      } else if (cloudAcc && cloudAcc.length === 0) {
+        const localAccs = getLocalItem<FinanceAccount[]>(STORAGE_KEYS.FINANCE_ACCOUNTS, []);
+        if (localAccs.length > 0) {
+          localAccs.forEach((acc) => {
+            saveFinanceAccount(userId, acc).catch(() => {});
+          });
+        }
       }
     });
 
@@ -162,6 +184,13 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
       if (cloudBud && cloudBud.length > 0) {
         setBudgets(cloudBud);
         setLocalItem(STORAGE_KEYS.FINANCE_BUDGETS, cloudBud);
+      } else if (cloudBud && cloudBud.length === 0) {
+        const localBuds = getLocalItem<FinanceBudget[]>(STORAGE_KEYS.FINANCE_BUDGETS, []);
+        if (localBuds.length > 0) {
+          localBuds.forEach((b) => {
+            saveFinanceBudget(userId, b).catch(() => {});
+          });
+        }
       }
     });
 
@@ -169,6 +198,13 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
       if (cloudLoans && cloudLoans.length > 0) {
         setLoans(cloudLoans);
         setLocalItem(STORAGE_KEYS.FINANCE_LOANS, cloudLoans);
+      } else if (cloudLoans && cloudLoans.length === 0) {
+        const localLoans = getLocalItem<FinanceLoan[]>(STORAGE_KEYS.FINANCE_LOANS, []);
+        if (localLoans.length > 0) {
+          localLoans.forEach((l) => {
+            saveFinanceLoan(userId, l).catch(() => {});
+          });
+        }
       }
     });
 
@@ -176,6 +212,13 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
       if (cloudSubs && cloudSubs.length > 0) {
         setSubscriptions(cloudSubs);
         setLocalItem(STORAGE_KEYS.FINANCE_SUBSCRIPTIONS, cloudSubs);
+      } else if (cloudSubs && cloudSubs.length === 0) {
+        const localSubs = getLocalItem<FinanceSubscription[]>(STORAGE_KEYS.FINANCE_SUBSCRIPTIONS, []);
+        if (localSubs.length > 0) {
+          localSubs.forEach((s) => {
+            saveFinanceSubscription(userId, s).catch(() => {});
+          });
+        }
       }
     });
 
@@ -195,33 +238,98 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
   };
 
   // ---------------------------------------------------------------------------
-  // HANDLERS: Transactions
+  // HANDLERS: Transactions & Ledger Auto-Reconciliation
   // ---------------------------------------------------------------------------
   const handleSaveTransaction = async (txData: Partial<FinanceTransaction> & { id: string; title: string; amount: number; type: TransactionType; category: FinanceCategory; date: string; accountId: string; paymentMethod: PaymentMethod }) => {
-    const updated = [
+    const existingTx = transactions.find(t => t.id === txData.id);
+    const updatedTxList = [
       txData as FinanceTransaction,
       ...transactions.filter(t => t.id !== txData.id)
     ];
-    setTransactions(updated);
-    setLocalItem(STORAGE_KEYS.FINANCE_TRANSACTIONS, updated);
+    setTransactions(updatedTxList);
+    setLocalItem(STORAGE_KEYS.FINANCE_TRANSACTIONS, updatedTxList);
 
-    // Auto-update account balances
-    setAccounts(prevAccounts => {
-      return prevAccounts.map(acc => {
-        if (acc.id === txData.accountId) {
-          const delta = txData.type === 'expense' ? -txData.amount : txData.type === 'income' ? txData.amount : -txData.amount;
-          return { ...acc, balance: Math.round((acc.balance + delta) * 100) / 100 };
-        }
-        if (txData.type === 'transfer' && acc.id === txData.toAccountId) {
-          return { ...acc, balance: Math.round((acc.balance + txData.amount) * 100) / 100 };
-        }
-        return acc;
+    // Accurately adjust and persist ledger account balances
+    let currentAccounts = [...accounts];
+
+    // Ensure the source account exists
+    const hasSource = currentAccounts.some(a => a.id === txData.accountId);
+    if (!hasSource) {
+      currentAccounts.push({
+        id: txData.accountId,
+        userId,
+        name: txData.accountId === 'acc-checking' ? 'Primary Checking' : 'General Account',
+        type: 'checking',
+        balance: 0,
+        currency: currencyCode,
+        color: '#10b981',
+        updatedAt: new Date().toISOString()
       });
+    }
+
+    if (txData.type === 'transfer' && txData.toAccountId) {
+      const hasDest = currentAccounts.some(a => a.id === txData.toAccountId);
+      if (!hasDest) {
+        currentAccounts.push({
+          id: txData.toAccountId,
+          userId,
+          name: txData.toAccountId === 'acc-savings' ? 'High-Yield Savings' : 'Savings Account',
+          type: 'savings',
+          balance: 0,
+          currency: currencyCode,
+          color: '#3b82f6',
+          updatedAt: new Date().toISOString()
+        });
+      }
+    }
+
+    const updatedAccounts = currentAccounts.map(acc => {
+      let bal = acc.balance;
+
+      // 1. Revert previous transaction impact if editing
+      if (existingTx) {
+        if (existingTx.accountId === acc.id) {
+          if (existingTx.type === 'expense') bal += existingTx.amount;
+          else if (existingTx.type === 'income') bal -= existingTx.amount;
+          else if (existingTx.type === 'transfer') bal += existingTx.amount;
+        }
+        if (existingTx.type === 'transfer' && existingTx.toAccountId === acc.id) {
+          bal -= existingTx.amount;
+        }
+      }
+
+      // 2. Apply new transaction impact
+      if (txData.accountId === acc.id) {
+        if (txData.type === 'expense') bal -= txData.amount;
+        else if (txData.type === 'income') bal += txData.amount;
+        else if (txData.type === 'transfer') bal -= txData.amount;
+      }
+      if (txData.type === 'transfer' && txData.toAccountId === acc.id) {
+        bal += txData.amount;
+      }
+
+      return {
+        ...acc,
+        balance: Math.round(bal * 100) / 100,
+        updatedAt: new Date().toISOString()
+      };
     });
+
+    setAccounts(updatedAccounts);
+    setLocalItem(STORAGE_KEYS.FINANCE_ACCOUNTS, updatedAccounts);
 
     if (navigator.onLine && userId !== 'offline-user') {
       try {
         await saveFinanceTransaction(userId, txData);
+        for (const acc of updatedAccounts) {
+          if (
+            acc.id === txData.accountId ||
+            (txData.type === 'transfer' && acc.id === txData.toAccountId) ||
+            (existingTx && (acc.id === existingTx.accountId || acc.id === existingTx.toAccountId))
+          ) {
+            await saveFinanceAccount(userId, acc);
+          }
+        }
       } catch (err) {
         console.warn('[Finance Save Tx Cloud Error]', err);
       }
@@ -229,9 +337,40 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
   };
 
   const handleDeleteTransaction = async (id: string) => {
+    const txToDelete = transactions.find(t => t.id === id);
     const filtered = transactions.filter(t => t.id !== id);
     setTransactions(filtered);
     setLocalItem(STORAGE_KEYS.FINANCE_TRANSACTIONS, filtered);
+
+    if (txToDelete) {
+      const updatedAccounts = accounts.map(acc => {
+        let bal = acc.balance;
+        if (txToDelete.accountId === acc.id) {
+          if (txToDelete.type === 'expense') bal += txToDelete.amount;
+          else if (txToDelete.type === 'income') bal -= txToDelete.amount;
+          else if (txToDelete.type === 'transfer') bal += txToDelete.amount;
+        }
+        if (txToDelete.type === 'transfer' && txToDelete.toAccountId === acc.id) {
+          bal -= txToDelete.amount;
+        }
+        return {
+          ...acc,
+          balance: Math.round(bal * 100) / 100,
+          updatedAt: new Date().toISOString()
+        };
+      });
+
+      setAccounts(updatedAccounts);
+      setLocalItem(STORAGE_KEYS.FINANCE_ACCOUNTS, updatedAccounts);
+
+      if (navigator.onLine && userId !== 'offline-user') {
+        for (const acc of updatedAccounts) {
+          if (acc.id === txToDelete.accountId || (txToDelete.type === 'transfer' && acc.id === txToDelete.toAccountId)) {
+            saveFinanceAccount(userId, acc).catch(() => {});
+          }
+        }
+      }
+    }
 
     if (navigator.onLine && userId !== 'offline-user') {
       try {
@@ -246,8 +385,16 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
   // HANDLERS: Accounts
   // ---------------------------------------------------------------------------
   const handleSaveAccount = async (accData: Partial<FinanceAccount> & { id: string; name: string; type: any; balance: number }) => {
+    const existing = accounts.find(a => a.id === accData.id);
+    const mergedAccount: FinanceAccount = {
+      ...(existing || {}),
+      ...accData,
+      color: accData.color || existing?.color || '#3b82f6',
+      currency: accData.currency || currencyCode,
+      updatedAt: new Date().toISOString()
+    };
     const updated = [
-      accData as FinanceAccount,
+      mergedAccount,
       ...accounts.filter(a => a.id !== accData.id)
     ];
     setAccounts(updated);
@@ -255,7 +402,7 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
 
     if (navigator.onLine && userId !== 'offline-user') {
       try {
-        await saveFinanceAccount(userId, accData);
+        await saveFinanceAccount(userId, mergedAccount);
       } catch (err) {
         console.warn('[Finance Save Account Cloud Error]', err);
       }
@@ -280,8 +427,14 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
   // HANDLERS: Budgets
   // ---------------------------------------------------------------------------
   const handleSaveBudget = async (bData: Partial<FinanceBudget> & { id: string; category: FinanceCategory; monthlyLimit: number }) => {
+    const existing = budgets.find(b => b.id === bData.id);
+    const mergedBudget: FinanceBudget = {
+      ...(existing || {}),
+      ...bData,
+      updatedAt: new Date().toISOString()
+    } as FinanceBudget;
     const updated = [
-      bData as FinanceBudget,
+      mergedBudget,
       ...budgets.filter(b => b.id !== bData.id)
     ];
     setBudgets(updated);
@@ -289,7 +442,7 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
 
     if (navigator.onLine && userId !== 'offline-user') {
       try {
-        await saveFinanceBudget(userId, bData);
+        await saveFinanceBudget(userId, mergedBudget);
       } catch (err) {
         console.warn('[Finance Save Budget Cloud Error]', err);
       }
@@ -314,8 +467,14 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
   // HANDLERS: Loans
   // ---------------------------------------------------------------------------
   const handleSaveLoan = async (loanData: Partial<FinanceLoan> & { id: string }) => {
+    const existing = loans.find(l => l.id === loanData.id);
+    const mergedLoan: FinanceLoan = {
+      ...(existing || {}),
+      ...loanData,
+      updatedAt: new Date().toISOString()
+    } as FinanceLoan;
     const updated = [
-      loanData as FinanceLoan,
+      mergedLoan,
       ...loans.filter(l => l.id !== loanData.id)
     ];
     setLoans(updated);
@@ -323,7 +482,7 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
 
     if (navigator.onLine && userId !== 'offline-user') {
       try {
-        await saveFinanceLoan(userId, loanData as any);
+        await saveFinanceLoan(userId, mergedLoan);
       } catch (err) {
         console.warn('[Finance Save Loan Cloud Error]', err);
       }
@@ -348,8 +507,14 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
   // HANDLERS: Subscriptions
   // ---------------------------------------------------------------------------
   const handleSaveSubscription = async (subData: Partial<FinanceSubscription> & { id: string; name: string; amount: number; billingCycle: any; nextBillingDate: string; category: FinanceCategory }) => {
+    const existing = subscriptions.find(s => s.id === subData.id);
+    const mergedSub: FinanceSubscription = {
+      ...(existing || {}),
+      ...subData,
+      updatedAt: new Date().toISOString()
+    } as FinanceSubscription;
     const updated = [
-      subData as FinanceSubscription,
+      mergedSub,
       ...subscriptions.filter(s => s.id !== subData.id)
     ];
     setSubscriptions(updated);
@@ -357,7 +522,7 @@ export const HarmonyFinanceAppModule: React.FC<HarmonyFinanceAppModuleProps> = (
 
     if (navigator.onLine && userId !== 'offline-user') {
       try {
-        await saveFinanceSubscription(userId, subData);
+        await saveFinanceSubscription(userId, mergedSub);
       } catch (err) {
         console.warn('[Finance Save Sub Cloud Error]', err);
       }

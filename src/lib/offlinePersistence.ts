@@ -140,42 +140,8 @@ function safeGetStorage(): Storage | null {
     if (!storage) return;
 
     // Run cleanup flag
-    const CLEANUP_KEY = 'harmony_production_cleaned_v6';
+    const CLEANUP_KEY = 'harmony_production_cleaned_v7';
     if (storage.getItem(CLEANUP_KEY) === 'true') return;
-
-    // Check & sanitize finance data
-    [
-      STORAGE_KEYS.FINANCE_TRANSACTIONS,
-      STORAGE_KEYS.FINANCE_ACCOUNTS,
-      STORAGE_KEYS.FINANCE_BUDGETS,
-      STORAGE_KEYS.FINANCE_LOANS,
-      STORAGE_KEYS.FINANCE_SUBSCRIPTIONS,
-    ].forEach((key) => {
-      const raw = storage.getItem(key);
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            // Remove any items that look like dummy data
-            const cleaned = parsed.filter((item: any) => {
-              const str = JSON.stringify(item).toLowerCase();
-              return !(
-                str.includes('chase sapphire') ||
-                str.includes('silicon valley bank') ||
-                str.includes('macbook pro m3') ||
-                str.includes('netflix 4k') ||
-                str.includes('sample') ||
-                str.includes('dummy') ||
-                (typeof item.id === 'string' && (item.id.startsWith('tx-') || item.id.startsWith('acc-') || item.id.startsWith('loan-') || item.id.startsWith('sub-') || item.id.startsWith('b-')))
-              );
-            });
-            storage.setItem(key, JSON.stringify(cleaned));
-          }
-        } catch {
-          storage.removeItem(key);
-        }
-      }
-    });
 
     // Check & sanitize notes/docs/playlists/calendar/typewriter
     [
@@ -458,11 +424,103 @@ export function useOfflinePersistence(cloudState?: {
 // -----------------------------------------------------------------------------
 // Initial Offline Datasets for Finance & Ledger Suite (Clean, user-authored start)
 // -----------------------------------------------------------------------------
-export const INITIAL_OFFLINE_FINANCE_ACCOUNTS: FinanceAccount[] = [];
-export const INITIAL_OFFLINE_FINANCE_BUDGETS: FinanceBudget[] = [];
+export const INITIAL_OFFLINE_FINANCE_ACCOUNTS: FinanceAccount[] = [
+  {
+    id: 'acc-checking',
+    name: 'Primary Checking',
+    type: 'checking',
+    balance: 5000,
+    currency: 'USD',
+    institution: 'Commercial Bank of Ethiopia',
+    accountNumberMasked: '•••• 4021',
+    color: '#10b981',
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'acc-savings',
+    name: 'High-Yield Savings',
+    type: 'savings',
+    balance: 15000,
+    currency: 'USD',
+    institution: 'Awash International',
+    accountNumberMasked: '•••• 8832',
+    color: '#3b82f6',
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'acc-cash',
+    name: 'Cash & Wallet',
+    type: 'cash',
+    balance: 800,
+    currency: 'USD',
+    institution: 'Physical Cash',
+    color: '#f59e0b',
+    updatedAt: new Date().toISOString()
+  }
+];
+
+export const INITIAL_OFFLINE_FINANCE_BUDGETS: FinanceBudget[] = [
+  {
+    id: 'budget-groceries',
+    category: 'Groceries',
+    monthlyLimit: 600,
+    alertThreshold: 80,
+    currency: 'USD',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'budget-dining',
+    category: 'Food & Dining',
+    monthlyLimit: 400,
+    alertThreshold: 85,
+    currency: 'USD',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'budget-utilities',
+    category: 'Utilities',
+    monthlyLimit: 300,
+    alertThreshold: 90,
+    currency: 'USD',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
+
 export const INITIAL_OFFLINE_FINANCE_LOANS: FinanceLoan[] = [];
 export const INITIAL_OFFLINE_FINANCE_SUBSCRIPTIONS: FinanceSubscription[] = [];
-export const INITIAL_OFFLINE_FINANCE_TRANSACTIONS: FinanceTransaction[] = [];
+export const INITIAL_OFFLINE_FINANCE_TRANSACTIONS: FinanceTransaction[] = [
+  {
+    id: 'tx-init-1',
+    title: 'Salary Deposit',
+    amount: 3500,
+    type: 'income',
+    category: 'Salary',
+    date: new Date().toISOString().slice(0, 10),
+    accountId: 'acc-checking',
+    paymentMethod: 'bank_transfer',
+    notes: 'Monthly earnings',
+    tags: ['salary', 'income'],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'tx-init-2',
+    title: 'Supermarket Groceries',
+    amount: 185.5,
+    type: 'expense',
+    category: 'Groceries',
+    date: new Date().toISOString().slice(0, 10),
+    accountId: 'acc-checking',
+    paymentMethod: 'debit_card',
+    notes: 'Weekly pantry restock',
+    tags: ['groceries'],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
 
 // -----------------------------------------------------------------------------
 // Offline Manual User Accounts Persistence
