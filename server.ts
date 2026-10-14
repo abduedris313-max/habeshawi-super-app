@@ -166,8 +166,9 @@ app.get('/api/harmony/apps', (_req: Request, res: Response) => {
 
 /**
  * Gemini AI Proxy endpoint for Harmony Super App
+ * SECURITY: Protected with requireAuth to prevent unauthenticated API usage and quota exhaustion.
  */
-app.post(['/api/harmony/ai', '/api/gemini'], async (req: Request, res: Response) => {
+app.post(['/api/harmony/ai', '/api/gemini'], requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { prompt, context, taskType } = req.body;
 
