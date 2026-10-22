@@ -437,10 +437,11 @@ app.get('/api/repository/apps', (_req: Request, res: Response) => {
   });
 });
 
-app.post('/api/repository/apps', (req: Request, res: Response) => {
+// Authentication required for catalog mutations to prevent unauthorized catalog manipulation
+app.post('/api/repository/apps', requireAuth, (req: AuthRequest, res: Response) => {
   const newApp = req.body;
-  if (!newApp || !newApp.id) {
-    return res.status(400).json({ error: 'Valid app package payload is required.' });
+  if (!newApp || typeof newApp !== 'object' || !newApp.id || typeof newApp.id !== 'string') {
+    return res.status(400).json({ error: 'Valid app package payload with string id is required.' });
   }
   const index = memoryCatalog.findIndex(a => a.id === newApp.id);
   if (index >= 0) {
@@ -451,7 +452,7 @@ app.post('/api/repository/apps', (req: Request, res: Response) => {
   res.status(201).json({ status: 'published', app: newApp });
 });
 
-app.put('/api/repository/apps/:id', (req: Request, res: Response) => {
+app.put('/api/repository/apps/:id', requireAuth, (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   const updates = req.body;
   const index = memoryCatalog.findIndex(a => a.id === id);
@@ -462,7 +463,7 @@ app.put('/api/repository/apps/:id', (req: Request, res: Response) => {
   res.status(404).json({ error: 'App package not found' });
 });
 
-app.delete('/api/repository/apps/:id', (req: Request, res: Response) => {
+app.delete('/api/repository/apps/:id', requireAuth, (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   memoryCatalog = memoryCatalog.filter(a => a.id !== id);
   res.json({ status: 'deleted', id });
