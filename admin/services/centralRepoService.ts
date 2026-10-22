@@ -14,7 +14,7 @@ import {
   deleteDoc, 
   updateDoc 
 } from 'firebase/firestore';
-import { firestore } from '../../src/lib/firebase';
+import { firestore, auth } from '../../src/lib/firebase';
 import { CENTRAL_REPOSITORY_APPS, DEFAULT_REPOSITORIES } from '../../src/config/appRepository';
 import { AdminMiniApp, PublishAppFormData, CentralRepositoryStats, AuditLogEntry, AppRepositorySource } from '../types';
 
@@ -139,9 +139,14 @@ export async function publishMiniApp(payload: PublishAppFormData): Promise<Admin
 
   // 2. Post to backend
   try {
+    const token = await auth.currentUser?.getIdToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
     await fetch('/api/repository/apps', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(newApp)
     });
   } catch (err) {
@@ -212,9 +217,14 @@ export async function updateMiniApp(appId: string, updates: Partial<AdminMiniApp
 
   // 2. Put to Backend
   try {
+    const token = await auth.currentUser?.getIdToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
     await fetch(`/api/repository/apps/${appId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(updatedApp)
     });
   } catch {
@@ -256,7 +266,12 @@ export async function deleteMiniApp(appId: string): Promise<void> {
 
   // 2. Backend delete
   try {
-    await fetch(`/api/repository/apps/${appId}`, { method: 'DELETE' });
+    const token = await auth.currentUser?.getIdToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    await fetch(`/api/repository/apps/${appId}`, { method: 'DELETE', headers });
   } catch {
     // ignore
   }
