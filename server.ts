@@ -68,7 +68,7 @@ app.get('/api/users', requireAuth, async (_req: AuthRequest, res: Response) => {
     res.json(users);
   } catch (error: any) {
     console.error('Failed to fetch users from Cloud SQL:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch users' });
+    res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
@@ -84,7 +84,7 @@ app.post('/api/users/sync', requireAuth, async (req: AuthRequest, res: Response)
     res.json({ success: true, user });
   } catch (error: any) {
     console.error('Failed to sync user to Cloud SQL:', error);
-    res.status(500).json({ error: error.message || 'Failed to sync user' });
+    res.status(500).json({ error: 'Failed to sync user' });
   }
 });
 
@@ -437,7 +437,8 @@ app.get('/api/repository/apps', (_req: Request, res: Response) => {
   });
 });
 
-app.post('/api/repository/apps', (req: Request, res: Response) => {
+// Central Repository management endpoints require authentication
+app.post('/api/repository/apps', requireAuth, (req: AuthRequest, res: Response) => {
   const newApp = req.body;
   if (!newApp || !newApp.id) {
     return res.status(400).json({ error: 'Valid app package payload is required.' });
@@ -451,7 +452,7 @@ app.post('/api/repository/apps', (req: Request, res: Response) => {
   res.status(201).json({ status: 'published', app: newApp });
 });
 
-app.put('/api/repository/apps/:id', (req: Request, res: Response) => {
+app.put('/api/repository/apps/:id', requireAuth, (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   const updates = req.body;
   const index = memoryCatalog.findIndex(a => a.id === id);
@@ -462,7 +463,7 @@ app.put('/api/repository/apps/:id', (req: Request, res: Response) => {
   res.status(404).json({ error: 'App package not found' });
 });
 
-app.delete('/api/repository/apps/:id', (req: Request, res: Response) => {
+app.delete('/api/repository/apps/:id', requireAuth, (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   memoryCatalog = memoryCatalog.filter(a => a.id !== id);
   res.json({ status: 'deleted', id });
