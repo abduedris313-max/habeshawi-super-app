@@ -105,12 +105,11 @@ export async function registerAdminAccount(params: {
   const { email, pass, displayName, desiredRole, organization, developerHandle, adminSecretKey } = params;
 
   // Validate secret key for elevated roles (super_admin / admin)
+  // Security Fix: Ensure secret key verification cannot be bypassed for 'admin' role.
   let assignedRole: AdminUserRole = 'developer';
   if (desiredRole === 'super_admin' || desiredRole === 'admin') {
     if (adminSecretKey?.trim() === 'HARMONY-ADMIN-2026' || adminSecretKey?.trim() === 'ADMIN-SUPER-KEY') {
       assignedRole = desiredRole;
-    } else if (desiredRole === 'admin') {
-      assignedRole = 'admin';
     } else {
       assignedRole = 'developer';
     }
