@@ -333,7 +333,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
     return allInstalledApps.filter(app => !app.isSystemApp && app.appType !== 'system');
   }, [allInstalledApps]);
 
-  const systemAppCategories = useMemo(() => {
+  const systemAppCategories = useMemo<Record<string, MiniAppConfig[]>>(() => {
     const categories: Record<string, MiniAppConfig[]> = {
       'Core Productivity & Docs': [],
       'AI & Voice Intelligence': [],
@@ -356,7 +356,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
     return categories;
   }, [systemAppsList]);
 
-  const userAppCategories = useMemo(() => {
+  const userAppCategories = useMemo<Record<string, MiniAppConfig[]>>(() => {
     const categories: Record<string, MiniAppConfig[]> = {
       'Atmosphere & Calculations': [],
       'Productivity & Wellness': []
@@ -887,7 +887,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
                       </div>
 
                       <div className="grid grid-cols-2 gap-2">
-                        {Object.entries(systemAppCategories).map(([categoryName, apps]) => {
+                        {(Object.entries(systemAppCategories) as [string, MiniAppConfig[]][]).map(([categoryName, apps]) => {
                           if (apps.length === 0) return null;
                           return (
                             <div
@@ -934,7 +934,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
                       </div>
 
                       <div className="grid grid-cols-2 gap-2">
-                        {Object.entries(userAppCategories).map(([categoryName, apps]) => {
+                        {(Object.entries(userAppCategories) as [string, MiniAppConfig[]][]).map(([categoryName, apps]) => {
                           if (apps.length === 0) return null;
                           return (
                             <div

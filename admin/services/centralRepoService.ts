@@ -14,8 +14,24 @@ import {
   deleteDoc, 
   updateDoc 
 } from 'firebase/firestore';
-import { firestore } from '../../src/lib/firebase';
+import { firestore, auth } from '../../src/lib/firebase';
 import { CENTRAL_REPOSITORY_APPS, DEFAULT_REPOSITORIES } from '../../src/config/appRepository';
+
+/**
+ * Helper to retrieve Authorization header with Firebase ID token if user is signed in.
+ */
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  try {
+    const token = await auth.currentUser?.getIdToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  } catch (err) {
+    console.warn('[AdminCentralRepo] Authorization header setup warning:', err);
+  }
+  return headers;
+}
 import { AdminMiniApp, PublishAppFormData, CentralRepositoryStats, AuditLogEntry, AppRepositorySource } from '../types';
 
 const FIRESTORE_CATALOG_COLLECTION = 'central_apps_catalog';
@@ -137,11 +153,12 @@ export async function publishMiniApp(payload: PublishAppFormData): Promise<Admin
     }
   }
 
-  // 2. Post to backend
+  // 2. Post to backend with auth token
   try {
+    const headers = await getAuthHeaders();
     await fetch('/api/repository/apps', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(newApp)
     });
   } catch (err) {
@@ -210,11 +227,12 @@ export async function updateMiniApp(appId: string, updates: Partial<AdminMiniApp
     }
   }
 
-  // 2. Put to Backend
+  // 2. Put to Backend with auth token
   try {
+    const headers = await getAuthHeaders();
     await fetch(`/api/repository/apps/${appId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(updatedApp)
     });
   } catch {
@@ -254,9 +272,13 @@ export async function deleteMiniApp(appId: string): Promise<void> {
     }
   }
 
-  // 2. Backend delete
+  // 2. Backend delete with auth token
   try {
-    await fetch(`/api/repository/apps/${appId}`, { method: 'DELETE' });
+    const headers = await getAuthHeaders();
+    await fetch(`/api/repository/apps/${appId}`, {
+      method: 'DELETE',
+      headers
+    });
   } catch {
     // ignore
   }
