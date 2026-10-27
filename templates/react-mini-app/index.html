@@ -107,6 +107,17 @@
       });
     });
 
+    // Security Helper: Escape user input to prevent DOM-based XSS when using innerHTML
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     function saveAndRender() {
       Harmony.storage.setItem('user_habits', habits);
       render();
@@ -147,7 +158,8 @@
               ${h.completedToday ? '✓' : ''}
             </div>
             <div>
-              <div class="text-sm font-medium ${h.completedToday ? 'line-through text-neutral-400' : ''}">${h.title}</div>
+              <!-- Escaped title to mitigate DOM-based XSS vulnerability -->
+              <div class="text-sm font-medium ${h.completedToday ? 'line-through text-neutral-400' : ''}">${escapeHtml(h.title)}</div>
               <div class="text-[11px] text-neutral-400">🔥 ${h.streak} day streak</div>
             </div>
           </div>
