@@ -166,8 +166,9 @@ app.get('/api/harmony/apps', (_req: Request, res: Response) => {
 
 /**
  * Gemini AI Proxy endpoint for Harmony Super App
+ * Security: Requires Firebase authentication to prevent anonymous Gemini API quota drain.
  */
-app.post(['/api/harmony/ai', '/api/gemini'], async (req: Request, res: Response) => {
+app.post(['/api/harmony/ai', '/api/gemini'], requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { prompt, context, taskType } = req.body;
 
@@ -223,8 +224,9 @@ app.post(['/api/harmony/ai', '/api/gemini'], async (req: Request, res: Response)
 
 /**
  * Ajam Manuscript AI Scanner & OCR Endpoint
+ * Security: Requires authentication to restrict manuscript AI analysis access.
  */
-app.post('/api/analyze-manuscript', async (req: Request, res: Response) => {
+app.post('/api/analyze-manuscript', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { imageBase64, textSnippet } = req.body;
     const ai = getGeminiClient();
@@ -309,8 +311,9 @@ Analyze the provided manuscript image or text snippet and return JSON with keys:
 
 /**
  * Audio Transcription Endpoint using gemini-3.5-transcribe
+ * Security: Requires authentication for voice transcription processing.
  */
-app.post('/api/voice/transcribe', async (req: Request, res: Response) => {
+app.post('/api/voice/transcribe', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { audioBase64, mimeType } = req.body;
     if (!audioBase64) {
@@ -376,8 +379,9 @@ app.post('/api/voice/transcribe', async (req: Request, res: Response) => {
 
 /**
  * Conversational Turn Endpoint using gemini-3.8-flash
+ * Security: Requires authentication for conversational voice AI turns.
  */
-app.post('/api/voice/respond', async (req: Request, res: Response) => {
+app.post('/api/voice/respond', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { prompt, voiceName, persona, systemInstruction, conversationHistory } = req.body;
     if (!prompt) {
@@ -437,7 +441,8 @@ app.get('/api/repository/apps', (_req: Request, res: Response) => {
   });
 });
 
-app.post('/api/repository/apps', (req: Request, res: Response) => {
+// Security: Require authentication on repository catalog modifications
+app.post('/api/repository/apps', requireAuth, (req: AuthRequest, res: Response) => {
   const newApp = req.body;
   if (!newApp || !newApp.id) {
     return res.status(400).json({ error: 'Valid app package payload is required.' });
@@ -451,7 +456,7 @@ app.post('/api/repository/apps', (req: Request, res: Response) => {
   res.status(201).json({ status: 'published', app: newApp });
 });
 
-app.put('/api/repository/apps/:id', (req: Request, res: Response) => {
+app.put('/api/repository/apps/:id', requireAuth, (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   const updates = req.body;
   const index = memoryCatalog.findIndex(a => a.id === id);
@@ -462,7 +467,7 @@ app.put('/api/repository/apps/:id', (req: Request, res: Response) => {
   res.status(404).json({ error: 'App package not found' });
 });
 
-app.delete('/api/repository/apps/:id', (req: Request, res: Response) => {
+app.delete('/api/repository/apps/:id', requireAuth, (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   memoryCatalog = memoryCatalog.filter(a => a.id !== id);
   res.json({ status: 'deleted', id });
