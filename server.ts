@@ -20,6 +20,22 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+// Security hardening: Prevent framework fingerprinting via X-Powered-By header
+app.disable('x-powered-by');
+
+// Security hardening: Set standard defensive HTTP headers
+app.use((_req: Request, res: Response, next) => {
+  // Prevent MIME type sniffing attacks
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  // Clickjacking defense: permit same-origin frames for internal mini-app views, block external framing
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  // Prevent referrer leakage across origins while preserving internal navigations
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  // Modern standard to disable deprecated and buggy browser XSS auditor
+  res.setHeader('X-XSS-Protection', '0');
+  next();
+});
+
 app.use(express.json({ limit: '50mb' }));
 
 // Lazy initializer for Google Gemini AI SDK with User-Agent telemetry
