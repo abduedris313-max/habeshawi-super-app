@@ -152,10 +152,8 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
           <input
             ref={folderInputRef}
             type="file"
-            // @ts-expect-error webkitdirectory attribute for directory select
-            webkitdirectory="true"
-            directory="true"
             multiple
+            {...({ webkitdirectory: 'true', directory: 'true' } as any)}
             onChange={(e) => e.target.files && handleFiles(e.target.files)}
             className="hidden"
           />

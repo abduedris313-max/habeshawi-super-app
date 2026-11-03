@@ -887,7 +887,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
                       </div>
 
                       <div className="grid grid-cols-2 gap-2">
-                        {Object.entries(systemAppCategories).map(([categoryName, apps]) => {
+                        {(Object.entries(systemAppCategories) as [string, MiniAppConfig[]][]).map(([categoryName, apps]) => {
                           if (apps.length === 0) return null;
                           return (
                             <div
@@ -934,7 +934,7 @@ export const HomeScreenComponent: React.FC<HomeScreenProps> = ({
                       </div>
 
                       <div className="grid grid-cols-2 gap-2">
-                        {Object.entries(userAppCategories).map(([categoryName, apps]) => {
+                        {(Object.entries(userAppCategories) as [string, MiniAppConfig[]][]).map(([categoryName, apps]) => {
                           if (apps.length === 0) return null;
                           return (
                             <div
