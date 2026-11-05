@@ -1,10 +1,10 @@
 /**
  * @file StatusBar.tsx
- * @description iOS 18 style Top Status Bar and Dynamic Island for Harmony OS Super App.
+ * @description Apple HIG Top Status Bar and Dynamic Activity Island for Habeshawi Super App.
  */
 
 import React, { useState, useEffect } from 'react';
-import { Wifi, BatteryCharging, Flame, Disc, Sparkles, SlidersHorizontal, Moon, Sun } from 'lucide-react';
+import { Wifi, BatteryCharging, Disc, Sparkles, SlidersHorizontal, Moon, Sun, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { HarmonyLogo } from './HarmonyLogo';
 
@@ -42,48 +42,54 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   }, []);
 
   return (
-    <div 
-      id="status-bar" 
-      className={`w-full h-8 px-3.5 flex items-center justify-between text-[11px] font-semibold z-40 relative backdrop-blur-md select-none border-b transition-colors ${
+    <header
+      id="status-bar"
+      className={`w-full h-9 px-3.5 sm:px-6 flex items-center justify-between text-[11px] font-medium z-40 relative backdrop-blur-xl select-none border-b transition-colors ${
         isDarkMode
-          ? 'bg-[#0d1117]/80 text-[#c9d1d9] border-[#30363d]'
-          : 'bg-white/85 text-neutral-800 border-neutral-200/80 shadow-xs'
+          ? 'bg-slate-950/75 text-slate-300 border-white/10'
+          : 'bg-white/80 text-slate-700 border-slate-200/80'
       }`}
     >
-      {/* Time Display & Notifications Trigger (Left side of status bar like iOS) */}
-      <div 
-        className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" 
-        onClick={onOpenNotificationCenter || onOpenControlCenter} 
-        title="Open Notification Center (Swipe Down on Home)"
+      {/* Left: Brand Identity, Time & Unboxed System Status Metadata */}
+      <button
+        type="button"
+        className="flex items-center gap-2.5 cursor-pointer hover:opacity-85 transition-opacity min-h-[36px] text-left"
+        onClick={onOpenNotificationCenter || onOpenControlCenter}
+        title="Open Notification Center"
       >
         <HarmonyLogo size="xs" isDarkMode={isDarkMode} />
-        <span className={`font-bold tracking-tight text-xs ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-          {timeStr || '9:41'}
+        <span className={`font-semibold tracking-tight text-xs tabular-nums ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+          {timeStr || '09:41'}
         </span>
 
-        {/* iOS Focus Mode Moon Badge */}
+        <span className={`hidden sm:inline text-[10px] tracking-wider uppercase font-mono ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+          · HABESHAWI
+        </span>
+
         {focusMode && (
-          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 dark:text-indigo-300 text-[9px] border border-indigo-500/30 animate-fade-in font-medium">
-            <Moon className="w-2.5 h-2.5 fill-indigo-400 text-indigo-400" />
+          <span className="flex items-center gap-1 text-[10px] font-semibold tracking-wide uppercase text-indigo-400">
+            <span>·</span>
+            <Moon className="w-2.5 h-2.5" />
             <span className="hidden xs:inline">Focus</span>
           </span>
         )}
 
         {isFirebaseConnected && (
-          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500 text-[9px] border border-amber-500/30">
-            <Flame className="w-2.5 h-2.5 text-amber-500 animate-pulse" />
-            <span className="hidden sm:inline">Firebase</span>
+          <span className={`hidden md:inline text-[10px] font-mono tracking-wider uppercase ${isDarkMode ? 'text-amber-400/90' : 'text-amber-700'}`}>
+            · Cloud Synced
           </span>
         )}
-      </div>
+      </button>
 
-      {/* Dynamic Island Pill */}
-      <motion.div 
+      {/* Center: Interactive Dynamic Island */}
+      <motion.button
+        type="button"
         onClick={onOpenControlCenter}
-        className="cursor-pointer"
-        initial={{ scale: 0.95 }}
+        className="cursor-pointer flex items-center justify-center min-h-[32px]"
+        initial={{ scale: 0.96 }}
         animate={{ scale: 1 }}
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+        title="Open Control Center"
       >
         <AnimatePresence mode="wait">
           {activeMusicTrack ? (
@@ -92,10 +98,10 @@ export const StatusBar: React.FC<StatusBarProps> = ({
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 4 }}
-              className="px-2.5 py-0.5 bg-neutral-900/90 border border-neutral-700/80 rounded-full flex items-center gap-1.5 shadow-lg backdrop-blur-xl"
+              className="px-3 py-1 bg-slate-900/95 border border-white/15 rounded-full flex items-center gap-1.5 shadow-lg backdrop-blur-xl"
             >
-              <Disc className="w-3 h-3 text-fuchsia-400 animate-spin" />
-              <span className="max-w-[120px] sm:max-w-[180px] truncate text-[10px] text-fuchsia-200 font-medium">
+              <Disc className="w-3 h-3 text-amber-400 animate-spin" />
+              <span className="max-w-[120px] sm:max-w-[180px] truncate text-[10px] text-amber-100 font-medium">
                 {activeMusicTrack}
               </span>
             </motion.div>
@@ -105,57 +111,79 @@ export const StatusBar: React.FC<StatusBarProps> = ({
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 4 }}
-              className="px-2.5 py-0.5 bg-purple-950/80 border border-purple-500/50 rounded-full flex items-center gap-1 shadow-lg backdrop-blur-xl"
+              className="px-3 py-1 bg-indigo-950/90 border border-indigo-400/40 rounded-full flex items-center gap-1.5 shadow-lg backdrop-blur-xl"
             >
-              <Sparkles className="w-3 h-3 text-purple-300 animate-bounce" />
-              <span className="text-[10px] text-purple-200 font-medium">AI Thinking...</span>
+              <Sparkles className="w-3 h-3 text-indigo-300" />
+              <span className="text-[10px] text-indigo-100 font-medium">Copilot Active</span>
             </motion.div>
           ) : (
             <motion.div
               key="default-island"
-              className={`h-4 w-20 rounded-full border flex items-center justify-center gap-1 shadow-inner ${
-                isDarkMode ? 'bg-black/80 border-neutral-800/80' : 'bg-neutral-800 border-neutral-700'
+              className={`h-5 w-24 rounded-full border flex items-center justify-between px-2.5 shadow-inner transition-all hover:w-28 ${
+                isDarkMode ? 'bg-black/85 border-white/10' : 'bg-slate-900 border-slate-800'
               }`}
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-slate-400/80"></div>
-              <div className="w-1 h-1 rounded-full bg-slate-600/60"></div>
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400/80" />
+              <span className="text-[8px] font-mono tracking-widest uppercase text-slate-400">OS 18</span>
+              <span className="w-1 h-1 rounded-full bg-emerald-400/80" />
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </motion.button>
 
-      {/* Battery, Wifi, Quick Theme & Control Center Toggle Button */}
-      <div className="flex items-center gap-2 sm:gap-2.5">
+      {/* Right: Quick Utilities, Theme Switch & Control Center */}
+      <div className="flex items-center gap-1.5 sm:gap-2.5">
+        {onOpenNotificationCenter && (
+          <button
+            type="button"
+            onClick={onOpenNotificationCenter}
+            className={`p-1.5 rounded-lg transition-colors active:scale-95 flex items-center justify-center ${
+              isDarkMode
+                ? 'hover:bg-white/10 text-slate-300 hover:text-white'
+                : 'hover:bg-slate-200/70 text-slate-600 hover:text-slate-900'
+            }`}
+            title="Notifications"
+          >
+            <Bell className="w-3.5 h-3.5" />
+          </button>
+        )}
+
         {onToggleTheme && (
           <button
             id="btn-quick-theme-toggle"
+            type="button"
             onClick={onToggleTheme}
-            className={`p-1 rounded-full transition-transform active:scale-90 flex items-center justify-center ${
+            className={`p-1.5 rounded-lg transition-colors active:scale-95 flex items-center justify-center ${
               isDarkMode
                 ? 'hover:bg-white/10 text-amber-300 hover:text-amber-200'
-                : 'hover:bg-neutral-200 text-amber-600 hover:text-amber-700'
+                : 'hover:bg-slate-200/70 text-amber-600 hover:text-amber-700'
             }`}
             title={isDarkMode ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
           >
             {isDarkMode ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
           </button>
         )}
-        <Wifi className={`w-3.5 h-3.5 ${isDarkMode ? 'text-white/80' : 'text-neutral-700'}`} />
-        <div className="flex items-center gap-1 text-[11px] text-emerald-500">
-          <span className="font-mono text-[10px] hidden sm:inline">100%</span>
-          <BatteryCharging className="w-4 h-4 text-emerald-500" />
+
+        <div className="hidden xs:flex items-center gap-1.5 pl-1">
+          <Wifi className={`w-3.5 h-3.5 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`} />
+          <div className="flex items-center gap-0.5 text-[10px] font-mono tabular-nums text-emerald-500">
+            <span className="hidden sm:inline">100%</span>
+            <BatteryCharging className="w-4 h-4 text-emerald-500" />
+          </div>
         </div>
+
         <button
           id="btn-control-center-trigger"
+          type="button"
           onClick={onOpenControlCenter}
-          className={`p-1 rounded-full transition-transform active:scale-90 ${
-            isDarkMode ? 'hover:bg-white/10 text-white/90' : 'hover:bg-neutral-200 text-neutral-800'
+          className={`p-1.5 rounded-lg transition-colors active:scale-95 ${
+            isDarkMode ? 'hover:bg-white/10 text-white' : 'hover:bg-slate-200/70 text-slate-800'
           }`}
           title="Open Control Center"
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
         </button>
       </div>
-    </div>
+    </header>
   );
 };

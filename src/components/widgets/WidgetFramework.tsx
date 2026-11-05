@@ -129,32 +129,33 @@ export const WidgetFramework: React.FC<WidgetFrameworkProps> = ({
   return (
     <div className="w-full mb-2">
       {/* Widget Section Header */}
-      <div className="flex items-center justify-between mb-1.5 px-0.5">
-        <div className="flex items-center gap-1.5">
-          <h2 className={`text-[10px] font-bold tracking-wider uppercase flex items-center gap-1 ${
-            isDarkMode ? 'text-white/70' : 'text-neutral-700'
+      <div className="flex items-center justify-between mb-2 px-0.5">
+        <div className="flex items-center gap-2">
+          <h2 className={`text-xs font-bold tracking-wider uppercase flex items-center gap-1.5 ${
+            isDarkMode ? 'text-white/90' : 'text-slate-800'
           }`}>
-            <Layers className="w-3 h-3 text-indigo-400" />
-            <span>Smart Stack</span>
+            <Layers className="w-3.5 h-3.5 text-amber-500" />
+            <span>Smart Stack Widgets</span>
           </h2>
-          <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-indigo-500/10 text-indigo-400 font-mono font-bold">
-            {enabledWidgetIds.length} Active
+          <span className="text-[10px] text-slate-400 font-mono">
+            · {enabledWidgetIds.length} Active
           </span>
         </div>
 
         <button
+          type="button"
           onClick={() => {
             soundManager.playClickSound();
             setIsCustomizeModalOpen(true);
           }}
-          className={`flex items-center gap-1 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border transition-all ${
+          className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl border transition-all cursor-pointer ${
             isDarkMode
-              ? 'bg-[#161b22] text-[#8b949e] hover:text-white border-[#30363d] hover:border-indigo-400'
-              : 'bg-white/90 text-neutral-600 hover:text-neutral-900 border-neutral-200 hover:border-indigo-400'
+              ? 'bg-slate-900/80 text-slate-300 hover:text-white border-white/10 hover:border-amber-500/40'
+              : 'bg-white/90 text-slate-600 hover:text-slate-900 border-slate-200 hover:border-slate-400'
           }`}
           title="Customize Home Screen Widgets & Sizes"
         >
-          <SlidersHorizontal className="w-2.5 h-2.5" />
+          <SlidersHorizontal className="w-3 h-3 text-amber-500" />
           <span>Edit & Resize</span>
         </button>
       </div>
