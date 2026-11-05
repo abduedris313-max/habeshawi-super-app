@@ -20,6 +20,18 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+// Sentinel: Disable x-powered-by header to prevent fingerprinting
+app.disable('x-powered-by');
+
+// Sentinel: Security headers middleware (SAMEORIGIN required for iframe-embedded mini-apps/previews)
+app.use((_req: Request, res: Response, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
 app.use(express.json({ limit: '50mb' }));
 
 // Lazy initializer for Google Gemini AI SDK with User-Agent telemetry
