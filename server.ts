@@ -20,6 +20,20 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+// Security: Disable Express fingerprinting header to prevent reconnaissance
+app.disable('x-powered-by');
+
+// Security: HTTP hardening headers middleware
+// Note: SAMEORIGIN is deliberately used instead of DENY because preview templates and mini-apps embed in iframes on the same origin
+app.use((_req, res, next) => {
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-XSS-Protection', '0');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  next();
+});
+
 app.use(express.json({ limit: '50mb' }));
 
 // Lazy initializer for Google Gemini AI SDK with User-Agent telemetry
