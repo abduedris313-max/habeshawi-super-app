@@ -20,6 +20,24 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+// Security hardening: disable Express fingerprinting
+app.disable('x-powered-by');
+
+// Security headers middleware (defense in depth)
+app.use((_req, res, next) => {
+  // Prevent clickjacking while allowing same-origin iframe preview/templates
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  // Prevent MIME sniffing
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  // Restrict referrer leakage on cross-origin requests
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  // Allow Firebase / Google Auth popups while isolating cross-origin contexts
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  // Restrict unused powerful browser capabilities
+  res.setHeader('Permissions-Policy', 'camera=(), geolocation=(), payment=()');
+  next();
+});
+
 app.use(express.json({ limit: '50mb' }));
 
 // Lazy initializer for Google Gemini AI SDK with User-Agent telemetry
